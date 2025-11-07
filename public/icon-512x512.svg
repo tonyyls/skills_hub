@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景橙色矩形 -->
+  <rect width="512" height="512" fill="#FF6A3A" rx="64"/>
+  
+  <!-- 小鸡头部（白色圆形） -->
+  <circle cx="256" cy="277" r="149" fill="white" stroke="#2D3748" stroke-width="10"/>
+  
+  <!-- 鸡冠（红色心形） -->
+  <path d="M256 107 C235 85, 192 85, 192 128 C192 149, 213 171, 256 192 C299 171, 320 149, 320 128 C320 85, 277 85, 256 107 Z" 
+        fill="#E53E3E" stroke="#2D3748" stroke-width="10"/>
+  <!-- 鸡冠高光 -->
+  <ellipse cx="245" cy="120" rx="16" ry="24" fill="white" opacity="0.7"/>
+  
+  <!-- 左眼 -->
+  <circle cx="213" cy="235" r="32" fill="white" stroke="#2D3748" stroke-width="6"/>
+  <circle cx="213" cy="235" r="13" fill="#2D3748"/>
+  
+  <!-- 右眼 -->
+  <circle cx="299" cy="235" r="32" fill="white" stroke="#2D3748" stroke-width="6"/>
+  <circle cx="299" cy="235" r="13" fill="#2D3748"/>
+  
+  <!-- 嘴巴（黄色三角形） -->
+  <path d="M256 288 L235 331 L277 331 Z" fill="#F6E05E" stroke="#2D3748" stroke-width="6"/>
+  
+  <!-- 左翅膀 -->
+  <ellipse cx="149" cy="299" rx="32" ry="48" fill="white" stroke="#2D3748" stroke-width="6"/>
+  
+  <!-- 右翅膀 -->
+  <ellipse cx="363" cy="299" rx="32" ry="48" fill="white" stroke="#2D3748" stroke-width="6"/>
+</svg>

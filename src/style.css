@@ -1,0 +1,188 @@
+/* 使用本地字体包，移除Google Fonts以避免超时 */
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+@import '@fontsource/inter/900.css';
+@import '@fontsource/jetbrains-mono/300.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica,
+    Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* 主题配色变量（橙白） */
+  --brand-orange-start: #FF6A3A;
+  --brand-orange-end: #FF7A45;
+  --warm-bg: #F7F3EF;
+  --warm-surface: #FFFFFF;
+  --warm-border: #E5E5E5;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+}
+
+/* 全局现代化样式 */
+body {
+  background: var(--warm-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* 玻璃态基础组件 */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 霓虹效果 */
+.neon {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+.neon-border {
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.5), 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+/* 渐变文字（橙色主题） */
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-orange-start), var(--brand-orange-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 现代化滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EFE8E0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--brand-orange-start), var(--brand-orange-end));
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--brand-orange-end), #ff8a55);
+}
+
+/* Firefox 滚动条颜色 */
+* {
+  scrollbar-color: var(--brand-orange-end) #EFE8E0;
+  scrollbar-width: thin;
+}
+
+/* 现代化选择效果 */
+::selection {
+  background: rgba(255, 122, 69, 0.25);
+  color: #ffffff;
+}
+
+/* 输入框现代化样式 */
+input, textarea, select {
+  background: var(--warm-surface);
+  border: 1px solid var(--warm-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--brand-orange-end);
+  box-shadow: 0 0 0 3px rgba(255, 106, 58, 0.15);
+}
+
+/* 按钮现代化样式 */
+.btn-modern {
+  background: linear-gradient(135deg, var(--brand-orange-start), var(--brand-orange-end));
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 122, 69, 0.25);
+}
+
+.btn-modern:active {
+  transform: translateY(0);
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* 霓虹阴影效果 */
+.shadow-neon {
+  box-shadow: 0 0 20px rgba(255, 122, 69, 0.25), 0 0 40px rgba(255, 106, 58, 0.15);
+}
+
+/* 动画效果 */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 15s ease infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "u-0001",
+    "username": "alice",
+    "email": "alice@example.com",
+    "password": "alice123",
+    "role": "admin",
+    "is_active": true,
+    "last_login_at": "2025-11-06T10:00:00Z",
+    "created_at": "2025-11-01T09:00:00Z",
+    "updated_at": "2025-11-06T10:00:00Z"
+  },
+  {
+    "id": "u-0002",
+    "username": "bob",
+    "email": "bob@example.com",
+    "password": "bob123",
+    "role": "super_admin",
+    "is_active": true,
+    "last_login_at": "2025-11-06T11:00:00Z",
+    "created_at": "2025-11-01T09:10:00Z",
+    "updated_at": "2025-11-06T11:00:00Z"
+  },
+  {
+    "id": "u-0003",
+    "username": "charlie",
+    "email": "charlie@example.com",
+    "password": "charlie123",
+    "role": "admin",
+    "is_active": false,
+    "last_login_at": null,
+    "created_at": "2025-11-02T08:30:00Z",
+    "updated_at": "2025-11-02T08:30:00Z"
+  },
+  {
+    "id": "u-0004",
+    "username": "diana",
+    "email": "diana@example.com",
+    "password": "diana123",
+    "role": "admin",
+    "is_active": true,
+    "last_login_at": "2025-11-05T15:20:00Z",
+    "created_at": "2025-11-03T07:00:00Z",
+    "updated_at": "2025-11-05T15:20:00Z"
+  },
+  {
+    "id": "u-0005",
+    "username": "eric",
+    "email": "eric@example.com",
+    "password": "eric123",
+    "role": "super_admin",
+    "is_active": true,
+    "last_login_at": "2025-11-06T12:10:00Z",
+    "created_at": "2025-11-04T06:30:00Z",
+    "updated_at": "2025-11-06T12:10:00Z"
+  },
+  {
+    "id": "u-0006",
+    "username": "fiona",
+    "email": "fiona@example.com",
+    "password": "fiona123",
+    "role": "admin",
+    "is_active": true,
+    "last_login_at": null,
+    "created_at": "2025-11-04T07:45:00Z",
+    "updated_at": "2025-11-04T07:45:00Z"
+  },
+  {
+    "id": "u-0007",
+    "username": "george",
+    "email": "george@example.com",
+    "password": "george123",
+    "role": "admin",
+    "is_active": false,
+    "last_login_at": null,
+    "created_at": "2025-11-04T08:00:00Z",
+    "updated_at": "2025-11-04T08:00:00Z"
+  },
+  {
+    "id": "u-0008",
+    "username": "helen",
+    "email": "helen@example.com",
+    "password": "helen123",
+    "role": "super_admin",
+    "is_active": true,
+    "last_login_at": "2025-11-06T13:00:00Z",
+    "created_at": "2025-11-05T09:00:00Z",
+    "updated_at": "2025-11-06T13:00:00Z"
+  }
+]

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- 背景：与 logo.png 保持橙色主题，圆角适配小尺寸显示 -->
+  <rect width="32" height="32" rx="6" fill="#FF6A3A"/>
+
+  <!-- 头部：简化为白色圆形，减小描边以适配 32px -->
+  <circle cx="16" cy="17" r="9" fill="#FFFFFF" stroke="#2D3748" stroke-width="1"/>
+
+  <!-- 鸡冠：精简曲线形状，保证在小尺寸仍可辨识 -->
+  <path d="M16 8 C14.5 6.5 12 6.5 12 9.2 C12 10.8 13.4 12 16 13.5 C18.6 12 20 10.8 20 9.2 C20 6.5 17.5 6.5 16 8 Z"
+        fill="#E53E3E" stroke="#2D3748" stroke-width="1"/>
+
+  <!-- 眼睛：小尺寸的双层圆，保持可读性 -->
+  <circle cx="13" cy="15" r="1.8" fill="#FFFFFF" stroke="#2D3748" stroke-width="0.8"/>
+  <circle cx="13" cy="15" r="0.7" fill="#2D3748"/>
+  <circle cx="19" cy="15" r="1.8" fill="#FFFFFF" stroke="#2D3748" stroke-width="0.8"/>
+  <circle cx="19" cy="15" r="0.7" fill="#2D3748"/>
+
+  <!-- 嘴巴：简化三角形，居中略下 -->
+  <path d="M16 18.5 L14.3 21.5 L17.7 21.5 Z" fill="#F6E05E" stroke="#2D3748" stroke-width="0.8"/>
+
+  <!-- 去除翅膀以减少细节，提高 32px 下的识别度 -->
+</svg>
