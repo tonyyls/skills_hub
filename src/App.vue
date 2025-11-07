@@ -31,7 +31,8 @@
             <h4 class="text-md font-medium mb-4 text-[#333]">用户中心</h4>
             <ul class="space-y-2 text-sm">
               <li><router-link to="/profile" class="text-[#666] hover:text-[#FF7A45]">个人资料</router-link></li>
-              <li><router-link to="/publish" class="text-[#666] hover:text-[#FF7A45]">发布技能</router-link></li>
+              <!-- 发布技能入口关闭，仅管理员后台发布 -->
+              <li><router-link to="/admin" class="text-[#666] hover:text-[#FF7A45]">管理后台</router-link></li>
             </ul>
           </div>
           <div>

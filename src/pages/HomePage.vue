@@ -50,13 +50,15 @@
               <span>GitHub 登录</span>
             </button>
             
+            <!-- 发布技能入口已关闭：仅管理员后台发布 -->
+            <!-- 管理后台入口：仅管理员登录可见 -->
             <router-link
-              v-else
-              to="/publish"
+              v-else-if="authStore.adminUser"
+              to="/admin"
               class="group relative inline-flex items-center justify-center px-8 py-4 bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-xl font-semibold text-white hover:bg-green-500/30 transition-all duration-300"
             >
               <Plus class="w-5 h-5 mr-2"/>
-              <span>发布技能</span>
+              <span>进入管理后台</span>
             </router-link>
           </div>
           

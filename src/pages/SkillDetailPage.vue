@@ -28,7 +28,7 @@
     </div>
     
     <!-- 技能详情 -->
-    <div v-else-if="skill" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div v-else-if="skill" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- 返回按钮 -->
       <div class="mb-6">
         <button
@@ -43,10 +43,10 @@
       <!-- 主要内容 -->
       <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <!-- 头部信息 -->
-        <div class="p-6 border-b border-gray-200">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-            <div class="flex-1">
-              <div class="flex items-center space-x-3 mb-2">
+        <div class="p-6 lg:p-8 border-b border-gray-200">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
+            <div class="flex-1 lg:pr-8">
+              <div class="flex items-center space-x-3 mb-3">
                 <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
                   {{ skill.category }}
                 </span>
@@ -55,60 +55,60 @@
                   <span class="text-sm text-gray-600">{{ skill.rating }}</span>
                 </div>
               </div>
-              <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ skill.title }}</h1>
-              <p class="text-gray-600">{{ skill.description }}</p>
+              <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">{{ skill.title }}</h1>
+              <p class="text-gray-600 text-lg">{{ skill.description }}</p>
             </div>
             
             <!-- 下载按钮 -->
-            <div class="mt-4 md:mt-0 md:ml-6">
+            <div class="mt-6 lg:mt-0 lg:ml-8 flex-shrink-0">
               <button
                 @click="handleDownload"
                 :disabled="isDownloading"
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
+                class="bg-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2 text-lg"
               >
-                <Download class="w-5 h-5" />
+                <Download class="w-6 h-6" />
                 <span>{{ isDownloading ? '下载中...' : '下载资源' }}</span>
               </button>
-              <p class="text-xs text-gray-500 mt-2 text-center">{{ skill.downloads }} 次下载</p>
+              <p class="text-sm text-gray-500 mt-3 text-center">{{ skill.downloads }} 次下载</p>
             </div>
           </div>
           
           <!-- 作者信息 -->
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-4">
               <img
                 :src="skill.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.author.name)}&background=random`"
                 :alt="skill.author.name"
-                class="w-10 h-10 rounded-full"
+                class="w-12 h-12 rounded-full"
               />
               <div>
-                <p class="font-medium text-gray-900">{{ skill.author.name }}</p>
+                <p class="font-medium text-gray-900 text-lg">{{ skill.author.name }}</p>
                 <p class="text-sm text-gray-500">{{ formatDate(skill.createdAt) }}</p>
               </div>
             </div>
             
-            <div class="flex items-center space-x-4 text-sm text-gray-600">
-              <span class="flex items-center space-x-1">
-                <Download class="w-4 h-4" />
-                <span>{{ skill.downloads }}</span>
+            <div class="flex items-center space-x-6 text-gray-600">
+              <span class="flex items-center space-x-2">
+                <Download class="w-5 h-5" />
+                <span class="font-medium">{{ skill.downloads }}</span>
               </span>
-              <span class="flex items-center space-x-1">
-                <Star class="w-4 h-4" />
-                <span>{{ skill.rating }}</span>
+              <span class="flex items-center space-x-2">
+                <Star class="w-5 h-5 text-yellow-500" />
+                <span class="font-medium">{{ skill.rating }}</span>
               </span>
-              <span>{{ skill.fileSize }}</span>
+              <span class="font-medium">{{ skill.fileSize }}</span>
             </div>
           </div>
         </div>
         
         <!-- 标签 -->
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">标签</h3>
-          <div class="flex flex-wrap gap-2">
+        <div class="p-6 lg:p-8 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">标签</h3>
+          <div class="flex flex-wrap gap-3">
             <span
               v-for="tag in skill.tags"
               :key="tag"
-              class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+              class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium"
             >
               {{ tag }}
             </span>
@@ -116,45 +116,45 @@
         </div>
         
         <!-- 详细描述 -->
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">详细介绍</h3>
-          <div class="prose max-w-none text-gray-700">
-            <p>{{ skill.description }}</p>
-            <div v-if="skill.content" class="mt-4">
-              <h4 class="text-md font-semibold text-gray-900 mb-2">内容说明</h4>
-              <p>{{ skill.content }}</p>
+        <div class="p-6 lg:p-8 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">详细介绍</h3>
+          <div class="prose prose-lg max-w-none text-gray-700">
+            <p class="text-lg leading-relaxed">{{ skill.description }}</p>
+            <div v-if="skill.content" class="mt-6">
+              <h4 class="text-lg font-semibold text-gray-900 mb-3">内容说明</h4>
+              <p class="text-lg leading-relaxed">{{ skill.content }}</p>
             </div>
           </div>
         </div>
         
         <!-- 文件信息 -->
-        <div class="p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">文件信息</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex justify-between">
-              <span class="text-gray-600">文件大小:</span>
-              <span class="font-medium">{{ skill.fileSize }}</span>
+        <div class="p-6 lg:p-8">
+          <h3 class="text-xl font-semibold text-gray-900 mb-6">文件信息</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <span class="text-gray-600 text-sm block mb-1">文件大小</span>
+              <span class="font-semibold text-lg">{{ skill.fileSize }}</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">下载次数:</span>
-              <span class="font-medium">{{ skill.downloads }}</span>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <span class="text-gray-600 text-sm block mb-1">下载次数</span>
+              <span class="font-semibold text-lg">{{ skill.downloads }}</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">评分:</span>
-              <span class="font-medium">{{ skill.rating }}/5.0</span>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <span class="text-gray-600 text-sm block mb-1">评分</span>
+              <span class="font-semibold text-lg">{{ skill.rating }}/5.0</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">发布日期:</span>
-              <span class="font-medium">{{ formatDate(skill.createdAt) }}</span>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <span class="text-gray-600 text-sm block mb-1">发布日期</span>
+              <span class="font-semibold text-lg">{{ formatDate(skill.createdAt) }}</span>
             </div>
           </div>
         </div>
       </div>
       
       <!-- 相关推荐 -->
-      <div v-if="relatedSkills.length > 0" class="mt-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">相关推荐</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-if="relatedSkills.length > 0" class="mt-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">相关推荐</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <SkillCard
             v-for="relatedSkill in relatedSkills"
             :key="relatedSkill.id"

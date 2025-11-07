@@ -38,9 +38,9 @@
             技能
           </router-link>
           <router-link 
-            to="/tutorials" 
+            to="/tutorial" 
             class="nav-link text-[#333] hover:text-[#FF7A45]"
-            :class="{ 'active': $route.path === '/tutorials' }"
+            :class="{ 'active': $route.path.startsWith('/tutorial') }"
           >
             教程
           </router-link>
@@ -95,10 +95,11 @@
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                 @click="showUserMenu = false"
               >
-                我的技能
+                我的收藏
               </router-link>
-              <hr class="my-2 border-gray-200" />
+              <!-- 管理后台入口：仅管理员可见 -->
               <router-link
+                v-if="isAdminUser"
                 to="/admin"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                 @click="showUserMenu = false"
@@ -192,7 +193,7 @@
             技能
           </router-link>
           <router-link 
-            to="/tutorials" 
+            to="/tutorial" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
@@ -215,7 +216,9 @@
               个人资料
             </router-link>
             <!-- 移除移动端发布技能入口：根据需求暂不展示 -->
+            <!-- 管理后台入口：仅管理员可见 -->
             <router-link
+              v-if="isAdminUser"
               to="/admin"
               class="mobile-nav-link"
               @click="showMobileMenu = false"
@@ -355,6 +358,12 @@ const showLogoutConfirm = ref(false)
  * 当前是否已登录（普通用户或管理员）
  */
 const isLoggedIn = computed<boolean>(() => !!authStore.user || !!authStore.adminUser)
+
+/**
+ * 当前是否为管理员登录用户
+ * 仅当 `authStore.adminUser` 存在时为 true
+ */
+const isAdminUser = computed<boolean>(() => !!authStore.adminUser)
 
 /**
  * 当前展示的用户名或邮箱。

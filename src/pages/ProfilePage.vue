@@ -97,6 +97,16 @@
             </p>
           </div>
         </div>
+
+        <!-- 快捷入口：我的收藏 -->
+        <div class="mt-6">
+          <router-link
+            to="/profile/skills"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
+          >
+            查看我的收藏
+          </router-link>
+        </div>
       </div>
 
       <!-- 错误提示 -->

@@ -55,9 +55,10 @@ const routes = [
     component: PublishPage,
     meta: {
       title: '发布技能 - Skills Hub',
-      requiresAuth: true
+      requiresAdmin: true
     }
   },
+  // 发布页入口已关闭：仅允许管理员后台创建技能
   {
     path: '/about',
     name: 'About',
@@ -140,6 +141,15 @@ const routes = [
     component: () => import('@/pages/TutorialPage.vue'),
     meta: {
       title: '使用教程 - Skills Hub'
+    }
+  },
+  {
+    path: '/profile/skills',
+    name: 'ProfileSkills',
+    component: () => import('@/pages/ProfileSkillsPage.vue'),
+    meta: {
+      title: '我的收藏 - Skills Hub',
+      requiresAuth: true
     }
   },
   {

@@ -6,14 +6,14 @@
   <div class="min-h-screen bg-gray-50">
     <!-- 页面头部 -->
     <div class="bg-white shadow-sm">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <h1 class="text-2xl font-bold text-gray-900">发布技能</h1>
         <p class="text-gray-600 mt-1">分享你的技能，帮助更多人学习和成长</p>
       </div>
     </div>
     
     <!-- 主要内容 -->
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- 未登录提示 -->
       <div v-if="!authStore.isAuthenticated" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
         <div class="flex items-center space-x-3">
@@ -31,45 +31,48 @@
         </button>
       </div>
       
-      <!-- 发布表单 -->
-      <div v-else class="bg-white rounded-lg shadow-sm p-6">
+      <!-- 发布表单：限制卡片宽度保证可读性，容器对齐仍与顶部一致 -->
+      <div v-else class="bg-white rounded-lg shadow-sm p-6 max-w-4xl mx-auto">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- 技能标题 -->
-          <div>
-            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-              技能标题 *
-            </label>
-            <input
-              id="title"
-              v-model="form.title"
-              type="text"
-              required
-              placeholder="输入技能标题"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <p class="mt-1 text-sm text-gray-500">简洁明了地描述你的技能</p>
-          </div>
-          
-          <!-- 技能分类 -->
-          <div>
-            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
-              技能分类 *
-            </label>
-            <select
-              id="category"
-              v-model="form.category"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">选择分类</option>
-              <option
-                v-for="category in categories"
-                :key="category.id"
-                :value="category.name"
+          <!-- 基本信息区域 -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 技能标题 -->
+            <div>
+              <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                技能标题 *
+              </label>
+              <input
+                id="title"
+                v-model="form.title"
+                type="text"
+                required
+                placeholder="输入技能标题"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p class="mt-1 text-sm text-gray-500">简洁明了地描述你的技能</p>
+            </div>
+            
+            <!-- 技能分类 -->
+            <div>
+              <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
+                技能分类 *
+              </label>
+              <select
+                id="category"
+                v-model="form.category"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {{ category.name }}
-              </option>
-            </select>
+                <option value="">选择分类</option>
+                <option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :value="category.name"
+                >
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
           </div>
           
           <!-- 技能描述 -->
@@ -139,11 +142,11 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">
               技能文件 *
             </label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors duration-200">
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors duration-200 bg-gray-50 hover:bg-gray-100">
               <div v-if="!selectedFile">
-                <Upload class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p class="text-gray-600 mb-2">点击选择文件或拖拽文件到此处</p>
-                <p class="text-sm text-gray-500">支持 ZIP, PDF, DOC, DOCX 格式，最大 10MB</p>
+                <Upload class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p class="text-gray-600 mb-2 text-lg font-medium">点击选择文件或拖拽文件到此处</p>
+                <p class="text-sm text-gray-500 mb-4">支持 ZIP, PDF, DOC, DOCX 格式，最大 10MB</p>
                 <input
                   ref="fileInput"
                   @change="handleFileSelect"
@@ -154,19 +157,19 @@
                 <button
                   @click="selectFile"
                   type="button"
-                  class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                 >
                   选择文件
                 </button>
               </div>
-              <div v-else class="space-y-2">
-                <FileText class="w-12 h-12 text-blue-600 mx-auto mb-2" />
-                <p class="font-medium text-gray-900">{{ selectedFile.name }}</p>
+              <div v-else class="space-y-3">
+                <FileText class="w-16 h-16 text-blue-600 mx-auto mb-3" />
+                <p class="font-medium text-gray-900 text-lg">{{ selectedFile.name }}</p>
                 <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
                 <button
                   @click="removeFile"
                   type="button"
-                  class="text-red-600 hover:text-red-700 text-sm"
+                  class="text-red-600 hover:text-red-700 text-sm font-medium"
                 >
                   移除文件
                 </button>
@@ -175,18 +178,18 @@
           </div>
           
           <!-- 提交按钮 -->
-          <div class="flex justify-end space-x-4">
+          <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
             <button
               @click="resetForm"
               type="button"
-              class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+              class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
             >
               重置
             </button>
             <button
               type="submit"
               :disabled="isSubmitting || !isFormValid"
-              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
             >
               {{ isSubmitting ? '发布中...' : '发布技能' }}
             </button>
@@ -228,7 +231,9 @@ const form = ref({
 const fileInput = ref<HTMLInputElement>()
 
 /**
- * 表单验证
+ * 检查发布表单是否满足提交条件。
+ *
+ * @returns {boolean} 当标题、分类、描述均有效且选择了文件时返回 true。
  */
 const isFormValid = computed(() => {
   return (
@@ -240,7 +245,9 @@ const isFormValid = computed(() => {
 })
 
 /**
- * 加载分类数据
+ * 从技能仓库加载可用分类列表并写入本地状态。
+ *
+ * @returns {Promise<void>} 完成后无返回值。
  */
 const loadCategories = async () => {
   await skillsStore.fetchCategories()
@@ -248,14 +255,21 @@ const loadCategories = async () => {
 }
 
 /**
- * 选择文件
+ * 触发隐藏的文件选择输入。
+ *
+ * @returns {void}
  */
 const selectFile = () => {
   fileInput.value?.click()
 }
 
 /**
- * 处理文件选择
+ * 处理文件选择事件并进行类型与大小校验。
+ *
+ * 支持类型：ZIP、PDF、DOC、DOCX；大小上限：10MB。
+ *
+ * @param {Event} event 原生文件选择事件。
+ * @returns {void}
  */
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -281,7 +295,9 @@ const handleFileSelect = (event: Event) => {
 }
 
 /**
- * 移除文件
+ * 移除当前已选择的文件并重置输入框。
+ *
+ * @returns {void}
  */
 const removeFile = () => {
   selectedFile.value = null
@@ -291,7 +307,10 @@ const removeFile = () => {
 }
 
 /**
- * 格式化文件大小
+ * 将字节数格式化为人类可读的字符串（Bytes/KB/MB/GB）。
+ *
+ * @param {number} bytes 字节数。
+ * @returns {string} 例如 "10.24 MB"。
  */
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 Bytes'
@@ -302,7 +321,9 @@ const formatFileSize = (bytes: number) => {
 }
 
 /**
- * 添加标签
+ * 将当前输入的标签添加到表单标签列表中。
+ *
+ * @returns {void}
  */
 const addTag = () => {
   const tag = tagInput.value.trim()
@@ -313,14 +334,19 @@ const addTag = () => {
 }
 
 /**
- * 移除标签
+ * 根据索引移除指定标签。
+ *
+ * @param {number} index 标签索引。
+ * @returns {void}
  */
 const removeTag = (index: number) => {
   form.value.tags.splice(index, 1)
 }
 
 /**
- * 重置表单
+ * 重置表单字段与选择的文件及标签输入。
+ *
+ * @returns {void}
  */
 const resetForm = () => {
   form.value = {
@@ -335,7 +361,12 @@ const resetForm = () => {
 }
 
 /**
- * 提交表单
+ * 提交发布表单：校验、上传文件、写入数据库并跳转。
+ *
+ * - 文件存储：`supabase.storage.from('skills').upload`
+ * - 数据写入：`supabase.from('skills').insert`
+ *
+ * @returns {Promise<void>} 异步提交，无返回值。
  */
 const handleSubmit = async () => {
   if (!isFormValid.value || isSubmitting.value) return
