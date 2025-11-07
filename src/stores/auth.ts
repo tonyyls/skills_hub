@@ -44,12 +44,21 @@ export const useAuthStore = defineStore('auth', () => {
       if (sessionError) throw sessionError
       
       if (session?.user) {
+        /**
+         * 统一用户名优先级：GitHub login > metadata.username > 邮箱前缀。
+         * - Supabase GitHub OAuth 通常在 `user_metadata` 提供 `login` 或 `user_name`。
+         * - 若均不存在，则回退到邮箱前缀，确保右上角不显示邮箱前缀而是更具辨识度的账号。
+         */
+        const meta = session.user.user_metadata || {}
+        const login = meta.login || meta.user_name || meta.preferred_username || meta.username
+        const derivedUsername = login || (session.user.email?.split('@')[0] || 'Unknown')
+
         const userData: User = {
           id: session.user.id,
-          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Unknown',
+          username: derivedUsername,
           email: session.user.email || '',
-          avatar_url: session.user.user_metadata?.avatar_url || '',
-          github_url: session.user.user_metadata?.github_url || '',
+          avatar_url: meta.avatar_url || '',
+          github_url: meta.github_url || '',
           // GitHub 登录默认角色 normal
           role: 'normal',
           created_at: session.user.created_at
@@ -158,12 +167,19 @@ export const useAuthStore = defineStore('auth', () => {
       // 监听会话变化，确保页面切换或刷新后状态保持
       supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
+          /**
+           * 统一用户名优先级：GitHub login > metadata.username > 邮箱前缀。
+           */
+          const meta = session.user.user_metadata || {}
+          const login = meta.login || meta.user_name || meta.preferred_username || meta.username
+          const derivedUsername = login || (session.user.email?.split('@')[0] || 'Unknown')
+
           const userData: User = {
             id: session.user.id,
-            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Unknown',
+            username: derivedUsername,
             email: session.user.email || '',
-            avatar_url: session.user.user_metadata?.avatar_url || '',
-            github_url: session.user.user_metadata?.github_url || '',
+            avatar_url: meta.avatar_url || '',
+            github_url: meta.github_url || '',
             role: 'normal',
             created_at: session.user.created_at
           }

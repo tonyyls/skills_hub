@@ -64,6 +64,20 @@ export interface User {
 }
 
 /**
+ * 用户资料统一类型
+ * 将管理员与普通用户的字段对齐到前端使用的显示模型。
+ */
+export interface UserProfile {
+  id: string
+  name: string
+  email?: string
+  avatar?: string
+  avatar_url?: string
+  bio?: string
+  createdAt: string
+}
+
+/**
  * 技能类型定义
  */
 export interface Skill {

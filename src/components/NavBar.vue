@@ -116,14 +116,6 @@
 
           <!-- 语言切换 + 登录文字链接（未登录时显示） -->
           <div v-else class="flex items-center space-x-2">
-            <!-- 管理员登录链接 -->
-            <router-link
-              to="/admin/login"
-              class="px-2 py-2 text-[#333] hover:text-[#FF7A45] font-medium"
-            >
-              管理员登录
-            </router-link>
-            
             <!-- 语言下拉菜单 -->
             <div class="relative language-menu-container">
               <button
@@ -365,9 +357,18 @@ const showLogoutConfirm = ref(false)
 const isLoggedIn = computed<boolean>(() => !!authStore.user || !!authStore.adminUser)
 
 /**
- * 当前展示的用户名（优先管理员）
+ * 当前展示的用户名或邮箱。
+ * - 优先显示管理员用户名。
+ * - 普通用户：若 `username` 与邮箱前缀不同，则显示 `username`；否则显示完整邮箱，避免仅显示邮箱前缀。
  */
-const displayUsername = computed<string>(() => authStore.adminUser?.username || authStore.user?.username || '未登录')
+const displayUsername = computed<string>(() => {
+  if (authStore.adminUser?.username) return authStore.adminUser.username
+  const u = authStore.user
+  if (!u) return '未登录'
+  const emailPrefix = u.email ? u.email.split('@')[0] : ''
+  if (u.username && u.username !== emailPrefix) return u.username
+  return u.email || '未登录'
+})
 
 /**
  * 当前展示的头像URL（普通用户有头像，管理员无头像则回退空字符串）

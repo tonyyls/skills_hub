@@ -27,9 +27,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* 主题配色变量（橙白） */
-  --brand-orange-start: #FF6A3A;
-  --brand-orange-end: #FF7A45;
+  /* 主题配色变量（更浅，更低饱和度） */
+  --brand-orange-start: #FED7AA; /* 接近 orange-200 的浅橙 */
+  --brand-orange-end: #FECDB0;   /* 柔和过渡的浅橙 */
   --warm-bg: #F7F3EF;
   --warm-surface: #FFFFFF;
   --warm-border: #E5E5E5;

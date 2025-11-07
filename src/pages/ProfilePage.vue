@@ -1,318 +1,296 @@
-/**
- * 用户Profile页面
- * 展示用户个人信息和发布的技能
- */
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- 加载状态 -->
-    <div v-if="isLoading" class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">加载中...</p>
-      </div>
+    <!-- 封面背景（橙白主题，与站点统一） -->
+    <div class="relative">
+      <div
+        class="h-40 md:h-56"
+        style="background: linear-gradient(135deg, var(--brand-orange-start), var(--brand-orange-end));"
+      ></div>
+      <!-- 向下白色渐隐，降低视觉重量 -->
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/70"></div>
     </div>
-    
-    <!-- 错误状态 -->
-    <div v-else-if="error" class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <AlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">加载失败</h2>
-        <p class="text-gray-600 mb-4">{{ error }}</p>
-        <button
-          @click="loadProfile"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-        >
-          重试
-        </button>
-      </div>
-    </div>
-    
-    <!-- Profile内容 -->
-    <div v-else-if="profile" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Profile头部 -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-          <!-- 用户信息 -->
-          <div class="flex items-center space-x-4 mb-4 md:mb-0">
-            <img
-              :src="profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=random`"
-              :alt="profile.name"
-              class="w-20 h-20 rounded-full"
-            />
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">{{ profile.name }}</h1>
-              <p class="text-gray-600">{{ profile.email }}</p>
-              <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                <span>加入于 {{ formatDate(profile.createdAt) }}</span>
-                <span>•</span>
-                <span>{{ userSkills.length }} 个技能</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 操作按钮 -->
-          <div class="flex space-x-3">
-            <button
-              @click="editProfile"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            >
-              编辑资料
-            </button>
-            <button
-              @click="authStore.signOut()"
-              class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-            >
-              退出登录
-            </button>
-          </div>
-        </div>
-        
-        <!-- 个人简介 -->
-        <div v-if="profile.bio" class="mt-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">个人简介</h3>
-          <p class="text-gray-700">{{ profile.bio }}</p>
-        </div>
-      </div>
-      
-      <!-- 统计信息 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow-sm p-6 text-center">
-          <div class="text-3xl font-bold text-blue-600 mb-2">{{ userSkills.length }}</div>
-          <div class="text-gray-600">发布技能</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6 text-center">
-          <div class="text-3xl font-bold text-green-600 mb-2">{{ totalDownloads }}</div>
-          <div class="text-gray-600">总下载数</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6 text-center">
-          <div class="text-3xl font-bold text-yellow-600 mb-2">{{ averageRating }}</div>
-          <div class="text-gray-600">平均评分</div>
-        </div>
-      </div>
-      
-      <!-- 技能列表 -->
-      <div class="bg-white rounded-lg shadow-sm">
-        <div class="p-6 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">我的技能</h2>
-        </div>
-        
-        <div v-if="userSkills.length === 0" class="p-12 text-center">
-          <Code class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 mb-2">还没有发布技能</h3>
-          <p class="text-gray-600 mb-4">开始分享你的第一个技能吧！</p>
-          <router-link
-            to="/publish"
-            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            发布技能
-          </router-link>
-        </div>
-        
-        <div v-else class="divide-y divide-gray-200">
-          <div
-            v-for="skill in userSkills"
-            :key="skill.id"
-            class="p-6 hover:bg-gray-50 transition-colors duration-200"
-          >
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center space-x-3 mb-2">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ skill.title }}</h3>
-                  <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                    {{ skill.category }}
-                  </span>
-                </div>
-                <p class="text-gray-600 mb-3">{{ skill.description }}</p>
-                <div class="flex items-center space-x-4 text-sm text-gray-500">
-                  <span class="flex items-center space-x-1">
-                    <Download class="w-4 h-4" />
-                    <span>{{ skill.downloads }}</span>
-                  </span>
-                  <span class="flex items-center space-x-1">
-                    <Star class="w-4 h-4" />
-                    <span>{{ skill.rating }}</span>
-                  </span>
-                  <span>{{ formatDate(skill.createdAt) }}</span>
-                </div>
-              </div>
-              
-              <div class="flex space-x-2 ml-4">
-                <router-link
-                  :to="`/skills/${skill.id}`"
-                  class="text-blue-600 hover:text-blue-700 px-3 py-1 rounded text-sm"
-                >
-                  查看
-                </router-link>
-                <button
-                  @click="editSkill(skill)"
-                  class="text-gray-600 hover:text-gray-700 px-3 py-1 rounded text-sm"
-                >
-                  编辑
-                </button>
-                <button
-                  @click="deleteSkill(skill)"
-                  class="text-red-600 hover:text-red-700 px-3 py-1 rounded text-sm"
-                >
-                  删除
-                </button>
-              </div>
+
+    <div class="max-w-4xl mx-auto px-4 -mt-16 md:-mt-20">
+      <!-- 加载中骨架屏 -->
+      <div v-if="loading" class="bg-white/90 backdrop-blur rounded-xl shadow p-6 md:p-8">
+        <!-- 顶部头像与基本信息骨架 -->
+        <div class="flex flex-col md:flex-row md:items-center gap-6 animate-pulse">
+          <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gray-200"></div>
+          <div class="flex-1 space-y-3">
+            <div class="h-6 w-40 bg-gray-200 rounded"></div>
+            <div class="h-4 w-64 bg-gray-200 rounded"></div>
+            <div class="flex items-center gap-3 mt-2">
+              <div class="h-4 w-28 bg-gray-200 rounded"></div>
+              <div class="h-4 w-20 bg-gray-200 rounded"></div>
             </div>
           </div>
         </div>
+
+        <!-- 统计信息骨架 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          <div class="rounded-lg border border-gray-200 p-4">
+            <div class="h-4 w-24 bg-gray-200 rounded mb-3 animate-pulse"></div>
+            <div class="h-6 w-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-4">
+            <div class="h-4 w-24 bg-gray-200 rounded mb-3 animate-pulse"></div>
+            <div class="h-6 w-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-4">
+            <div class="h-4 w-24 bg-gray-200 rounded mb-3 animate-pulse"></div>
+            <div class="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <!-- 未登录状态 -->
-    <div v-else class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <User class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">请先登录</h2>
-        <p class="text-gray-600 mb-4">登录后查看个人资料</p>
-        <button
-          @click="authStore.signInWithGitHub()"
-          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-        >
-          GitHub 登录
-        </button>
+
+      <!-- 用户资料卡片 -->
+      <div v-else-if="profile" class="bg-white/90 backdrop-blur rounded-xl shadow-lg p-6 md:p-8">
+        <!-- 顶部头像与基本信息 -->
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+          <img
+            :src="avatarUrl"
+            class="w-28 h-28 md:w-32 md:h-32 rounded-full ring-4 ring-white shadow-lg object-cover"
+            alt="avatar"
+          />
+
+          <div class="flex-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ displayName }}</h1>
+            <p class="text-gray-600 mt-1">{{ bioText }}</p>
+            <div class="flex flex-wrap items-center gap-3 mt-3 text-sm">
+              <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-700 hover:text-blue-600">
+                <Mail class="w-4 h-4" />
+                <span>{{ profileEmail }}</span>
+              </a>
+              <!-- GitHub 链接：展示为用户名或域名，点击跳转 -->
+              <!-- GitHub 链接区域：有值则可点击，无值显示“暂无” -->
+              <div class="inline-flex items-center gap-1 text-gray-700">
+                <Github class="w-4 h-4" />
+                <a
+                  v-if="profileGithub"
+                  :href="normalizedGithubUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="hover:text-orange-600"
+                >
+                  {{ githubDisplayText }}
+                </a>
+                <span v-else class="text-gray-400">暂无</span>
+              </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
+            <p class="text-sm text-gray-600">发布技能</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.skillsCount }}</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
+            <p class="text-sm text-gray-600">总下载量</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.totalDownloads }}</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
+            <p class="text-sm text-gray-600">加入时间</p>
+            <p class="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
+              <CalendarDays class="w-5 h-5 text-gray-700" /> {{ memberSince }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-else class="bg-white/90 backdrop-blur rounded-xl shadow p-6 text-center text-red-600">
+        加载失败，请稍后重试
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { Code, Download, Star, AlertCircle, User } from 'lucide-vue-next'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useSkillsStore } from '@/stores/skills'
-import { supabase, type Skill, type UserProfile } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { Github, Mail, CalendarDays, PencilLine } from 'lucide-vue-next'
 
-const router = useRouter()
-const authStore = useAuthStore()
-const skillsStore = useSkillsStore()
+interface Profile {
+  username: string | null
+  avatar_url: string | null
+  bio: string | null
+  github_url: string | null
+}
 
-// 状态管理
-const profile = ref<UserProfile | null>(null)
-const userSkills = ref<Skill[]>([])
-const isLoading = ref(false)
-const error = ref('')
-
-// 计算属性
-const totalDownloads = computed(() => {
-  return userSkills.value.reduce((total, skill) => total + skill.downloads, 0)
-})
-
-const averageRating = computed(() => {
-  if (userSkills.value.length === 0) return '0.0'
-  const totalRating = userSkills.value.reduce((total, skill) => total + skill.rating, 0)
-  return (totalRating / userSkills.value.length).toFixed(1)
-})
+const auth = useAuthStore()
+const profile = ref<Profile | null>(null)
+const loading = ref(true)
+const stats = ref({ skillsCount: 0, totalDownloads: 0 })
 
 /**
- * 加载用户资料
+ * 加载个人资料。
+ * - 若为普通用户（Supabase 会话），从 `users` 表读取资料。
+ * - 若为管理员登录（本地 adminUser），用管理员信息填充基本资料。
+ * - 若两者皆无，则结束加载并显示错误区块。
+ * @returns {Promise<void>} 加载完成后更新 `profile` 与 `loading`。
  */
-const loadProfile = async () => {
-  if (!authStore.user) {
-    return
-  }
-  
-  isLoading.value = true
-  error.value = ''
-  
+const loadProfile = async (): Promise<void> => {
+  loading.value = true
   try {
-    // 获取用户资料
-    const { data: profileData, error: profileError } = await supabase
+    const userId = auth.user?.id
+    if (!userId) {
+      // 管理员登录时显示管理员的基本信息
+      if (auth.adminUser) {
+        profile.value = {
+          username: auth.adminUser.username,
+          avatar_url: null,
+          bio: null
+        }
+      }
+      return
+    }
+
+    const { data, error } = await supabase
       .from('users')
-      .select('*')
-      .eq('id', authStore.user.id)
+      .select('username, avatar_url, bio, github_url')
+      .eq('id', userId)
       .single()
-    
-    if (profileError) throw profileError
-    
-    profile.value = profileData
-    
-    // 获取用户发布的技能
-    const { data: skillsData, error: skillsError } = await supabase
-      .from('skills')
-      .select(`
-        *,
-        author:user_id (
-          id,
-          name,
-          avatar
-        )
-      `)
-      .eq('user_id', authStore.user.id)
-      .order('created_at', { ascending: false })
-    
-    if (skillsError) throw skillsError
-    
-    userSkills.value = skillsData.map(item => ({
-      ...item,
-      author: Array.isArray(item.author) ? item.author[0] : item.author
-    }))
-  } catch (err) {
-    error.value = '加载失败，请稍后重试'
-    console.error('Load profile error:', err)
+
+    if (error || !data) {
+      console.error('Load profile error:', error)
+      // 若查询不到记录，使用会话信息填充基础资料，避免页面空白
+      profile.value = {
+        username: auth.user?.username ?? null,
+        avatar_url: auth.user?.avatar_url ?? null,
+        bio: null,
+        github_url: auth.user?.github_url ?? null
+      }
+    } else {
+      profile.value = data
+    }
   } finally {
-    isLoading.value = false
+    loading.value = false
   }
 }
 
 /**
- * 编辑资料
+ * 加载统计信息：查询当前用户发布技能数量与总下载量。
+ * - 优先从 Supabase `skills` 表按 `user_id` 聚合。
+ * - 兼容字段名 `download_count` 与历史 `downloads`。
+ * @returns {Promise<void>} 更新 `stats`。
  */
-const editProfile = () => {
-  // 这里可以实现编辑资料的功能
-  alert('编辑资料功能开发中...')
-}
-
-/**
- * 编辑技能
- */
-const editSkill = (skill: Skill) => {
-  router.push(`/publish?skill=${skill.id}`)
-}
-
-/**
- * 删除技能
- */
-const deleteSkill = async (skill: Skill) => {
-  if (!confirm(`确定要删除技能 "${skill.title}" 吗？`)) {
-    return
-  }
-  
+const loadStats = async (): Promise<void> => {
+  stats.value = { skillsCount: 0, totalDownloads: 0 }
+  const userId = auth.user?.id
+  if (!userId) return
   try {
-    const { error } = await supabase
+    const { data, error, count } = await supabase
       .from('skills')
-      .delete()
-      .eq('id', skill.id)
-    
+      .select('id, download_count, downloads', { count: 'exact' })
+      .eq('user_id', userId)
+
     if (error) throw error
-    
-    // 重新加载数据
-    await loadProfile()
-    alert('技能已删除')
-  } catch (err) {
-    console.error('Delete skill error:', err)
-    alert('删除失败，请稍后重试')
+    const totalDownloads = (data || []).reduce((sum: number, item: any) => {
+      const d = typeof item.download_count === 'number' ? item.download_count : (item.downloads || 0)
+      return sum + d
+    }, 0)
+    stats.value = { skillsCount: count || (data?.length || 0), totalDownloads }
+  } catch (e) {
+    console.warn('加载统计失败：', e)
   }
 }
 
 /**
- * 格式化日期
+ * 计算显示名称。
+ * @returns {string} 显示的用户名或占位文本。
  */
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
+const displayName = computed(() => profile.value?.username || auth.user?.username || '未设置昵称')
+
+/**
+ * 计算头像 URL。
+ * @returns {string} 头像链接或占位图。
+ */
+const avatarUrl = computed(() => profile.value?.avatar_url || auth.user?.avatar_url || '/logo.png')
+
+/**
+ * 计算简介文本。
+ * @returns {string} 简介或占位文本。
+ */
+const bioText = computed(() => profile.value?.bio || '暂无简介')
+
+/**
+ * 邮箱与 GitHub 原始链接。
+ * @returns {string|null} 邮箱；GitHub 原始链接（可能为用户名或路径）。
+*/
+const profileEmail = computed(() => auth.user?.email || null)
+const profileGithub = computed(() => profile.value?.github_url || auth.user?.github_url || null)
+
+/**
+ * 规范化 GitHub 链接。
+ * - 支持直接填写用户名（如 `tonyyls`）或路径（如 `github.com/tonyyls`）。
+ * - 统一补全为 `https://github.com/<username>` 或 `https://...`。
+ * @returns {string|null} 可直接跳转的完整链接。
+ */
+const normalizedGithubUrl = computed(() => {
+  const raw = profileGithub.value?.trim()
+  if (!raw) return null
+  // 已包含协议
+  if (/^https?:\/\//i.test(raw)) return raw
+  // 以 github.com 开头的路径
+  if (/^github\.com\//i.test(raw)) return `https://${raw}`
+  // 纯用户名（字母数字、下划线、连字符）
+  if (/^[A-Za-z0-9_-]+$/i.test(raw)) return `https://github.com/${raw}`
+  // 其他情况，尽量补全协议
+  return `https://${raw}`
+})
+
+/**
+ * GitHub 展示文本。
+ * - 对 github.com 域名展示为 `github.com/<path>`；其他域名展示主机名。
+ * @returns {string} 显示给用户的简短地址。
+ */
+const githubDisplayText = computed(() => {
+  const url = normalizedGithubUrl.value
+  if (!url) return ''
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('github.com')) {
+      const path = u.pathname.replace(/^\//, '')
+      return path ? `github.com/${path}` : 'github.com'
+    }
+    return u.hostname
+  } catch {
+    return url
+  }
+})
+
+/**
+ * 成员加入时间格式化。
+ * @returns {string} 形如 YYYY/MM/DD HH:MM 的日期时间或原始字符串。
+ */
+const memberSince = computed(() => {
+  const ts = auth.user?.created_at || auth.adminUser?.created_at || ''
+  if (!ts) return '未知'
+  try {
+    return new Date(ts).toLocaleString('zh-CN')
+  } catch {
+    return ts
+  }
+})
+
+/**
+ * 原编辑资料功能暂时下线，后续可能重新启用。
+ * 保留 PencilLine 图标导入以便未来复用。
+ */
 
 onMounted(() => {
-  if (authStore.isAuthenticated) {
-    loadProfile()
-  }
+  void loadProfile()
+  void loadStats()
 })
+
+watch(
+  () => [auth.user, auth.adminUser],
+  () => {
+    void loadProfile()
+    void loadStats()
+  }
+)
 </script>

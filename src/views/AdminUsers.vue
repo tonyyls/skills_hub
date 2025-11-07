@@ -153,6 +153,8 @@
 
         <!-- 模态框内容区域 -->
         <div class="flex-1 overflow-y-auto p-6">
+          <!-- 顶部错误提示 -->
+          <div v-if="error" class="mb-3 text-sm text-red-600">{{ error }}</div>
           <form @submit.prevent="saveUser">
             <!-- 基本信息区域 -->
             <div class="bg-gray-50 rounded-lg p-3 mb-5">
@@ -193,6 +195,7 @@
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     :required="!showEditModal"
                   >
+                  <div v-if="passwordError" class="mt-1 text-xs text-red-600">{{ passwordError }}</div>
                 </div>
               </div>
             </div>
@@ -233,7 +236,8 @@
               </button>
               <button
                 type="submit"
-                class="px-3 py-1.5 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
+                :disabled="!canSave"
+                :class="['px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors', canSave ? 'bg-orange-600 hover:bg-orange-700' : 'bg-orange-300 cursor-not-allowed']"
               >
                 保存
               </button>
@@ -438,24 +442,62 @@ const confirmDelete = async (): Promise<void> => {
 
 /**
  * 保存用户：编辑或创建。
- * - 处理 401：清除令牌并跳转登录。
- * - 验证密码匹配（新建时）。
+ * - 新建：密码与确认密码必填、至少8位且一致。
+ * - 编辑：密码可选，但若填写需与确认密码一致且至少8位。
+ * - 处理401：清除令牌并跳转登录。
+ * - 显示后端错误信息到模态。
  */
 const saveUser = async (): Promise<void> => {
   try {
-    // 验证密码匹配（新建时）
-    if (!showEditModal.value && form.value.password !== form.value.confirmPassword) {
-      error.value = '密码不匹配'
-      return
+    error.value = null
+
+    const pwd = (form.value.password || '').trim()
+    const cpwd = (form.value.confirmPassword || '').trim()
+
+    if (showEditModal.value) {
+      // 编辑模式：密码可选，但若填写需成对填写并校验
+      if ((pwd && !cpwd) || (!pwd && cpwd)) {
+        error.value = '请同时填写密码与确认密码'
+        return
+      }
+      if (pwd && cpwd) {
+        if (pwd.length < 8) {
+          error.value = '密码至少8位'
+          return
+        }
+        if (pwd !== cpwd) {
+          error.value = '两次密码不一致'
+          return
+        }
+      }
+    } else {
+      // 新建模式：密码必填
+      if (!pwd || !cpwd) {
+        error.value = '密码和确认密码为必填项'
+        return
+      }
+      if (pwd.length < 8) {
+        error.value = '密码至少8位'
+        return
+      }
+      if (pwd !== cpwd) {
+        error.value = '两次密码不一致'
+        return
+      }
     }
 
     const token = localStorage.getItem('admin_token')
-    const payload = {
+    const payload: Record<string, any> = {
       username: form.value.username,
       email: form.value.email,
       role: form.value.role,
-      is_active: form.value.is_active,
-      ...(showEditModal.value ? {} : { password: form.value.password })
+      is_active: form.value.is_active
+    }
+    // 编辑时仅在填写密码的情况下更新密码；新建时必须携带密码
+    if (showEditModal.value) {
+      if (pwd && cpwd) payload.password = pwd
+    } else {
+      payload.password = pwd
     }
 
     if (showEditModal.value && editingUser.value) {
@@ -499,8 +541,9 @@ const saveUser = async (): Promise<void> => {
     }
     closeModal()
     await loadUsers()
-  } catch (error) {
-    console.error('保存用户失败:', error)
+  } catch (err: any) {
+    console.error('保存用户失败:', err)
+    error.value = err?.message || '保存用户失败'
   }
 }
 
@@ -526,7 +569,38 @@ onMounted(() => {
 })
 
 /**
- * 是否可保存（基本校验）
+ * 密码字段校验（新建必填，编辑可选）。
+ * 返回错误信息用于表单实时提示；无错误返回 null。
  */
-const canSave = computed(() => !!form.value.username && !!form.value.email)
+const passwordError = computed<string | null>(() => {
+  const pwd = (form.value.password || '').trim()
+  const cpwd = (form.value.confirmPassword || '').trim()
+  if (showEditModal.value) {
+    if ((pwd && !cpwd) || (!pwd && cpwd)) return '请同时填写密码与确认密码'
+    if (pwd && cpwd) {
+      if (pwd.length < 8) return '密码至少8位'
+      if (pwd !== cpwd) return '两次密码不一致'
+    }
+    return null
+  }
+  // 新建用户：必填
+  if (!pwd || !cpwd) return '密码和确认密码为必填项'
+  if (pwd.length < 8) return '密码至少8位'
+  if (pwd !== cpwd) return '两次密码不一致'
+  return null
+})
+
+/**
+ * 是否可保存（用户名/邮箱必填 + 密码规则）。
+ */
+const canSave = computed(() => {
+  const base = !!form.value.username && !!form.value.email
+  const pwd = (form.value.password || '').trim()
+  const cpwd = (form.value.confirmPassword || '').trim()
+  if (showEditModal.value) {
+    if (pwd || cpwd) return base && !passwordError.value
+    return base
+  }
+  return base && !passwordError.value
+})
 </script>

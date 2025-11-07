@@ -61,6 +61,17 @@
               </svg>
               用户管理
             </router-link>
+
+            <router-link
+              to="/admin/profile"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/profile') ? 'bg-orange-100 text-orange-700' : 'text-gray-600 hover:bg-gray-100'"
+            >
+              <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0" />
+              </svg>
+              个人资料
+            </router-link>
           </div>
         </nav>
       </div>

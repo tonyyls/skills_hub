@@ -67,6 +67,14 @@ const routes = [
     }
   },
   {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: () => import('@/pages/AuthCallbackPage.vue'),
+    meta: {
+      title: '登录回调 - Skills Hub'
+    }
+  },
+  {
     path: '/admin/login',
     name: 'AdminLogin',
     component: AdminLogin,
@@ -113,6 +121,15 @@ const routes = [
         component: () => import('@/views/AdminUsers.vue'),
         meta: {
           title: '用户管理 - Skills Hub'
+        }
+      }
+      ,
+      {
+        path: 'profile',
+        name: 'AdminProfile',
+        component: () => import('@/views/AdminProfile.vue'),
+        meta: {
+          title: '管理员资料 - Skills Hub'
         }
       }
     ]
@@ -169,12 +186,14 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // 检查是否需要认证
-  if (to.meta.requiresAuth && !authStore.user) {
-    // 保存目标路由，登录后跳转回来
-    next({
-      path: '/',
-      query: { redirect: to.fullPath }
-    })
+  // 允许普通用户或管理员任一登录访问需要认证的页面
+  if (to.meta.requiresAuth && !(authStore.user || authStore.adminUser)) {
+    // 保存目标路由到 localStorage，便于回调页读取
+    try {
+      localStorage.setItem('redirect_after_login', to.fullPath)
+    } catch {}
+    // 跳转到首页（用户点击登录按钮后会走 OAuth 流程）
+    next({ path: '/' })
   } else {
     next()
   }
