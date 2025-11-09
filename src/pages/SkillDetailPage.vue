@@ -73,17 +73,17 @@
             </div>
           </div>
           
-          <!-- 作者信息 -->
+          <!-- 作者信息（优先展示 author_name；其次 author.username；兜底“官方”） -->
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
               <img
-                :src="skill.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.author.name)}&background=random`"
-                :alt="skill.author.name"
+                :src="(skill.author?.avatar_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent((skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方'))}&background=cccccc&color=ffffff`"
+                :alt="(skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方')"
                 class="w-12 h-12 rounded-full"
               />
               <div>
-                <p class="font-medium text-gray-900 text-lg">{{ skill.author.name }}</p>
-                <p class="text-sm text-gray-500">{{ formatDate(skill.createdAt) }}</p>
+                <p class="font-medium text-gray-900 text-lg">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
+                <p class="text-sm text-gray-500">{{ formatDate(skill.created_at) }}</p>
               </div>
             </div>
             

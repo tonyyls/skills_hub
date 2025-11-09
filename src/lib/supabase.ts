@@ -91,6 +91,8 @@ export interface Skill {
   download_count: number
   created_at: string
   updated_at: string
+  /** 可选的作者名称（展示），与 author_id 分离 */
+  author_name?: string
   author?: User
   category?: Category
   tags?: Tag[]

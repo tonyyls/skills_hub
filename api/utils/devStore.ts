@@ -35,6 +35,11 @@ export interface DevSkill {
   view_count: number
   like_count: number
   featured: boolean
+  /**
+   * 是否为推荐技能。
+   * 用于前端“设为推荐技能”复选框的持久化。
+   */
+  recommended: boolean
   created_at: string
   updated_at?: string
 }
@@ -197,6 +202,7 @@ export async function addSkill(item: Omit<DevSkill, 'id' | 'created_at' | 'view_
     view_count: 0,
     like_count: 0,
     featured: !!item.featured,
+    recommended: !!(item as any).recommended,
     created_at: now,
     updated_at: now
   }

@@ -74,14 +74,11 @@ const skillTemplates = [
   }
 ];
 
-// 分类ID映射
-const categoryMap = {
-  '前端开发': 'cat-001',
-  '后端开发': 'cat-002', 
-  '数据库': 'cat-003',
-  'AI与机器学习': 'cat-004',
-  'DevOps': 'cat-005'
-};
+// 使用现有 demo 分类ID（见 api/data/categories.dev.json）
+const demoCategoryIds = [
+  'demo-001','demo-002','demo-003','demo-004','demo-005','demo-006','demo-007',
+  'demo-008','demo-009','demo-010','demo-011','demo-012','demo-013'
+];
 
 // 生成随机数据函数
 function generateRandomData() {
@@ -181,13 +178,13 @@ function generateSkills() {
   let skillCounter = 1;
   
   for (const categoryData of skillTemplates) {
-    const categoryId = categoryMap[categoryData.category];
-    
     for (const template of categoryData.templates) {
       const randomData = generateRandomData();
       const contentData = generateSkillContent(template.title, template.difficulty);
       const createdTime = generateRandomTime();
       const updatedTime = generateRandomTime();
+      // 轮询分配 demo 分类ID
+      const categoryId = demoCategoryIds[(skillCounter - 1) % demoCategoryIds.length];
       
       const skill = {
         id: `skill-${String(skillCounter).padStart(3, '0')}`,
@@ -236,7 +233,7 @@ function generateSkills() {
           title: newTitle,
           description: variantContent.description,
           content: variantContent.content,
-          category_id: categoryId,
+          category_id: demoCategoryIds[(skillCounter - 1) % demoCategoryIds.length],
           difficulty_level: template.difficulty,
           tags: [...template.tags, variant.suffix.replace('版', '')],
           status: variantData.status,
@@ -266,24 +263,41 @@ function generateSkills() {
 }
 
 // 主函数
+/**
+ * 主执行函数：生成技能数据并写入文件。
+ * 支持命令行参数：
+ *  - --count <n> 生成数量，默认 20，最大 50（受模板限制）
+ *  - --output <path> 输出文件路径，默认写入当前目录的 skills.dev.json
+ */
 function main() {
-  console.log('开始生成50条模拟技能数据...');
-  
-  const skills = generateSkills();
-  
+  // 解析 CLI 参数
+  const args = process.argv.slice(2);
+  const countArgIndex = args.indexOf('--count');
+  const outputArgIndex = args.indexOf('--output');
+  const requestedCount = countArgIndex !== -1 ? parseInt(args[countArgIndex + 1], 10) : 20;
+  const outputPathArg = outputArgIndex !== -1 ? args[outputArgIndex + 1] : null;
+
+  const count = Number.isFinite(requestedCount) && requestedCount > 0 ? Math.min(requestedCount, 50) : 20;
+  console.log(`开始生成${count}条模拟技能数据...`);
+
+  let skills = generateSkills();
+  if (skills.length > count) {
+    skills = skills.slice(0, count);
+  }
+
   // 确保目录存在
   const dataDir = path.join(__dirname);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
-  
+
   // 写入文件
-  const outputPath = path.join(dataDir, 'skills.dev.json');
+  const outputPath = outputPathArg ? path.isAbsolute(outputPathArg) ? outputPathArg : path.join(process.cwd(), outputPathArg) : path.join(dataDir, 'skills.dev.json');
   fs.writeFileSync(outputPath, JSON.stringify(skills, null, 2));
-  
+
   console.log(`✅ 成功生成 ${skills.length} 条技能数据`);
   console.log(`📁 文件已保存到: ${outputPath}`);
-  
+
   // 统计信息
   const stats = {
     total: skills.length,
@@ -293,17 +307,17 @@ function main() {
     featured: skills.filter(s => s.featured).length,
     recommended: skills.filter(s => s.recommended).length
   };
-  
+
   skills.forEach(skill => {
-    const category = skillTemplates.find(cat => cat.templates.some(t => 
+    const category = skillTemplates.find(cat => cat.templates.some(t =>
       skill.title.includes(t.title.split(' ')[0]) || t.title.includes(skill.title.split(' ')[0])
     ))?.category || '其他';
-    
+
     stats.byCategory[category] = (stats.byCategory[category] || 0) + 1;
     stats.byDifficulty[skill.difficulty_level] = (stats.byDifficulty[skill.difficulty_level] || 0) + 1;
     stats.byStatus[skill.status] = (stats.byStatus[skill.status] || 0) + 1;
   });
-  
+
   console.log('\n📊 数据统计:');
   console.log(`总计: ${stats.total} 条技能`);
   console.log('按分类:', stats.byCategory);

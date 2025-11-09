@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { User } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 
@@ -33,6 +33,13 @@ export const useAuthStore = defineStore('auth', () => {
   const setError = (errorMessage: string | null) => {
     error.value = errorMessage
   }
+
+  /**
+   * 是否已认证（普通用户或管理员任一登录）。
+   * - 普通用户来自 Supabase 会话 `user`。
+   * - 管理员来自本地 `adminUser`。
+   */
+  const isAuthenticated = computed(() => !!user.value || !!adminUser.value)
 
   const checkAuth = async () => {
     setLoading(true)
@@ -199,6 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
     adminUser,
     loading,
     error,
+    isAuthenticated,
     setUser,
     setAdminUser,
     setLoading,

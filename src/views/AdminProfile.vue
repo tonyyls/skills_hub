@@ -19,7 +19,7 @@
           </div>
         </div>
         <div class="flex space-x-2">
-          <button @click="openEditModal" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">编辑资料</button>
+          <button @click="openEditModal" class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200">编辑资料</button>
         </div>
       </div>
     </div>
@@ -61,8 +61,8 @@
           </div>
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-          <button @click="showEditModal = false" class="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50">取消</button>
-          <button @click="saveProfile" :disabled="saving" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-60">{{ saving ? '保存中...' : '保存' }}</button>
+          <button @click="showEditModal = false" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200">取消</button>
+          <button @click="saveProfile" :disabled="saving" class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200">{{ saving ? '保存中...' : '保存' }}</button>
         </div>
       </div>
     </div>
@@ -89,7 +89,9 @@ const avatarPreview = ref<string>('')
 
 const defaultAvatar = computed(() => {
   const name = adminProfile.value?.username || adminProfile.value?.name || 'Admin'
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+  // 使用灰色背景，提升默认头像的中性与稳重感
+  // 参考文档：https://ui-avatars.com/
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=cccccc&color=ffffff`
 })
 
 /**

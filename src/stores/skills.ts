@@ -75,6 +75,12 @@ export const useSkillsStore = defineStore('skills', () => {
     currentPage.value = page
   }
 
+  /**
+   * 从 Supabase 获取技能列表并映射为前端使用的字段结构。
+   * - 将数据库列 `name` 映射为前端的 `title`，避免标题缺失。
+   * - 兼容 `author_id` → `user_id`，`download_count`/`downloads`。
+   * - 规范化 `tags` 为字符串数组，缺省置为空数组。
+   */
   const fetchSkills = async () => {
     setLoading(true)
     setError(null)
@@ -164,7 +170,50 @@ export const useSkillsStore = defineStore('skills', () => {
         ]
         setSkills(mockSkills)
       } else {
-        setSkills(data || [])
+        // 将 Supabase 返回的字段映射为前端 Skill 结构
+        const mapped = (data || []).map((row: any) => ({
+          id: row.id,
+          user_id: row.author_id || row.user_id || '',
+          title: row.title || row.name || '未命名技能',
+          description: row.description || '',
+          content: row.content || '',
+          category_id: row.category_id || row.category?.id || '',
+          download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+          author_name: row.author_name || '',
+          // 规范 tags 为字符串数组
+          tags: Array.isArray(row.tags)
+            ? row.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
+            : []
+        }))
+
+        /**
+         * 补充作者信息：根据 `user_id` 批量查询 `users` 表并映射到 `author`。
+         * - 避免 N+1 查询，先收集唯一 `user_id` 再一次性查询。
+         * - 仅选择必要字段（id, username, avatar_url）。
+         */
+        const userIds = Array.from(new Set(mapped.map((s: any) => s.user_id).filter(Boolean)))
+        if (userIds.length > 0) {
+          const { data: authors, error: authorErr } = await supabase
+            .from('users')
+            .select('id, username, avatar_url')
+            .in('id', userIds)
+
+          if (authorErr) {
+            console.warn('加载作者信息失败：', authorErr)
+            setSkills(mapped as unknown as Skill[])
+          } else {
+            const authorMap = new Map<string, any>((authors || []).map(a => [a.id, a]))
+            const withAuthor = mapped.map((s: any) => ({
+              ...s,
+              author: authorMap.get(s.user_id) || undefined
+            }))
+            setSkills(withAuthor as unknown as Skill[])
+          }
+        } else {
+          setSkills(mapped as unknown as Skill[])
+        }
       }
     } catch (err) {
       console.error('获取技能列表失败:', err)
@@ -350,7 +399,24 @@ export const useSkillsStore = defineStore('skills', () => {
         .single()
 
       if (supabaseError) throw supabaseError
-      return data
+      if (!data) return null
+      // 映射数据库行到前端 Skill 类型
+      const mapped: Skill = {
+        id: data.id,
+        user_id: data.author_id || data.user_id || '',
+        title: data.title || data.name || '未命名技能',
+        description: data.description || '',
+        content: data.content || '',
+        category_id: data.category_id || data.category?.id || '',
+        download_count: typeof data.download_count === 'number' ? data.download_count : (data.downloads ?? 0),
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        author_name: data.author_name || '',
+        tags: Array.isArray(data.tags)
+          ? data.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
+          : []
+      }
+      return mapped
     } catch (err) {
       console.error('获取技能详情失败:', err)
       return null

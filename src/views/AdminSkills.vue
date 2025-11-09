@@ -44,6 +44,17 @@
           </option>
         </select>
         
+        <!-- 刷新按钮（统一 lucide-vue-next 图标风格） -->
+        <button
+          type="button"
+          @click="loadSkills"
+          title="刷新"
+          aria-label="刷新"
+          class="bg-gray-100 text-gray-800 px-3 py-1.5 text-sm rounded-md hover:bg-gray-200 transition-colors inline-flex items-center justify-center"
+        >
+          <RefreshCw class="h-4 w-4" />
+        </button>
+        
         <!-- 新建按钮 -->
         <button
           @click="openCreateModal"
@@ -81,21 +92,14 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                标题
-              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 分类
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                状态
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                浏览
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                收藏
-              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开发者</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">是否推荐</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">是否精选</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 创建时间
               </th>
@@ -121,12 +125,9 @@
               <td class="px-6 py-4">
                 <div class="flex items-center">
                   <div>
-                    <div class="text-sm font-medium text-gray-900">{{ skill.title }}</div>
-                    <div class="text-sm text-gray-500">{{ skill.title_en }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ skill.title || skill.name }}</div>
+                    <div class="text-sm text-gray-500">{{ skill.title_en || skill.name_en }}</div>
                   </div>
-                  <span v-if="skill.featured" class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                    精选
-                  </span>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -134,30 +135,23 @@
                   {{ getCategoryName(skill.category_id) }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                  :class="getStatusClass(skill.status)"
-                >
-                  {{ getStatusText(skill.status) }}
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  {{ skill.author_name || '官方' }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <div class="flex items-center">
-                  <svg class="h-4 w-4 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  {{ skill.view_count }}
-                </div>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span :class="getStatusClass(skill.status)" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
+                  {{ getStatusLabel(skill.status) }}
+                </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <div class="flex items-center">
-                  <svg class="h-4 w-4 text-red-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  {{ skill.like_count }}
-                </div>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span v-if="skill.recommended" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">推荐</span>
+                <span v-else class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">—</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span v-if="skill.featured" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">精选</span>
+                <span v-else class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">—</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ formatDate(skill.created_at) }}
@@ -365,6 +359,23 @@
                   </option>
                 </select>
               </div>
+              <!-- 开发者（作者） -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  开发者（作者） <span class="text-gray-400 text-xs">可选</span>
+                </label>
+                <input
+                  v-model="form.author_name"
+                  type="text"
+                  :class="[
+                    'w-full px-2.5 py-1.5 text-sm border rounded-md focus:ring-2 transition-colors',
+                    authorNameError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
+                  ]"
+                  placeholder="输入开发者名称(可选)"
+                >
+                <p class="mt-1 text-xs text-gray-500">留空则在前端显示为“官方”。</p>
+                <p v-if="authorNameError" class="mt-1 text-xs text-red-600">{{ authorNameError }}</p>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   技能来源
@@ -464,7 +475,7 @@
                   type="text"
                   placeholder="添加标签"
                   class="flex-1 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  @keyup.enter="addTag"
+                  @keydown.enter.stop.prevent="addTag"
                 >
                 <button
                   type="button"
@@ -557,6 +568,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { RefreshCw } from 'lucide-vue-next'
 
 interface Skill {
   id: string
@@ -579,6 +591,11 @@ interface Skill {
   git_url?: string
   install_command?: string
   created_at: string
+  /**
+   * 可选的作者名称，用于在前端展示作者身份。
+   * 为空时前端显示为“官方”。
+   */
+  author_name?: string
 }
 
 interface Category {
@@ -598,6 +615,7 @@ const skillToDelete = ref<Skill | null>(null)
 const loading = ref(false)
 const saving = ref(false)
 const contentError = ref(false)
+const authorNameError = ref<string | null>(null)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const limit = ref(20)
@@ -626,6 +644,7 @@ const form = ref({
   source: '',
   git_url: '',
   install_command: '',
+  author_name: '',
   view_count: 0,
   like_count: 0
 })
@@ -692,13 +711,72 @@ const loadSkills = async (): Promise<void> => {
     }
 
     const data = await res.json()
-    skills.value = data.items || []
+    const items = Array.isArray(data.items) ? data.items : []
+    skills.value = items.map((it: any) => ({
+      ...it,
+      // 统一名称字段，后端可能返回 name
+      title: it.title ?? it.name ?? '',
+      title_en: it.title_en ?? it.name_en ?? '',
+      // 统一并规范化标签为字符串数组
+      /**
+       * 将后端返回的 tags 规范化为字符串数组。
+       * - 若为字符串以逗号分隔，则拆分后去空格与空值。
+       * - 若为对象数组，则取 name 字段。
+       * - 若为数组则逐项转字符串。
+       */
+      tags: Array.isArray(it.tags)
+        ? Array.from(new Set(it.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || ''))).map((s: string) => s.trim()).filter(Boolean)))
+        : (typeof it.tags === 'string' && it.tags
+          ? Array.from(new Set(it.tags.split(',').map((s: string) => s.trim()).filter(Boolean)))
+          : []),
+      // 状态默认值
+      status: it.status ?? 'draft',
+      // 补齐推荐字段默认值
+      recommended: it.recommended ?? false
+    }))
     total.value = data.total || 0
     limit.value = data.pageSize || limit.value
   } catch (err: any) {
     console.error('加载技能失败: ', err)
   } finally {
     loading.value = false
+  }
+}
+
+/**
+ * 将后端状态值映射为中文文案。
+ * @param status 技能状态：draft/published/archived
+ * @returns 中文文案
+ */
+const getStatusLabel = (status?: string): string => {
+  switch (status) {
+    case 'published':
+      return '已发布'
+    case 'archived':
+      return '已归档'
+    case 'draft':
+    default:
+      return '草稿'
+  }
+}
+
+/**
+ * 根据技能状态返回徽标样式类。
+ * - 草稿：灰色
+ * - 已发布：绿色
+ * - 已归档：橙色
+ * @param status 技能状态
+ * @returns Tailwind 类名字符串
+ */
+const getStatusClass = (status?: string): string => {
+  switch (status) {
+    case 'published':
+      return 'bg-green-100 text-green-800'
+    case 'archived':
+      return 'bg-orange-100 text-orange-800'
+    case 'draft':
+    default:
+      return 'bg-gray-100 text-gray-700'
   }
 }
 
@@ -754,12 +832,18 @@ const goToPage = (page: number) => {
 }
 
 // 标签管理
+/**
+ * 添加标签（仅在显式触发时执行）。
+ * - 去除左右空格，避免重复标签。
+ * - 与输入框 `@keydown.enter.stop.prevent` 配合，防止表单提交与事件冒泡。
+ */
 const addTag = () => {
   const tag = newTag.value.trim()
-  if (tag && !form.value.tags.includes(tag)) {
+  if (!tag) return
+  if (!form.value.tags.includes(tag)) {
     form.value.tags.push(tag)
-    newTag.value = ''
   }
+  newTag.value = ''
 }
 
 const removeTag = (index: number) => {
@@ -786,24 +870,7 @@ const getDifficultyText = (level: string) => {
   }
 }
 
-/**
- * 获取状态样式（仅支持 published/draft/archived）。
- * 保持与表单下拉框枚举一致，避免出现未支持状态。
- * @param status 状态标识
- * @returns Tailwind 样式类字符串
- */
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'published':
-      return 'bg-green-100 text-green-800'
-    case 'draft':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'archived':
-      return 'bg-gray-100 text-gray-800'
-    default:
-      return 'bg-gray-100 text-gray-800'
-  }
-}
+// 重复定义的 getStatusClass 已移除，保留上方统一实现（草稿灰、发布绿、归档橙）
 
 /**
  * 获取状态中文文案（仅支持 published/draft/archived）。
@@ -835,6 +902,25 @@ const formatDate = (date: string) => {
   })
 }
 
+/**
+ * 验证作者名称字段。
+ * 允许中英文、数字、空格和 .-_ 字符，长度 2-30。
+ * 为空视为合法（前端显示“官方”）。
+ * @returns 是否有效
+ */
+const validateAuthorName = (): boolean => {
+  const raw = form.value.author_name ?? ''
+  const value = raw.trim()
+  if (!value) {
+    authorNameError.value = null
+    return true
+  }
+  const re = /^[\p{L}A-Za-z0-9\s._-]{2,30}$/u
+  const ok = re.test(value)
+  authorNameError.value = ok ? null : '作者名需为2-30字符，支持中英文、数字、空格及 -_.'
+  return ok
+}
+
 // 打开创建模态框
 const openCreateModal = () => {
   resetForm()
@@ -842,13 +928,53 @@ const openCreateModal = () => {
 }
 
 // 编辑技能
+/**
+ * 规范化并填充编辑表单数据，确保字段安全可用。
+ * - 对 tags 进行空值保护与规范化（字符串以逗号分隔转数组）。
+ * - 兼容后端返回 name/name_en 字段作为标题。
+ * - 对布尔与数字字段设置合理默认值，避免 undefined 造成 UI/逻辑错误。
+ * @param skill 待编辑的技能项
+ */
 const editSkill = (skill: Skill) => {
-  editingSkill.value = skill
-  form.value = { 
-    ...skill,
-    tags: Array.isArray(skill.tags) ? skill.tags : (skill.tags as string).split(',').map(tag => tag.trim()).filter(Boolean)
+  try {
+    editingSkill.value = skill
+
+    /**
+     * 规范化编辑时的标签输入：
+     * - 支持字符串/数组/对象数组，统一为字符串数组，去重去空。
+     */
+    const normalizedTags = Array.isArray((skill as any).tags)
+      ? Array.from(new Set((skill as any).tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || ''))).map((s: string) => s.trim()).filter(Boolean)))
+      : (typeof (skill as any).tags === 'string' && (skill as any).tags
+        ? Array.from(new Set((skill as any).tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)))
+        : [])
+
+    form.value = {
+      title: (skill as any).title ?? (skill as any).name ?? '',
+      title_en: (skill as any).title_en ?? (skill as any).name_en ?? '',
+      description: (skill as any).description ?? '',
+      description_en: (skill as any).description_en ?? '',
+      content: (skill as any).content ?? '',
+      content_en: (skill as any).content_en ?? '',
+      category_id: (skill as any).category_id ?? '',
+      difficulty_level: (skill as any).difficulty_level ?? 'beginner',
+      estimated_time: (skill as any).estimated_time ?? 0,
+      tags: normalizedTags,
+      status: (skill as any).status ?? 'draft',
+      featured: !!(skill as any).featured,
+      recommended: !!(skill as any).recommended,
+      source: (skill as any).source ?? '',
+      git_url: (skill as any).git_url ?? (skill as any).repo_url ?? '',
+      install_command: (skill as any).install_command ?? '',
+      author_name: (skill as any).author_name ?? '',
+      view_count: (skill as any).view_count ?? 0,
+      like_count: (skill as any).like_count ?? 0
+    }
+
+    showEditModal.value = true
+  } catch (error) {
+    console.error('编辑技能失败:', error)
   }
-  showEditModal.value = true
 }
 
 // 显示删除确认
@@ -908,6 +1034,12 @@ const saveSkill = async () => {
       saving.value = false
       return
     }
+    // 作者名称校验
+    const authorOk = validateAuthorName()
+    if (!authorOk) {
+      saving.value = false
+      return
+    }
     
     const url = showEditModal.value && editingSkill.value?.id 
       ? `/api/admin/skills/${editingSkill.value.id}`
@@ -916,6 +1048,13 @@ const saveSkill = async () => {
     const method = showEditModal.value ? 'PUT' : 'POST'
     
     const token = localStorage.getItem('admin_token')
+    // 修剪 author_name，空值用 null 传递
+    const payload = {
+      ...form.value,
+      author_name: form.value.author_name?.trim() || null
+    }
+    // 记录请求概要，避免日志过大
+    console.debug('[saveSkill] 请求准备:', { url, method, hasToken: !!token, payloadKeys: Object.keys(payload) })
     const res = await fetch(url, {
       method,
       headers: {
@@ -923,7 +1062,7 @@ const saveSkill = async () => {
         'Accept': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(payload)
     })
     if (!res.ok) {
       if (res.status === 401) {
@@ -931,14 +1070,29 @@ const saveSkill = async () => {
         router.push('/admin/login')
         return
       }
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data?.message || `保存失败 (${res.status})`)
+      // 优先解析 JSON，其次回退为纯文本
+      const text = await res.text().catch(() => '')
+      let data: any = {}
+      try { data = text ? JSON.parse(text) : {} } catch {}
+      const msg = data?.message || data?.error || res.statusText || '未知错误'
+      console.error('[saveSkill] 请求失败详情:', {
+        url,
+        method,
+        status: res.status,
+        statusText: res.statusText,
+        response: text?.slice(0, 500) // 避免过长
+      })
+      throw new Error(`保存失败 (${res.status}): ${msg}`)
     }
     await res.json().catch(() => ({}))
     closeModal()
     await loadSkills()
   } catch (error) {
-    console.error('保存技能失败:', error)
+    // 更详细的错误输出
+    console.error('保存技能失败:', {
+      message: (error as any)?.message || String(error),
+      stack: (error as any)?.stack
+    })
   } finally {
     saving.value = false
   }
@@ -963,10 +1117,12 @@ const resetForm = () => {
     git_url: '',
     install_command: '',
     tags: [],
+    author_name: '',
     view_count: 0,
     like_count: 0
   }
   contentError.value = false
+  authorNameError.value = null
 }
 
 // 关闭模态框
@@ -981,6 +1137,11 @@ const closeModal = () => {
 watch([filters, searchQuery], () => {
   currentPage.value = 1
   loadSkills()
+})
+
+// 实时校验作者字段
+watch(() => form.value.author_name, () => {
+  validateAuthorName()
 })
 
 // 组件挂载时加载数据

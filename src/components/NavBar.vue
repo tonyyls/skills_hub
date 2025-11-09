@@ -70,7 +70,7 @@
                 class="w-8 h-8 rounded-full"
               />
               <div v-else class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User class="w-4 h-4 text-gray-600" />
+                <UserCircle class="w-4 h-4 text-gray-600" />
               </div>
               <span class="text-sm font-medium text-gray-700">
                 {{ displayUsername }}
@@ -183,28 +183,28 @@
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            首页
+            <Home class="w-5 h-5 mr-2 inline" /> 首页
           </router-link>
           <router-link 
             to="/skills" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            技能
+            <FilePlus class="w-5 h-5 mr-2 inline" /> 技能
           </router-link>
           <router-link 
             to="/tutorial" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            教程
+            <BookOpen class="w-5 h-5 mr-2 inline" /> 教程
           </router-link>
           <router-link 
             to="/about" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            关于我们
+            <Info class="w-5 h-5 mr-2 inline" /> 关于我们
           </router-link>
           
           <div v-if="isLoggedIn" class="pt-2 border-t border-gray-200">
@@ -213,7 +213,7 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              个人资料
+              <UserCircle class="w-5 h-5 mr-2 inline" /> 个人资料
             </router-link>
             <!-- 移除移动端发布技能入口：根据需求暂不展示 -->
             <!-- 管理后台入口：仅管理员可见 -->
@@ -223,7 +223,7 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              管理后台
+              <Shield class="w-5 h-5 mr-2 inline" /> 管理后台
             </router-link>
             <button
               @click="handleLogout"
@@ -240,7 +240,7 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              管理员登录
+              <LogIn class="w-5 h-5 mr-2 inline" /> 管理员登录
             </router-link>
           </div>
         </div>
@@ -274,21 +274,21 @@
             class="w-full px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
             @click="loginAsAdmin"
           >
-            <User class="w-5 h-5" />
+            <UserCircle class="w-5 h-5" />
             <span>管理员登录</span>
           </button>
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
           >
-            <User class="w-5 h-5" />
+            <UserCircle class="w-5 h-5" />
             <span>微信登录（敬请期待）</span>
           </button>
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
           >
-            <User class="w-5 h-5" />
+            <UserCircle class="w-5 h-5" />
             <span>邮箱登录（敬请期待）</span>
           </button>
         </div>
@@ -333,14 +333,17 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Code, 
-  Plus, 
-  User, 
+  Home,
+  FilePlus,
+  UserCircle,
   Github, 
   ChevronDown, 
   Menu, 
   X,
-  LogIn
+  LogIn,
+  BookOpen,
+  Info,
+  Shield
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 

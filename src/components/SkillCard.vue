@@ -37,17 +37,17 @@
       <!-- 标签 -->
       <div class="flex flex-wrap gap-2 mb-4">
         <span
-          v-for="tag in skill.tags.slice(0, 3)"
+          v-for="tag in (skill.tags || []).slice(0, 3)"
           :key="tag"
           class="bg-white/10 text-gray-300 text-xs px-3 py-1 rounded-full border border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer"
         >
           {{ tag }}
         </span>
         <span
-          v-if="skill.tags.length > 3"
+          v-if="(skill.tags || []).length > 3"
           class="bg-white/10 text-gray-300 text-xs px-3 py-1 rounded-full border border-white/20"
         >
-          +{{ skill.tags.length - 3 }}
+          +{{ (skill.tags || []).length - 3 }}
         </span>
       </div>
       
@@ -55,18 +55,18 @@
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center space-x-3">
           <img
-            :src="skill.author?.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.author?.username ?? '用户')}&background=random`"
-            :alt="skill.author?.username ?? '用户'"
+            :src="skill.author?.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent((skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方'))}&background=cccccc&color=ffffff`"
+            :alt="(skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方')"
             class="w-8 h-8 rounded-full border-2 border-neon-blue/30"
           />
           <div>
-            <span class="text-sm text-gray-300 font-medium">{{ skill.author?.username ?? '匿名' }}</span>
-            <div class="text-xs text-gray-500">{{ formatDate(skill.created_at ?? new Date().toISOString()) }}</div>
+            <span class="text-sm text-gray-300 font-medium">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方') }}</span>
+            <div class="text-xs text-gray-500">{{ formatDate((skill.created_at ?? skill.createdAt) ?? new Date().toISOString()) }}</div>
           </div>
         </div>
         <div class="flex items-center space-x-1 text-gray-400 text-sm">
           <Download class="w-4 h-4"/>
-          <span>{{ skill.download_count }}</span>
+          <span>{{ skill.download_count ?? (skill.downloads ?? 0) }}</span>
         </div>
       </div>
       

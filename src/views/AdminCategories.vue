@@ -18,12 +18,15 @@
             </svg>
           </div>
         </div>
-        <!-- 刷新按钮（缩小到技能页的按钮尺寸） -->
+        <!-- 刷新按钮（统一 lucide-vue-next 图标风格） -->
         <button
+          type="button"
           @click="loadCategories"
-          class="bg-gray-100 text-gray-800 px-3 py-1.5 text-sm rounded-md hover:bg-gray-200 transition-colors"
+          title="刷新"
+          aria-label="刷新"
+          class="bg-gray-100 text-gray-800 px-3 py-1.5 text-sm rounded-md hover:bg-gray-200 transition-colors inline-flex items-center justify-center"
         >
-          刷新
+          <RefreshCw class="h-4 w-4" />
         </button>
         <!-- 新建分类（与技能页一致的按钮尺寸与样式） -->
         <button
@@ -39,7 +42,7 @@
     </div>
 
     <!-- 分类列表 -->
-    <div class="bg-white rounded-lg shadow-sm border">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
@@ -268,6 +271,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { RefreshCw } from 'lucide-vue-next'
 
 interface Category {
   id: string

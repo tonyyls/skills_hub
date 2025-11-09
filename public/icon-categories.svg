@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#FF7A45" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 分类图标：由网格与标签形状组合，表达分组/归类含义 -->
+  <rect x="3" y="3" width="8" height="8" rx="2" ry="2"/>
+  <rect x="13" y="3" width="8" height="6" rx="2" ry="2"/>
+  <rect x="3" y="13" width="8" height="8" rx="2" ry="2"/>
+  <path d="M13 13h6l2 3-2 3h-6v-6z"/>
+  <!-- 细节：小圆点增强视觉语义 -->
+  <circle cx="17" cy="6" r="1" />
+</svg>

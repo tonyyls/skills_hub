@@ -52,14 +52,14 @@
               <p class="mt-1 text-sm text-gray-500">简洁明了地描述你的技能</p>
             </div>
             
-            <!-- 技能分类 -->
+            <!-- 技能分类（提交分类ID） -->
             <div>
               <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
                 技能分类 *
               </label>
               <select
                 id="category"
-                v-model="form.category"
+                v-model="form.categoryId"
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
@@ -67,11 +67,27 @@
                 <option
                   v-for="category in categories"
                   :key="category.id"
-                  :value="category.name"
+                  :value="category.id"
                 >
                   {{ category.name }}
                 </option>
               </select>
+            </div>
+            
+            <!-- 开发者（作者，可选） -->
+            <div class="lg:col-span-2">
+              <label for="developer" class="block text-sm font-medium text-gray-700 mb-2">
+                开发者（可选）
+              </label>
+              <input
+                id="developer"
+                v-model="form.authorName"
+                type="text"
+                placeholder="输入开发者/作者名称，留空将显示“官方”或留空"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p class="mt-1 text-sm text-gray-500">用于展示实际开发者或作者，不填写则不展示或显示“官方”。</p>
+              <p v-if="authorError" class="mt-1 text-sm text-red-600">{{ authorError }}</p>
             </div>
           </div>
           
@@ -221,10 +237,11 @@ const tagInput = ref('')
 // 表单数据
 const form = ref({
   title: '',
-  category: '',
+  categoryId: '',
   description: '',
   content: '',
-  tags: [] as string[]
+  tags: [] as string[],
+  authorName: ''
 })
 
 // 文件输入引用
@@ -238,10 +255,25 @@ const fileInput = ref<HTMLInputElement>()
 const isFormValid = computed(() => {
   return (
     form.value.title.trim() &&
-    form.value.category &&
+    form.value.categoryId &&
     form.value.description.trim() &&
-    selectedFile.value
+    selectedFile.value &&
+    !authorError.value
   )
+})
+
+/**
+ * 作者字段校验：可选填写。
+ * 允许 2-30 个字符，支持中文、英文、数字、空格及 - _ .
+ * 若为空则视为通过。
+ *
+ * @returns {string} 校验不通过时返回错误文案；通过返回空字符串。
+ */
+const authorError = computed(() => {
+  const name = form.value.authorName.trim()
+  if (!name) return ''
+  const valid = /^[\u4e00-\u9fa5A-Za-z0-9\s\-_.]{2,30}$/.test(name)
+  return valid ? '' : '作者名需2-30字符，仅限中英文、数字、空格和 - _ .'
 })
 
 /**
@@ -351,10 +383,11 @@ const removeTag = (index: number) => {
 const resetForm = () => {
   form.value = {
     title: '',
-    category: '',
+    categoryId: '',
     description: '',
     content: '',
-    tags: []
+    tags: [],
+    authorName: ''
   }
   selectedFile.value = null
   tagInput.value = ''
@@ -390,14 +423,12 @@ const handleSubmit = async () => {
     
     // 创建技能
     const { error } = await supabase.from('skills').insert({
-      title: form.value.title.trim(),
-      category: form.value.category,
+      name: form.value.title.trim(),
+      category_id: form.value.categoryId,
       description: form.value.description.trim(),
-      content: form.value.content.trim(),
-      tags: form.value.tags,
-      file_url: fileUrl,
-      file_size: selectedFile.value ? formatFileSize(selectedFile.value.size) : '',
-      user_id: authStore.user.id
+      author_id: authStore.user.id,
+      author_name: form.value.authorName?.trim() || null,
+      featured: false
     })
     
     if (error) throw error

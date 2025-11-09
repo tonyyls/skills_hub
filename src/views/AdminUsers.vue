@@ -1,7 +1,22 @@
 <template>
   <div class="space-y-6">
+    <!-- 页面标题与列表类型切换（标题居左，切换居右，与其他管理页一致） -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-      <h2 class="text-xl font-semibold leading-tight text-gray-900">用户管理</h2>
+      <h2 class="text-lg font-semibold leading-tight text-gray-900">用户管理</h2>
+      <div class="inline-flex items-center rounded-md bg-gray-100 p-1">
+        <button
+          type="button"
+          :class="['px-3 py-1.5 text-sm rounded-md', activeTab === 'registered' ? 'bg-white shadow text-gray-900' : 'text-gray-700 hover:text-gray-900']"
+          @click="switchTab('registered')"
+        >注册用户</button>
+        <button
+          type="button"
+          :class="['px-3 py-1.5 text-sm rounded-md', activeTab === 'admins' ? 'bg-white shadow text-gray-900' : 'text-gray-700 hover:text-gray-900']"
+          @click="switchTab('admins')"
+        >管理员用户</button>
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
       <div class="flex flex-col sm:flex-row gap-2">
         <!-- 搜索框（与分类页一致的尺寸与样式） -->
         <div class="relative">
@@ -9,7 +24,7 @@
             v-model="searchQuery"
             @keyup.enter="loadUsers"
             type="text"
-            placeholder="搜索用户名、邮箱..."
+            :placeholder="activeTab === 'registered' ? '搜索用户名、邮箱...' : '搜索管理员用户名、邮箱...'"
             class="pl-9 pr-3 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           />
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
@@ -18,46 +33,42 @@
             </svg>
           </div>
         </div>
-        <!-- 刷新按钮（缩小到分类页的按钮尺寸） -->
+        <!-- 刷新按钮（统一 lucide-vue-next 图标风格） -->
         <button
+          type="button"
           @click="loadUsers"
-          class="bg-gray-100 text-gray-800 px-3 py-1.5 text-sm rounded-md hover:bg-gray-200 transition-colors"
+          title="刷新"
+          aria-label="刷新"
+          class="bg-gray-100 text-gray-800 px-3 py-1.5 text-sm rounded-md hover:bg-gray-200 transition-colors inline-flex items-center justify-center"
         >
-          刷新
+          <RefreshCw class="h-4 w-4" />
         </button>
-        <!-- 新建用户（与分类页一致的按钮尺寸与样式） -->
+        <!-- 新建管理员（普通用户需通过 GitHub 登录，不支持手工添加） -->
         <button
+          v-if="activeTab === 'admins'"
           @click="showCreateModal = true"
           class="bg-orange-600 text-white px-3 py-1.5 text-sm rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1.5"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          新建用户
+          新建管理员
         </button>
       </div>
     </div>
 
     <!-- 用户列表 -->
-    <div class="bg-white rounded-lg shadow-sm border">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">邮箱</th>
+              <th v-if="activeTab === 'admins'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                用户名
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                邮箱
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                角色
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                状态
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                最后登录时间
+                {{ activeTab === 'registered' ? '注册时间' : '最后登录时间' }}
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 操作
@@ -86,7 +97,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ user.email }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td v-if="activeTab === 'admins'" class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                   :class="user.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'"
@@ -103,7 +114,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDateTime(user.last_login_at) }}
+                {{ activeTab === 'registered' ? formatDateTime(user.created_at) : formatDateTime(user.last_login_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
@@ -158,7 +169,7 @@
           <form @submit.prevent="saveUser">
             <!-- 基本信息区域 -->
             <div class="bg-gray-50 rounded-lg p-3 mb-5">
-              <h4 class="text-base font-medium text-gray-900 mb-3">基本信息</h4>
+              <h4 class="text-base font-medium text-gray-900 mb-3">基本信息（{{ activeTab === 'registered' ? '注册用户' : '管理员' }}）</h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">用户名 <span class="text-red-500">*</span></label>
@@ -210,8 +221,15 @@
                     v-model="form.role"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   >
-                    <option value="admin">管理员</option>
-                    <option value="super_admin">超级管理员</option>
+                    <template v-if="activeTab === 'registered'">
+                      <option value="user">普通用户</option>
+                      <option value="admin">管理员</option>
+                      <option value="super_admin">超级管理员</option>
+                    </template>
+                    <template v-else>
+                      <option value="admin">管理员</option>
+                      <option value="super_admin">超级管理员</option>
+                    </template>
                   </select>
                 </div>
                 <div class="flex items-center">
@@ -280,8 +298,23 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { RefreshCw } from 'lucide-vue-next'
 
 interface User {
+  id: string
+  username: string
+  email: string
+  role: 'user' | 'admin' | 'super_admin'
+  is_active: boolean
+  last_login_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * 管理员用户类型（admin_users 表）
+ */
+interface AdminUser {
   id: string
   username: string
   email: string
@@ -297,20 +330,27 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const searchQuery = ref('')
 
+/**
+ * 当前标签页：
+ * - registered：注册用户（auth.users + user_profiles）
+ * - admins：管理员用户（admin_users）
+ */
+const activeTab = ref<'registered' | 'admins'>('registered')
+
 const authStore = useAuthStore()
 const router = useRouter()
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const editingUser = ref<User | null>(null)
+const editingUser = ref<(User | AdminUser) | null>(null)
 const showDeleteConfirm = ref(false)
-const deleteTarget = ref<User | null>(null)
+const deleteTarget = ref<(User | AdminUser) | null>(null)
 
 const form = ref({
   username: '',
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'admin' as 'admin' | 'super_admin',
+  role: 'user' as 'user' | 'admin' | 'super_admin',
   is_active: true
 })
 
@@ -323,7 +363,9 @@ const formatDateTime = (dateString: string | null): string => {
 }
 
 /**
- * 加载用户列表，支持搜索。
+ * 加载用户列表，支持搜索与列表类型切换。
+ * - registered: 调用 `/api/admin/users`
+ * - admins: 调用 `/api/admin/admin-users`
  * - 处理 401：清除令牌并跳转登录。
  * - 网络错误与中断（ERR_ABORTED）进行一次重试。
  */
@@ -333,7 +375,8 @@ const loadUsers = async (): Promise<void> => {
   try {
     const token = localStorage.getItem('admin_token')
     const q = searchQuery.value.trim()
-    const url = q ? `/api/admin/users?q=${encodeURIComponent(q)}` : '/api/admin/users'
+    const base = activeTab.value === 'registered' ? '/api/admin/users' : '/api/admin/admin-users'
+    const url = q ? `${base}?q=${encodeURIComponent(q)}` : base
     const doFetch = async () => fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -359,7 +402,7 @@ const loadUsers = async (): Promise<void> => {
       throw new Error(data?.message || `加载用户失败 (${res.status})`)
     }
     const data = await res.json()
-    users.value = data.items || []
+    users.value = (data.items || [])
   } catch (err: any) {
     console.error('加载用户失败:', err)
     error.value = err?.message || '加载用户失败'
@@ -368,14 +411,18 @@ const loadUsers = async (): Promise<void> => {
   }
 }
 
-const editUser = (user: User) => {
+/**
+ * 打开编辑模态，填充表单。
+ * @param user 当前行用户（根据标签页类型可能为注册用户或管理员用户）
+ */
+const editUser = (user: User | AdminUser) => {
   editingUser.value = user
   form.value = {
     username: user.username,
     email: user.email,
     password: '',
     confirmPassword: '',
-    role: user.role,
+    role: user.role as any,
     is_active: user.is_active
   }
   showEditModal.value = true
@@ -386,7 +433,11 @@ const editUser = (user: User) => {
  * 仅展示确认，不立即执行删除，防止误删。
  * @param user 待删除用户
  */
-const deleteUser = (user: User): void => {
+/**
+ * 触发删除确认弹窗。
+ * @param user 当前行用户
+ */
+const deleteUser = (user: User | AdminUser): void => {
   deleteTarget.value = user
   showDeleteConfirm.value = true
 }
@@ -404,6 +455,12 @@ const cancelDelete = (): void => {
  * - 处理 401：清除令牌并跳转登录。
  * - 对 204 无响应体做兼容，删除成功后刷新列表。
  */
+/**
+ * 确认删除用户。
+ * 根据当前标签页调用不同后端：
+ * - registered: DELETE /api/admin/users/:id
+ * - admins: DELETE /api/admin/admin-users/:id
+ */
 const confirmDelete = async (): Promise<void> => {
   const target = deleteTarget.value
   if (!target) {
@@ -412,7 +469,8 @@ const confirmDelete = async (): Promise<void> => {
   }
   try {
     const token = localStorage.getItem('admin_token')
-    const res = await fetch(`/api/admin/users/${target.id}`, {
+    const base = activeTab.value === 'registered' ? '/api/admin/users' : '/api/admin/admin-users'
+    const res = await fetch(`${base}/${target.id}`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
@@ -446,6 +504,12 @@ const confirmDelete = async (): Promise<void> => {
  * - 编辑：密码可选，但若填写需与确认密码一致且至少8位。
  * - 处理401：清除令牌并跳转登录。
  * - 显示后端错误信息到模态。
+ */
+/**
+ * 保存用户（编辑或创建）。
+ * 根据当前标签页调用不同后端：
+ * - registered: POST/PUT /api/admin/users
+ * - admins: POST/PUT /api/admin/admin-users
  */
 const saveUser = async (): Promise<void> => {
   try {
@@ -500,8 +564,9 @@ const saveUser = async (): Promise<void> => {
       payload.password = pwd
     }
 
+    const base = activeTab.value === 'registered' ? '/api/admin/users' : '/api/admin/admin-users'
     if (showEditModal.value && editingUser.value) {
-      const res = await fetch(`/api/admin/users/${editingUser.value.id}`, {
+      const res = await fetch(`${base}/${editingUser.value.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -520,7 +585,7 @@ const saveUser = async (): Promise<void> => {
         throw new Error(data?.message || `更新用户失败 (${res.status})`)
       }
     } else {
-      const res = await fetch('/api/admin/users', {
+      const res = await fetch(base, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -559,7 +624,7 @@ const closeModal = (): void => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'admin',
+    role: activeTab.value === 'registered' ? 'user' : 'admin',
     is_active: true
   }
 }
@@ -567,6 +632,20 @@ const closeModal = (): void => {
 onMounted(() => {
   loadUsers()
 })
+
+/**
+ * 切换标签页并重新加载数据。
+ * @param tab 标签页类型
+ */
+const switchTab = (tab: 'registered' | 'admins') => {
+  activeTab.value = tab
+  // 重置列表与错误
+  users.value = []
+  error.value = null
+  // 重置搜索占位与表单默认角色
+  form.value.role = tab === 'registered' ? 'user' : 'admin'
+  loadUsers()
+}
 
 /**
  * 密码字段校验（新建必填，编辑可选）。

@@ -54,8 +54,8 @@
           />
 
           <div class="flex-1">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ displayName }}</h1>
-            <p class="text-gray-600 mt-1">{{ bioText }}</p>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">{{ displayName }}</h1>
+            <p class="text-gray-600 mt-1">发现社区中优质的 Skills 资源，提升你的AI使用效率</p>
             <div class="flex flex-wrap items-center gap-3 mt-3 text-sm">
               <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-700 hover:text-blue-600">
                 <Mail class="w-4 h-4" />
@@ -102,7 +102,7 @@
         <div class="mt-6">
           <router-link
             to="/profile/skills"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
           >
             查看我的收藏
           </router-link>

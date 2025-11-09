@@ -44,7 +44,7 @@
             <button
               v-if="!authStore.isAuthenticated"
               @click="authStore.signInWithGitHub()"
-              class="group relative inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl font-semibold text-white hover:bg-white/20 transition-all duration-300"
+              class="group relative inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
             >
               <Github class="w-5 h-5 mr-2"/>
               <span>GitHub 登录</span>
@@ -55,7 +55,7 @@
             <router-link
               v-else-if="authStore.adminUser"
               to="/admin"
-              class="group relative inline-flex items-center justify-center px-8 py-4 bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-xl font-semibold text-white hover:bg-green-500/30 transition-all duration-300"
+              class="group relative inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-md bg-green-500/20 backdrop-blur-sm border border-green-400/30 text-white hover:bg-green-500/30 transition-all duration-300"
             >
               <Plus class="w-5 h-5 mr-2"/>
               <span>进入管理后台</span>
@@ -118,7 +118,7 @@
                 />
                 <button
                   @click="performSearch"
-                  class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 mr-1"
+                  class="px-3 py-1.5 text-sm rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 mr-1"
                 >
                   搜索
                 </button>
@@ -150,7 +150,7 @@
                 v-for="tag in ['React', 'Vue', 'Python', 'UI Design', '数据分析']"
                 :key="tag"
                 @click="searchQuery = tag; performSearch()"
-                class="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 text-sm"
+                class="px-3 py-1.5 text-sm rounded-md bg-white/5 backdrop-blur-sm border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300"
               >
                 {{ tag }}
               </button>
@@ -208,7 +208,7 @@
         <div class="text-center mt-12">
           <button
             @click="$router.push('/skills')"
-            class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+            class="inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
           >
             查看全部分类
             <ArrowRight class="w-5 h-5 ml-2" />
