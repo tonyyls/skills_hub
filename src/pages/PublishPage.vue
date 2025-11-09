@@ -192,6 +192,30 @@
               </div>
             </div>
           </div>
+
+          <!-- Git地址 -->
+          <div class="md:col-span-2 lg:col-span-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2"> Git地址 </label>
+            <input
+              v-model="form.gitUrl"
+              type="url"
+              placeholder="https://github.com/..."
+              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+            />
+          </div>
+
+          <!-- 安装命令 -->
+          <div class="md:col-span-2 lg:col-span-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2"> 安装命令 </label>
+            <textarea
+              v-model="form.installCommand"
+              placeholder="例如：npm install package-name"
+              rows="4"
+              ref="installCommandRef"
+              @input="autoResizeInstallCommand($event)"
+              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors leading-relaxed resize-none overflow-hidden"
+            ></textarea>
+          </div>
           
           <!-- 提交按钮 -->
           <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
@@ -241,11 +265,15 @@ const form = ref({
   description: '',
   content: '',
   tags: [] as string[],
-  authorName: ''
+  authorName: '',
+  gitUrl: '',
+  installCommand: ''
 })
 
 // 文件输入引用
 const fileInput = ref<HTMLInputElement>()
+// 安装命令文本域引用
+const installCommandRef = ref<HTMLTextAreaElement | null>(null)
 
 /**
  * 检查发布表单是否满足提交条件。
@@ -376,6 +404,20 @@ const removeTag = (index: number) => {
 }
 
 /**
+ * 自动调整安装命令文本域高度，避免出现滚动条。
+ * - 每次输入时先重置为 auto，再设置为 scrollHeight。
+ *
+ * @param {Event} evt 输入事件对象
+ * @returns {void}
+ */
+const autoResizeInstallCommand = (evt: Event): void => {
+  const el = evt.target as HTMLTextAreaElement | null
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
+/**
  * 重置表单字段与选择的文件及标签输入。
  *
  * @returns {void}
@@ -387,7 +429,9 @@ const resetForm = () => {
     description: '',
     content: '',
     tags: [],
-    authorName: ''
+    authorName: '',
+    gitUrl: '',
+    installCommand: ''
   }
   selectedFile.value = null
   tagInput.value = ''
@@ -428,7 +472,9 @@ const handleSubmit = async () => {
       description: form.value.description.trim(),
       author_id: authStore.user.id,
       author_name: form.value.authorName?.trim() || null,
-      featured: false
+      featured: false,
+      git_url: form.value.gitUrl?.trim() || null,
+      install_command: form.value.installCommand?.trim() || null
     })
     
     if (error) throw error
@@ -451,5 +497,10 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   loadCategories()
+  // 初始化时根据默认内容调整高度
+  if (installCommandRef.value) {
+    installCommandRef.value.style.height = 'auto'
+    installCommandRef.value.style.height = `${installCommandRef.value.scrollHeight}px`
+  }
 })
 </script>

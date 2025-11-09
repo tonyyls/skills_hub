@@ -602,11 +602,11 @@ const showToastMessage = (message: string) => {
   }, 3000)
 }
 
+/**
+ * 处理技能下载或查看详情：直接跳转详情页，无需登录。
+ * @param {string} skillId 技能ID
+ */
 const handleDownload = (skillId: string) => {
-  if (!authStore.isAuthenticated) {
-    showToastMessage('请先登录以下载技能')
-    return
-  }
   router.push(`/skills/${skillId}`)
 }
 

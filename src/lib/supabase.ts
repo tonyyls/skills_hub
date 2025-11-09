@@ -88,6 +88,14 @@ export interface Skill {
   content?: string
   category_id: string
   file_url?: string
+  /** Git 仓库地址（可选） */
+  git_url?: string
+  /** 安装命令或说明（可选） */
+  install_command?: string
+  /** 是否精选 */
+  featured?: boolean
+  /** 是否推荐 */
+  recommended?: boolean
   download_count: number
   created_at: string
   updated_at: string

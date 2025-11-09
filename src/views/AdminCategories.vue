@@ -10,13 +10,24 @@
             @keyup.enter="loadCategories"
             type="text"
             placeholder="搜索名称、描述、slug..."
-            class="pl-9 pr-3 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            class="pl-9 pr-8 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           />
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
+          <!-- 清除按钮：有内容时显示 -->
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="clearSearch"
+            class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-gray-600"
+            title="清除"
+            aria-label="清除"
+          >
+            <X class="h-4 w-4" />
+          </button>
         </div>
         <!-- 刷新按钮（统一 lucide-vue-next 图标风格） -->
         <button
@@ -271,7 +282,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw, X } from 'lucide-vue-next'
 
 interface Category {
   id: string
@@ -288,6 +299,16 @@ const categories = ref<Category[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const searchQuery = ref('')
+
+/**
+ * 清除搜索关键字并重新加载分类列表。
+ * 当输入框有内容时显示清除图标，点击后置空并触发加载。
+ */
+const clearSearch = (): void => {
+  if (!searchQuery.value) return
+  searchQuery.value = ''
+  loadCategories()
+}
 
 const authStore = useAuthStore()
 const router = useRouter()

@@ -55,15 +55,24 @@
 
           <div class="flex-1">
             <h1 class="text-xl md:text-2xl font-bold text-gray-900">{{ displayName }}</h1>
-            <p class="text-gray-600 mt-1">发现社区中优质的 Skills 资源，提升你的AI使用效率</p>
+            <!-- 标签信息行：显示用户类型与加入时间 -->
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+              <p class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {{ userTypeLabel }}
+              </p>
+              <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                <CalendarDays class="w-4 h-4 text-gray-600" /> 加入于 {{ memberSince }}
+              </p>
+            </div>
+            <p class="text-gray-500 mt-2">发现社区中优质的 Skills 资源，提升你的AI使用效率</p>
             <div class="flex flex-wrap items-center gap-3 mt-3 text-sm">
-              <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-700 hover:text-blue-600">
+              <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-600 hover:text-blue-600">
                 <Mail class="w-4 h-4" />
                 <span>{{ profileEmail }}</span>
               </a>
               <!-- GitHub 链接：展示为用户名或域名，点击跳转 -->
               <!-- GitHub 链接区域：有值则可点击，无值显示“暂无” -->
-              <div class="inline-flex items-center gap-1 text-gray-700">
+              <div class="inline-flex items-center gap-1 text-gray-600">
                 <Github class="w-4 h-4" />
                 <a
                   v-if="profileGithub"
@@ -74,7 +83,7 @@
                 >
                   {{ githubDisplayText }}
                 </a>
-                <span v-else class="text-gray-400">暂无</span>
+                <span v-else class="text-xs text-gray-400">暂无</span>
               </div>
           </div>
         </div>
@@ -83,17 +92,17 @@
         <!-- 统计信息 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-600">发布技能</p>
+            <p class="text-sm text-gray-500">发布技能</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.skillsCount }}</p>
           </div>
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-600">总下载量</p>
+            <p class="text-sm text-gray-500">总下载量</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.totalDownloads }}</p>
           </div>
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-600">加入时间</p>
+            <p class="text-sm text-gray-500">加入时间</p>
             <p class="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
-              <CalendarDays class="w-5 h-5 text-gray-700" /> {{ memberSince }}
+              <CalendarDays class="w-5 h-5 text-gray-600" /> {{ memberSince }}
             </p>
           </div>
         </div>
@@ -251,6 +260,23 @@ const normalizedGithubUrl = computed(() => {
   // 其他情况，尽量补全协议
   return `https://${raw}`
 })
+
+/**
+ * 用户类型标签展示。
+ * - 若为管理员登录且无普通用户会话，显示“官方”。
+ * - 其他情况显示“用户”。
+ * @returns {string} 标签文字。
+ */
+const userTypeLabel = computed((): string => {
+  return (auth.adminUser && !auth.user?.id) ? '官方' : '用户'
+})
+
+/**
+ * 登录状态标识。
+ * - 仅用于需要根据登录状态微调展示时。
+ * @returns {boolean} 是否登录（普通或管理员）。
+ */
+const isLoggedIn = computed((): boolean => !!auth.user?.id || !!auth.adminUser)
 
 /**
  * GitHub 展示文本。

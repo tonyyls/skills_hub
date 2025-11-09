@@ -566,7 +566,7 @@ router.put('/skills/:id', verifyAdminToken, async (req: Request, res: Response):
     const { id } = req.params
     const body = req.body as any
     const patch: Record<string, any> = { updated_at: new Date().toISOString() }
-    const fields = ['title','description','content','category_id','featured','recommended','author_name','author_id','status','tags']
+    const fields = ['title','description','content','category_id','featured','recommended','author_name','author_id','status','tags','git_url','install_command']
     for (const k of fields) {
       if (body[k] !== undefined) {
         if (k === 'title') patch.name = String(body.title)
@@ -589,6 +589,10 @@ router.put('/skills/:id', verifyAdminToken, async (req: Request, res: Response):
         }
         else if (k === 'tags') {
           patch.tags = normalizeTags(body.tags)
+        }
+        else if (k === 'git_url' || k === 'install_command') {
+          const v = body[k]
+          patch[k] = (typeof v === 'string' && v.trim().length > 0) ? v.trim() : null
         }
         else if (k === 'description' || k === 'content') {
           const v = body[k]
@@ -804,7 +808,7 @@ router.put('/skills/:id', verifyAdminToken, async (req: Request, res: Response):
     const { id } = req.params
     const body = req.body as any
     const updateData: Record<string, any> = { updated_at: new Date().toISOString() }
-    const fields = ['title','description','content','category_id','featured','recommended','author_name','author_id']
+    const fields = ['title','description','content','category_id','featured','recommended','author_name','author_id','git_url','install_command']
     for (const k of fields) {
       if (body[k] !== undefined) {
         if (k === 'title') updateData.name = String(body.title)
@@ -819,6 +823,10 @@ router.put('/skills/:id', verifyAdminToken, async (req: Request, res: Response):
         }
         else if (k === 'featured' || k === 'recommended') {
           updateData[k] = !!body[k]
+        }
+        else if (k === 'git_url' || k === 'install_command') {
+          const v = body[k]
+          updateData[k] = (typeof v === 'string' && v.trim().length > 0) ? v.trim() : null
         }
         else if (k === 'description' || k === 'content') {
           const v = body[k]

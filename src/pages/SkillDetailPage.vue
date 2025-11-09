@@ -3,7 +3,7 @@
  * 展示技能详细信息、下载功能和相关推荐
  */
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-white">
     <!-- 加载状态 -->
     <div v-if="isLoading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
@@ -18,12 +18,13 @@
         <AlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
         <h2 class="text-xl font-semibold text-gray-900 mb-2">加载失败</h2>
         <p class="text-gray-600 mb-4">{{ error }}</p>
-        <button
-          @click="loadSkill"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        <a
+          href="#"
+          @click.prevent="loadSkill"
+          class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
         >
           重试
-        </button>
+        </a>
       </div>
     </div>
     
@@ -31,121 +32,138 @@
     <div v-else-if="skill" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- 返回按钮 -->
       <div class="mb-6">
-        <button
-          @click="goBack"
+        <a
+          href="#"
+          @click.prevent="goBack"
           class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
         >
           <ArrowLeft class="w-4 h-4" />
           <span>返回技能列表</span>
-        </button>
+        </a>
       </div>
       
       <!-- 主要内容 -->
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-[#EEEEEE] overflow-hidden">
         <!-- 头部信息 -->
         <div class="p-6 lg:p-8 border-b border-gray-200">
-          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
-            <div class="flex-1 lg:pr-8">
-              <div class="flex items-center space-x-3 mb-3">
-                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                  {{ skill.category }}
+          <!-- 标题在上、描述在下；标签/精选/推荐/作者重新排序 -->
+          <div class="space-y-4 mb-6">
+            <h1 class="text-2xl lg:text-3xl font-semibold tracking-tight text-gray-900">{{ skill.title }}</h1>
+            <p class="text-gray-700 text-sm lg:text-base leading-7">{{ skill.description }}</p>
+            <!-- Git 地址卡片：置于标题与描述之后、标签之前 -->
+            <div v-if="skill.git_url" class="mt-2 bg-gray-50 rounded-lg p-3 group">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <Github class="w-4 h-4 text-gray-700 flex-shrink-0" />
+                  <span
+                    class="text-gray-600 break-all truncate"
+                    :title="skill.git_url"
+                  >
+                    {{ skill.git_url }}
+                  </span>
+                </div>
+                <a
+                  href="#"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
+                  @click.prevent="copyToClipboard(skill.git_url)"
+                  aria-label="复制Git地址"
+                >
+                  <Copy class="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+            <!-- 行1：标签在最前（去除多余 div，统一为 p/span 样式） -->
+            <div class="flex flex-wrap items-center gap-4">
+              <p class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {{ skill.category?.name || getCategoryName(skill.category_id) || '未分类' }}
+              </p>
+              <p v-if="skill.featured" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                精选
+              </p>
+              <p v-if="skill.recommended" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                推荐
+              </p>
+            <p class="text-xs text-gray-600">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
+              <p class="text-sm text-gray-500">创建于 {{ formatDate(skill.created_at) }}</p>
+            </div>
+            <!-- 技能标签显示 -->
+            <div v-if="skill.tags && skill.tags.length" class="mt-4">
+              <div class="flex flex-wrap gap-2">
+                <span v-for="tag in skill.tags" :key="typeof tag==='string'?tag:tag?.name" class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                  {{ typeof tag==='string'?tag:(tag?.name||'') }}
                 </span>
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <Star class="w-4 h-4 fill-current" />
-                  <span class="text-sm text-gray-600">{{ skill.rating }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 顶部标签导航（静态） -->
+        <div class="px-6 lg:px-8 mt-4 border-b border-gray-200 flex items-center gap-6">
+          <span class="relative pb-3 text-[#E07245]">
+            概述
+            <span class="absolute left-0 -bottom-px w-full h-0.5 bg-[#E07245]"></span>
+          </span>
+          <span class="pb-3 text-gray-600 hover:text-gray-900 transition">评论</span>
+        </div>
+        
+        <!-- 两栏主体：左概述，右CTA与代码块 -->
+        <div class="p-6 lg:p-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左：概述卡片 -->
+            <div class="lg:col-span-2">
+              <div class="bg-white rounded-xl shadow-sm border p-6">
+                <h2 class="text-lg font-semibold text-gray-900">Overview</h2>
+                <div class="mt-4 space-y-6">
+                  <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">是什么？</h3>
+                    <p class="text-gray-700 leading-relaxed">{{ skill.content || skill.description || '暂无描述。' }}</p>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">如何使用？</h3>
+                    <p v-if="skill.install_command" class="text-gray-700 leading-relaxed">通过右侧的安装命令快速开始，或访问源码仓库获取更多示例。</p>
+                    <p v-else class="text-gray-500">暂无安装说明。</p>
+                  </div>
+
                 </div>
               </div>
-              <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">{{ skill.title }}</h1>
-              <p class="text-gray-600 text-lg">{{ skill.description }}</p>
+              <!-- 元信息：已移除 -->
             </div>
-            
-            <!-- 下载按钮 -->
-            <div class="mt-6 lg:mt-0 lg:ml-8 flex-shrink-0">
-              <button
-                @click="handleDownload"
-                :disabled="isDownloading"
-                class="bg-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2 text-lg"
-              >
-                <Download class="w-6 h-6" />
-                <span>{{ isDownloading ? '下载中...' : '下载资源' }}</span>
-              </button>
-              <p class="text-sm text-gray-500 mt-3 text-center">{{ skill.downloads }} 次下载</p>
-            </div>
-          </div>
-          
-          <!-- 作者信息（优先展示 author_name；其次 author.username；兜底“官方”） -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-              <img
-                :src="(skill.author?.avatar_url) || `https://ui-avatars.com/api/?name=${encodeURIComponent((skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方'))}&background=cccccc&color=ffffff`"
-                :alt="(skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方')"
-                class="w-12 h-12 rounded-full"
-              />
-              <div>
-                <p class="font-medium text-gray-900 text-lg">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
-                <p class="text-sm text-gray-500">{{ formatDate(skill.created_at) }}</p>
+
+            <!-- 右：操作与代码块 -->
+            <div class="space-y-6">
+
+              <div class="bg-white rounded-xl shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">安装命令</h3>
+                <div v-if="skill.install_command" class="relative group">
+                  <pre
+                    class="bg-gray-50 rounded-md px-3 py-2 text-gray-800 whitespace-pre-wrap break-all font-mono text-sm"
+                    :class="isInstallExpanded ? '' : 'max-h-24 overflow-hidden pr-10'"
+                  >
+<code>{{ skill.install_command }}</code>
+                  </pre>
+                  <div v-if="!isInstallExpanded" class="pointer-events-none absolute bottom-2 left-2 right-2 h-8 bg-gradient-to-t from-gray-50 to-transparent rounded-b-md"></div>
+                  <a
+                    href="#"
+                    class="absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
+                    @click.prevent="copyToClipboard(skill.install_command)"
+                    aria-label="复制安装命令"
+                  >
+                    <Copy class="w-4 h-4" />
+                  </a>
+                  <a
+                    href="#"
+                    class="absolute top-2 right-12 inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
+                    @click.prevent="toggleInstallExpanded()"
+                    aria-label="展开/收起安装命令"
+                  >
+                    <ChevronUp v-if="isInstallExpanded" class="w-4 h-4" />
+                    <ChevronDown v-else class="w-4 h-4" />
+                  </a>
+                </div>
+                <p v-else class="text-gray-500">暂无安装说明。</p>
               </div>
-            </div>
-            
-            <div class="flex items-center space-x-6 text-gray-600">
-              <span class="flex items-center space-x-2">
-                <Download class="w-5 h-5" />
-                <span class="font-medium">{{ skill.downloads }}</span>
-              </span>
-              <span class="flex items-center space-x-2">
-                <Star class="w-5 h-5 text-yellow-500" />
-                <span class="font-medium">{{ skill.rating }}</span>
-              </span>
-              <span class="font-medium">{{ skill.fileSize }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 标签 -->
-        <div class="p-6 lg:p-8 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">标签</h3>
-          <div class="flex flex-wrap gap-3">
-            <span
-              v-for="tag in skill.tags"
-              :key="tag"
-              class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium"
-            >
-              {{ tag }}
-            </span>
-          </div>
-        </div>
-        
-        <!-- 详细描述 -->
-        <div class="p-6 lg:p-8 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">详细介绍</h3>
-          <div class="prose prose-lg max-w-none text-gray-700">
-            <p class="text-lg leading-relaxed">{{ skill.description }}</p>
-            <div v-if="skill.content" class="mt-6">
-              <h4 class="text-lg font-semibold text-gray-900 mb-3">内容说明</h4>
-              <p class="text-lg leading-relaxed">{{ skill.content }}</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 文件信息 -->
-        <div class="p-6 lg:p-8">
-          <h3 class="text-xl font-semibold text-gray-900 mb-6">文件信息</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <span class="text-gray-600 text-sm block mb-1">文件大小</span>
-              <span class="font-semibold text-lg">{{ skill.fileSize }}</span>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <span class="text-gray-600 text-sm block mb-1">下载次数</span>
-              <span class="font-semibold text-lg">{{ skill.downloads }}</span>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <span class="text-gray-600 text-sm block mb-1">评分</span>
-              <span class="font-semibold text-lg">{{ skill.rating }}/5.0</span>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <span class="text-gray-600 text-sm block mb-1">发布日期</span>
-              <span class="font-semibold text-lg">{{ formatDate(skill.createdAt) }}</span>
+
+              <!-- 右侧原 Git 地址卡片移除（已上移至标题下方） -->
             </div>
           </div>
         </div>
@@ -170,16 +188,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Download, Star, AlertCircle } from 'lucide-vue-next'
+import { ArrowLeft, Star, AlertCircle, Github, Copy, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import { useSkillsStore } from '@/stores/skills'
-import { useAuthStore } from '@/stores/auth'
 import { supabase, type Skill } from '@/lib/supabase'
 import SkillCard from '@/components/SkillCard.vue'
 
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
-const authStore = useAuthStore()
+
+/**
+ * 根据分类ID获取分类中文名称。
+ * 优先使用已加载的分类列表；未找到时返回空字符串，
+ * 由模板层统一回退为“未分类”。
+ * @param {string} categoryId 分类主键ID
+ * @returns {string} 分类名称或空字符串
+ */
+const getCategoryName = (categoryId: string): string => {
+  if (!categoryId) return ''
+  const category = skillsStore.categories.find(c => c.id === categoryId)
+  return category?.name || ''
+}
 
 // 状态管理
 const skill = ref<Skill | null>(null)
@@ -187,6 +216,19 @@ const isLoading = ref(false)
 const error = ref('')
 const isDownloading = ref(false)
 const relatedSkills = ref<Skill[]>([])
+
+/**
+ * 安装命令展开状态
+ * 控制长命令的折叠/展开展示。
+ */
+const isInstallExpanded = ref(false)
+
+/**
+ * 切换安装命令折叠/展开状态。
+ */
+const toggleInstallExpanded = () => {
+  isInstallExpanded.value = !isInstallExpanded.value
+}
 
 /**
  * 加载技能详情
@@ -256,13 +298,6 @@ const loadRelatedSkills = async (currentSkill: Skill) => {
 const handleDownload = async () => {
   if (!skill.value || isDownloading.value) return
   
-  if (!authStore.isAuthenticated) {
-    if (confirm('请先登录以下载技能')) {
-      authStore.signInWithGitHub()
-    }
-    return
-  }
-  
   isDownloading.value = true
   
   try {
@@ -320,4 +355,33 @@ const formatDate = (date: string) => {
 onMounted(() => {
   loadSkill()
 })
+
+/**
+ * 复制文本到剪贴板。
+ * - 使用 `navigator.clipboard.writeText` 优先实现；
+ * - 回退到创建临时输入节点的方式以兼容旧浏览器；
+ * @param {string} text 待复制文本
+ * @returns {Promise<void>} 复制成功或失败后的提示
+ */
+const copyToClipboard = async (text: string): Promise<void> => {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const input = document.createElement('textarea')
+      input.value = text
+      input.style.position = 'fixed'
+      input.style.left = '-9999px'
+      document.body.appendChild(input)
+      input.focus()
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+    }
+    alert('已复制到剪贴板')
+  } catch (e) {
+    console.error('复制失败：', e)
+    alert('复制失败，请手动复制')
+  }
+}
 </script>

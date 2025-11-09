@@ -12,7 +12,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="搜索技能..."
-            class="pl-9 pr-3 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            class="pl-9 pr-8 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             @keyup.enter="handleSearch"
           >
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
@@ -20,6 +20,17 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
+          <!-- 清除按钮：有内容时显示 -->
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="clearSearch"
+            class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-gray-600"
+            title="清除"
+            aria-label="清除"
+          >
+            <X class="h-4 w-4" />
+          </button>
         </div>
         
         <!-- 状态筛选 -->
@@ -402,12 +413,14 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   安装命令
                 </label>
-                <input
+                <textarea
                   v-model="form.install_command"
-                  type="text"
-                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  rows="4"
+                  ref="installCommandRef"
+                  @input="autoResizeInstallCommand($event)"
+                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors leading-relaxed resize-none overflow-hidden"
                   placeholder="例如：npm install package-name"
-                >
+                ></textarea>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -568,7 +581,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw, X } from 'lucide-vue-next'
 
 interface Skill {
   id: string
@@ -617,10 +630,22 @@ const saving = ref(false)
 const contentError = ref(false)
 const authorNameError = ref<string | null>(null)
 const searchQuery = ref('')
+/**
+ * 清除搜索关键字并重置分页，随后重新加载技能列表。
+ * 当输入框有内容时显示清除图标，点击后置空并触发搜索。
+ */
+const clearSearch = (): void => {
+  if (!searchQuery.value) return
+  searchQuery.value = ''
+  currentPage.value = 1
+  loadSkills()
+}
 const currentPage = ref(1)
 const limit = ref(20)
 const total = ref(0)
 const newTag = ref('')
+// 安装命令文本域引用
+const installCommandRef = ref<HTMLTextAreaElement | null>(null)
 
 const filters = ref({
   status: '',
@@ -1020,10 +1045,23 @@ const confirmDelete = async () => {
   }
 }
 
+/**
+ * 自动调整安装命令文本域高度，避免滚动条。
+ * 每次输入时先重置为 auto，再设置为 scrollHeight。
+ * @param {Event} evt 输入事件对象
+ */
+const autoResizeInstallCommand = (evt: Event): void => {
+  const el = evt.target as HTMLTextAreaElement | null
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 // 保存技能
 /**
  * 保存技能：创建或更新。
  * - 使用管理员令牌鉴权，处理401。
+ * - 规范化可选字段：`author_name`、`git_url`、`install_command`（空值写入 null）。
  */
 const saveSkill = async () => {
   try {
@@ -1048,10 +1086,12 @@ const saveSkill = async () => {
     const method = showEditModal.value ? 'PUT' : 'POST'
     
     const token = localStorage.getItem('admin_token')
-    // 修剪 author_name，空值用 null 传递
+    // 修剪 author_name/git_url/install_command，空值用 null 传递
     const payload = {
       ...form.value,
-      author_name: form.value.author_name?.trim() || null
+      author_name: form.value.author_name?.trim() || null,
+      git_url: form.value.git_url?.trim() || null,
+      install_command: form.value.install_command?.trim() || null
     }
     // 记录请求概要，避免日志过大
     console.debug('[saveSkill] 请求准备:', { url, method, hasToken: !!token, payloadKeys: Object.keys(payload) })
@@ -1148,5 +1188,10 @@ watch(() => form.value.author_name, () => {
 onMounted(() => {
   loadSkills()
   loadCategories()
+  // 初始化时根据默认内容调整安装命令文本域高度
+  if (installCommandRef.value) {
+    installCommandRef.value.style.height = 'auto'
+    installCommandRef.value.style.height = `${installCommandRef.value.scrollHeight}px`
+  }
 })
 </script>

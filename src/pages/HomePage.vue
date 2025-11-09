@@ -415,16 +415,11 @@ const loadSkills = async () => {
 /**
  * 处理技能下载
  */
+/**
+ * 处理技能下载或查看详情：直接跳转详情页，无需登录。
+ * @param {string} skillId 技能ID
+ */
 const handleDownload = (skillId: string) => {
-  if (!authStore.isAuthenticated) {
-    // 提示用户登录
-    if (confirm('请先登录以下载技能')) {
-      authStore.signInWithGitHub()
-    }
-    return
-  }
-  
-  // 跳转到技能详情页进行下载
   router.push(`/skills/${skillId}`)
 }
 
