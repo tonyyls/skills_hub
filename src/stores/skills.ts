@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 export const useSkillsStore = defineStore('skills', () => {
   const skills = ref<Skill[]>([])
   const categories = ref<Category[]>([])
+  // 分类名称映射（id -> name），避免页面重复请求
+  const categoryMap = ref<Record<string, string>>({})
   const tags = ref<Tag[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -47,6 +49,8 @@ export const useSkillsStore = defineStore('skills', () => {
 
   const setCategories = (newCategories: Category[]) => {
     categories.value = newCategories
+    // 同步构建映射
+    categoryMap.value = Object.fromEntries((newCategories || []).map((c: Category) => [c.id as string, c.name]))
   }
 
   const setTags = (newTags: Tag[]) => {
@@ -225,6 +229,118 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
+  /**
+   * 获取最新技能列表（按创建时间倒序，仅已发布）。
+   * 匿名访问受 RLS 限制，需过滤 `status = 'published'`。
+   * @returns {Promise<Skill[]>} 最新技能数组
+   */
+  const fetchLatestSkills = async (): Promise<Skill[]> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from('skills')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(24)
+
+      if (supabaseError) throw supabaseError
+      const mapped = (data || []).map((row: any) => ({
+        id: row.id,
+        user_id: row.author_id || row.user_id || '',
+        title: row.title || row.name || '未命名技能',
+        description: row.description || '',
+        content: row.content || '',
+        category_id: row.category_id || row.category?.id || '',
+        featured: !!row.featured,
+        recommended: !!row.recommended,
+        download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        author_name: row.author_name || '',
+        tags: Array.isArray(row.tags)
+          ? row.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
+          : []
+      }))
+      setLoading(false)
+      return mapped
+    } catch (err) {
+      console.error('获取最新技能失败:', err)
+      setLoading(false)
+      return []
+    }
+  }
+
+  /**
+   * 获取精选技能列表（featured=true 且仅已发布，按创建时间倒序）。
+   * 匿名访问受 RLS 限制，需过滤 `status = 'published'`。
+   * @returns {Promise<Skill[]>} 精选技能数组
+   */
+  const fetchFeaturedSkills = async (): Promise<Skill[]> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from('skills')
+        .select('*')
+        .eq('featured', true)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(24)
+
+      if (supabaseError) throw supabaseError
+      const mapped = (data || []).map((row: any) => ({
+        id: row.id,
+        user_id: row.author_id || row.user_id || '',
+        title: row.title || row.name || '未命名技能',
+        description: row.description || '',
+        content: row.content || '',
+        category_id: row.category_id || row.category?.id || '',
+        featured: !!row.featured,
+        recommended: !!row.recommended,
+        download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        author_name: row.author_name || '',
+        tags: Array.isArray(row.tags)
+          ? row.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
+          : []
+      }))
+      setLoading(false)
+      return mapped
+    } catch (err) {
+      console.error('获取精选技能失败:', err)
+      setLoading(false)
+      return []
+    }
+  }
+
+  /**
+   * 获取已发布技能总数（匿名可调用）。
+   * 通过 RPC 函数 `public.get_published_skills_count()`，遵循 RLS 与调用者权限。
+   * - 正常返回整数总数
+   * - 异常或无数据时返回 0
+   * 官方文档：
+   * - Database Functions: https://supabase.com/docs/guides/database/functions
+   * - JS RPC: https://supabase.com/docs/reference/javascript/rpc
+   * @returns {Promise<number>} 已发布技能总数
+   */
+  const fetchTotalCount = async (): Promise<number> => {
+    try {
+      const { data, error } = await supabase.rpc('get_published_skills_count')
+      if (error) {
+        console.warn('获取技能总数失败：', error.message)
+        return 0
+      }
+      const total = typeof data === 'number' ? data : 0
+      return total
+    } catch (e: any) {
+      console.error('RPC 调用异常：', e?.message || e)
+      return 0
+    }
+  }
+
   const fetchCategories = async () => {
     try {
       const { data, error: supabaseError } = await supabase
@@ -310,6 +426,36 @@ export const useSkillsStore = defineStore('skills', () => {
         }
       ]
       setCategories(mockCategories)
+    }
+  }
+
+  /**
+   * 确保分类数据已加载（含映射）。
+   * - 若 categories 已有内容，直接构建/维持映射。
+   * - 否则拉取 categories；若拉取失败可回退到 skill_categories。
+   */
+  const ensureCategoriesLoaded = async (): Promise<void> => {
+    if ((categories.value && categories.value.length > 0) && Object.keys(categoryMap.value).length > 0) return
+    // 尝试现有 categories 构建映射
+    if (categories.value && categories.value.length > 0) {
+      categoryMap.value = Object.fromEntries(categories.value.map((c: Category) => [c.id as string, c.name]))
+      return
+    }
+    // 拉取 categories
+    try {
+      const { data, error } = await supabase.from('categories').select('id, name')
+      if (!error && Array.isArray(data) && data.length > 0) {
+        setCategories(data as Category[])
+        return
+      }
+      // 回退到 skill_categories
+      const { data: data2, error: error2 } = await supabase.from('skill_categories').select('id, name')
+      if (!error2 && Array.isArray(data2) && data2.length > 0) {
+        // 仅构建映射，不污染 categories 类型不一致
+        categoryMap.value = Object.fromEntries((data2 as any[]).map((c: any) => [String(c.id), String(c.name)]))
+      }
+    } catch (e) {
+      console.warn('ensureCategoriesLoaded 失败:', e)
     }
   }
 
@@ -450,6 +596,7 @@ export const useSkillsStore = defineStore('skills', () => {
   return {
     skills,
     categories,
+    categoryMap,
     tags,
     loading,
     error,
@@ -469,7 +616,11 @@ export const useSkillsStore = defineStore('skills', () => {
     setSelectedCategory,
     setCurrentPage,
     fetchSkills,
+    fetchLatestSkills,
+    fetchFeaturedSkills,
+    fetchTotalCount,
     fetchCategories,
+    ensureCategoriesLoaded,
     fetchTags,
     fetchSkillById,
     incrementDownloadCount

@@ -15,7 +15,7 @@
           <div>
             <h3 class="text-lg font-semibold mb-4 text-[#333]">Skills Hub</h3>
             <p class="text-[#666] text-sm">
-              技能分享平台，连接技能拥有者和学习者
+              汇聚全网最优秀的Skills资源
             </p>
           </div>
           <div>
@@ -27,7 +27,24 @@
               <li><router-link to="/about" class="text-[#666] hover:text-[#FF7A45]">关于我们</router-link></li>
             </ul>
           </div>
-          <div>
+          <!-- 第三列：在此位置显示友情链接（有数据时） -->
+          <div v-if="friendLinks.length > 0">
+            <h4 class="text-md font-medium mb-4 text-[#333]">友情链接</h4>
+            <ul class="space-y-2 text-sm">
+              <li v-for="link in friendLinks" :key="link.id">
+                <a
+                  :href="link.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[#666] hover:text-[#FF7A45]"
+                >
+                  {{ link.name }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <!-- 无数据时回退显示用户中心，避免布局空列 -->
+          <div v-else>
             <h4 class="text-md font-medium mb-4 text-[#333]">用户中心</h4>
             <ul class="space-y-2 text-sm">
               <li><router-link to="/profile" class="text-[#666] hover:text-[#FF7A45]">个人资料</router-link></li>
@@ -52,7 +69,42 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import NavBar from '@/components/NavBar.vue'
+
+// 友情链接类型声明（与后端 link_exchange 表结构对应的必要字段）
+interface FriendLink {
+  id: string
+  name: string
+  url: string
+  description?: string
+  sort_order: number
+  enabled: boolean
+}
+
+// 友情链接数据（公开接口）
+const friendLinks = ref<FriendLink[]>([])
+
+/**
+ * 加载友情链接：从公开接口 `/api/links` 读取启用项。
+ * - 服务端已按排序返回（sort_order ASC, created_at DESC）
+ * - 若返回空列表，页脚第三列显示“用户中心”作为回退内容
+ * @returns {Promise<void>} 无返回
+ */
+const loadFriendLinks = async (): Promise<void> => {
+  try {
+    const res = await fetch('/api/links', { headers: { 'Accept': 'application/json' } })
+    if (!res.ok) return
+    const data = await res.json().catch(() => ({ items: [] }))
+    friendLinks.value = Array.isArray(data.items) ? data.items : []
+  } catch {
+    friendLinks.value = []
+  }
+}
+
+onMounted(async () => {
+  await loadFriendLinks()
+})
 </script>
 
 <style>

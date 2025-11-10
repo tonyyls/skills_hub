@@ -4,6 +4,13 @@
  */
 <template>
   <div class="min-h-screen bg-gray-50">
+    <!-- 轻量提示：登录/操作反馈，与 /skills 保持一致 -->
+    <div
+      v-if="showToast"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow z-50"
+    >
+      {{ toastText }}
+    </div>
     <!-- 页面标题区域 - 与 /skills 页面保持一致的对齐方式 -->
     <div class="bg-white border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -13,8 +20,8 @@
             <p class="mt-2 text-gray-600">管理你收藏的技能资源</p>
           </div>
           <div class="flex items-center gap-2 text-sm text-gray-500">
-            <Heart class="w-4 h-4" />
-            <span>{{ favoriteSkills.length }} 个技能</span>
+            <Star class="w-4 h-4 text-yellow-400 fill-current" />
+            <span>已收藏 {{ favoriteSkills.length }} 个技能</span>
           </div>
         </div>
       </div>
@@ -40,7 +47,7 @@
       <div v-else-if="favoriteSkills.length === 0" class="text-center py-16">
         <div class="max-w-md mx-auto w-full">
           <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Heart class="w-12 h-12 text-orange-500" />
+            <Star class="w-12 h-12 text-yellow-400 fill-current" />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 mb-2">还没有收藏任何技能</h3>
           <p class="text-gray-600 mb-8">去发现一些有趣的技能，点击收藏按钮即可在这里查看</p>
@@ -59,67 +66,46 @@
         <div 
           v-for="skill in favoriteSkills" 
           :key="skill.id"
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-orange-200 transition-all duration-200 group"
+          class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
+          @click="goToSkillDetail(skill.id)"
         >
           <!-- 技能头部信息 -->
-          <div class="flex items-start gap-4 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center flex-shrink-0">
-              <component 
-                :is="getIconComponent(skill.category)" 
-                class="w-6 h-6 text-orange-600"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
                 {{ skill.title }}
               </h3>
-              <p class="text-sm text-gray-600 mt-1">{{ skill.category || '未分类' }}</p>
             </div>
             <!-- 取消收藏按钮 -->
             <button
-              @click="removeFavorite(skill.id)"
-              class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 flex-shrink-0"
+              @click.stop="removeFavorite(skill.id)"
+              class="text-yellow-400 hover:text-yellow-500 p-2 rounded-lg transition-colors"
               title="取消收藏"
             >
-              <Heart class="w-5 h-5 fill-current" />
+              <Star class="w-5 h-5 fill-current" />
             </button>
           </div>
 
-          <!-- 技能描述 -->
-          <p class="text-gray-700 text-sm mb-4 line-clamp-2">{{ skill.description }}</p>
+          <!-- 描述（三行截断，与首页一致） -->
+          <p class="text-gray-600 text-sm line-clamp-3 mb-4">{{ skill.description }}</p>
 
-          <!-- 技能统计信息 -->
-          <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-            <div class="flex items-center gap-1">
-              <Download class="w-4 h-4" />
-              <span>{{ skill.download_count || 0 }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <Star class="w-4 h-4" />
-              <span>{{ skill.rating || 0 }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <Calendar class="w-4 h-4" />
-              <span>{{ formatDate(skill.created_at) }}</span>
-            </div>
+          <!-- 标签（最多显示 3 个） -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span
+              v-for="tag in (skill.tags || []).slice(0, 3)"
+              :key="typeof tag === 'string' ? tag : ''"
+              class="px-2 py-1 bg-[#F4F4F4] text-[#666] text-xs rounded-full"
+            >
+              {{ tag }}
+            </span>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="flex gap-2">
-            <router-link
-              :to="`/skills/${skill.id}`"
-              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors duration-200 font-medium text-sm"
-            >
-              <Eye class="w-4 h-4" />
-              查看详情
-            </router-link>
-            <button
-              @click="quickDownload(skill)"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm"
-            >
-              <Download class="w-4 h-4" />
-              下载
-            </button>
+          <!-- 底部信息：左分类、右作者（与首页一致） -->
+          <div class="mt-auto flex items-center justify-between text-gray-500 text-sm">
+            <span>{{ getCategoryName(skill.category_id) || '未分类' }}</span>
+            <span class="inline-flex items-center gap-2">
+              <span>{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : '官方' }}</span>
+            </span>
           </div>
         </div>
       </div>
@@ -129,27 +115,60 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useSkillsStore } from '@/stores/skills'
 import { supabase } from '@/lib/supabase'
-import { Heart, Compass, Download, Star, Calendar, Eye, Code, Palette, BookOpen, Settings, Globe } from 'lucide-vue-next'
+import { Compass, Download, Star, Calendar, Eye, Code, Palette, BookOpen, Settings, Globe } from 'lucide-vue-next'
 
 interface Skill {
   id: string
   title: string
   description: string
-  category?: string
+  /** 分类主键ID，与 categories.id 对齐 */
+  category_id?: string
   download_count?: number
   rating?: number
   created_at: string
+  tags?: string[] | null
+  author_name?: string | null
 }
 
 const auth = useAuthStore()
+const skillsStore = useSkillsStore()
 const loading = ref(true)
 const favoriteSkills = ref<Skill[]>([])
+const showToast = ref(false)
+const toastText = ref('')
+const router = useRouter()
 
 /**
- * 获取收藏的技能列表
- * 从用户收藏表中查询当前用户收藏的所有技能
+ * 轻量提示：2秒自动消失
+ * @param msg 提示文案
+ */
+const showToastMessage = (msg: string) => {
+  toastText.value = msg
+  showToast.value = true
+  setTimeout(() => { showToast.value = false }, 2000)
+}
+
+/**
+ * 根据分类ID获取分类名称
+ * 优先使用 store.categories，其次使用 store.categoryMap
+ * @param categoryId 分类ID
+ * @returns 分类名称
+ */
+const getCategoryName = (categoryId?: string): string => {
+  if (!categoryId) return ''
+  const byId = skillsStore.categories.find(c => c.id === categoryId)
+  return byId?.name || skillsStore.categoryMap[categoryId] || ''
+}
+
+/**
+ * 获取收藏的技能列表（两步查询，避免关系选择的列错误）。
+ * 1) 查询 `user_favorites` 获取当前用户的收藏技能ID及收藏时间；
+ * 2) 使用 `.in('id', ids)` 查询 `skills` 详情，并按收藏时间排序返回。
+ * 参考：Supabase JS 文档 `.in` 过滤与选择 https://supabase.com/docs/reference/javascript/in
  */
 const loadFavoriteSkills = async () => {
   loading.value = true
@@ -160,40 +179,68 @@ const loadFavoriteSkills = async () => {
       return
     }
 
-    // 查询用户收藏的技能
-    const { data, error } = await supabase
+    // 第一步：获取收藏的 skillId 列表（按收藏时间降序）
+    const { data: favRows, error: favError } = await supabase
       .from('user_favorites')
-      .select(`
-        skill:skills(
-          id,
-          title,
-          description,
-          category,
-          download_count,
-          rating,
-          created_at
-        )
-      `)
+      .select('skill_id, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('加载收藏失败:', error)
+    if (favError) {
+      console.error('加载收藏失败:', favError)
+      showToastMessage('加载收藏失败')
       return
     }
 
-    // 提取技能数据
-    favoriteSkills.value = (data || []).map(item => item.skill).filter(Boolean)
+    const ids = (favRows || []).map(r => r.skill_id).filter(Boolean)
+    if (ids.length === 0) {
+      favoriteSkills.value = []
+      return
+    }
+
+    // 第二步：查询技能详情
+    const { data: skillsRows, error: skillsError } = await supabase
+      .from('skills')
+      .select('id, title:name, description, category_id, created_at')
+      .in('id', ids)
+
+    if (skillsError) {
+      console.error('加载收藏详情失败:', skillsError)
+      showToastMessage('加载收藏详情失败')
+      return
+    }
+
+    // 根据收藏顺序排序技能结果
+    const orderMap = new Map<string, number>()
+    ids.forEach((id, idx) => orderMap.set(id, idx))
+    const sorted = (skillsRows || []).slice().sort((a, b) => {
+      return (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+    })
+    favoriteSkills.value = sorted as Skill[]
   } catch (error) {
     console.error('加载收藏出错:', error)
+    showToastMessage('加载收藏出现异常')
   } finally {
     loading.value = false
   }
 }
 
 /**
+ * 跳转技能详情页
+ * @param id 技能ID
+ */
+const goToSkillDetail = (id: string) => {
+  router.push(`/skills/${id}`)
+}
+
+/**
  * 移除收藏
  * @param skillId - 技能ID
+ */
+/**
+ * 取消收藏：从 Supabase `user_favorites` 删除记录并更新列表
+ * 与 /skills 页面保持一致的服务端操作
+ * @param skillId 技能ID
  */
 const removeFavorite = async (skillId: string) => {
   try {
@@ -213,6 +260,7 @@ const removeFavorite = async (skillId: string) => {
 
     // 从列表中移除
     favoriteSkills.value = favoriteSkills.value.filter(skill => skill.id !== skillId)
+    showToastMessage('已取消收藏')
   } catch (error) {
     console.error('取消收藏出错:', error)
   }
@@ -273,8 +321,10 @@ const formatDate = (dateString: string) => {
 }
 
 // 页面加载时获取收藏数据
-onMounted(() => {
-  loadFavoriteSkills()
+onMounted(async () => {
+  // 确保分类数据已加载，用于通过 category_id 显示名称
+  await skillsStore.fetchCategories()
+  await loadFavoriteSkills()
 })
 </script>
 

@@ -3,6 +3,7 @@
  * 定义应用的所有路由和页面组件映射
  */
 import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 // 页面组件
@@ -11,17 +12,16 @@ import SkillsPage from '@/pages/SkillsPage.vue'
 import SkillDetailPage from '@/pages/SkillDetailPage.vue'
 import ProfilePage from '@/pages/ProfilePage.vue'
 import PublishPage from '@/pages/PublishPage.vue'
-import ExplorePage from '@/pages/ExplorePage.vue'
 import AdminLogin from '@/views/AdminLogin.vue'
 
 // 路由配置
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: ExplorePage,
+    component: HomePage,
     meta: {
-      title: '探索技能 - Skills Hub'
+      title: '首页 - Skills Hub'
     }
   },
   {
@@ -132,6 +132,14 @@ const routes = [
         meta: {
           title: '管理员资料 - Skills Hub'
         }
+      },
+      {
+        path: 'links',
+        name: 'AdminLinks',
+        component: () => import('@/views/AdminLinks.vue'),
+        meta: {
+          title: '友情链接管理 - Skills Hub'
+        }
       }
     ]
   },
@@ -141,6 +149,14 @@ const routes = [
     component: () => import('@/pages/TutorialPage.vue'),
     meta: {
       title: '使用教程 - Skills Hub'
+    }
+  },
+  {
+    path: '/search',
+    name: 'SearchResults',
+    component: () => import('@/pages/SearchResultsPage.vue'),
+    meta: {
+      title: '搜索结果 - Skills Hub'
     }
   },
   {
@@ -180,13 +196,19 @@ const router = createRouter({
  * 全局路由守卫
  * 处理认证检查和页面标题设置
  */
+/**
+ * 全局前置守卫：设置标题、处理权限与登录状态恢复。
+ *
+ * 修复：刷新需要认证的页面（如 `/profile/skills`）时会因 Pinia 状态未恢复而误跳转首页。
+ * 方案：在鉴权判断前主动调用 `authStore.initAuth()` 恢复会话，再决定是否重定向。
+ */
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // 设置页面标题
-  document.title = to.meta.title as string || 'Skills Hub'
-  
-  // 检查是否需要管理员权限
+  document.title = (to.meta.title as string) || 'Skills Hub'
+
+  // 管理员权限校验
   if (to.meta.requiresAdmin) {
     const isAdmin = authStore.checkAdminAuth()
     if (!isAdmin) {
@@ -194,19 +216,29 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
-  
-  // 检查是否需要认证
-  // 允许普通用户或管理员任一登录访问需要认证的页面
-  if (to.meta.requiresAuth && !(authStore.user || authStore.adminUser)) {
-    // 保存目标路由到 localStorage，便于回调页读取
-    try {
-      localStorage.setItem('redirect_after_login', to.fullPath)
-    } catch {}
-    // 跳转到首页（用户点击登录按钮后会走 OAuth 流程）
-    next({ path: '/' })
-  } else {
-    next()
+
+  // 需要认证的页面：在判断前尝试恢复会话，避免刷新误判
+  if (to.meta.requiresAuth) {
+    if (!(authStore.user || authStore.adminUser)) {
+      // 主动恢复用户/管理员状态（Supabase 会话 + 本地 admin）
+      try {
+        await authStore.initAuth()
+      } catch (e) {
+        console.warn('initAuth 失败，继续走未登录逻辑:', e)
+      }
+    }
+
+    // 恢复后仍未认证则记录重定向并回首页
+    if (!(authStore.user || authStore.adminUser)) {
+      try {
+        localStorage.setItem('redirect_after_login', to.fullPath)
+      } catch {}
+      next({ path: '/' })
+      return
+    }
   }
+
+  next()
 })
 
 /**

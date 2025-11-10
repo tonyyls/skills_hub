@@ -19,7 +19,11 @@ import {
   readUsers,
   addUser as devAddUser,
   updateUser as devUpdateUser,
-  deleteUser as devDeleteUser
+  deleteUser as devDeleteUser,
+  readLinks,
+  addLink as devAddLink,
+  updateLink as devUpdateLink,
+  deleteLink as devDeleteLink
 } from '../utils/devStore.js'
 
 const router = Router()
@@ -1452,6 +1456,180 @@ router.delete('/admin-users/:id', verifyAdminToken, async (req: Request, res: Re
       res.status(200).json({ success: true })
     } catch (e: any) {
       res.status(500).json({ message: e?.message || '服务器错误' })
+    }
+  }
+})
+
+/**
+ * 友情链接管理路由
+ */
+
+// 获取友情链接列表
+router.get('/links', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('link_exchange')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    res.status(200).json({ items: data || [] })
+  } catch (err: any) {
+    console.warn('[admin routes] 获取友情链接失败，降级为本地开发存储：', err?.message)
+    // 开发环境下返回模拟数据
+    res.status(200).json({
+      items: [
+        {
+          id: '1',
+          name: 'Vue.js',
+          url: 'https://vuejs.org/',
+          description: '渐进式 JavaScript 框架',
+          sort_order: 1,
+          enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: 'Vite',
+          url: 'https://vitejs.dev/',
+          description: '下一代前端构建工具',
+          sort_order: 2,
+          enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '3',
+          name: 'Vitest',
+          url: 'https://vitest.dev/',
+          description: '由 Vite 提供支持的极速单元测试框架',
+          sort_order: 3,
+          enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ]
+    })
+  }
+})
+
+// 创建友情链接
+router.post('/links', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const { name, url, description, sort_order, enabled } = req.body
+    
+    if (!name || !url) {
+      res.status(400).json({ message: '缺少必填字段：name 或 url' })
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('link_exchange')
+      .insert([{
+        name,
+        url,
+        description: description || '',
+        sort_order: sort_order || 0,
+        enabled: enabled !== undefined ? enabled : true
+      }])
+      .select()
+      .single()
+    
+    if (error) throw error
+    res.status(201).json({ item: data })
+  } catch (err: any) {
+    console.warn('[admin routes] 创建友情链接失败，降级为本地开发存储：', err?.message)
+    try {
+      const { name, url, description, sort_order, enabled } = req.body
+      const item = await devAddLink({
+        name,
+        url,
+        description,
+        sort_order,
+        enabled
+      })
+      res.status(201).json({ item })
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || '创建友情链接失败' })
+    }
+  }
+})
+
+// 更新友情链接
+router.put('/links/:id', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const { id } = req.params
+    const { name, url, description, sort_order, enabled } = req.body
+    
+    const { data, error } = await supabase
+      .from('link_exchange')
+      .update({
+        name,
+        url,
+        description,
+        sort_order,
+        enabled,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    res.status(200).json({ item: data })
+  } catch (err: any) {
+    console.warn('[admin routes] 更新友情链接失败，降级为本地开发存储：', err?.message)
+    try {
+      const { id } = req.params
+      const { name, url, description, sort_order, enabled } = req.body
+      const item = await devUpdateLink(id, {
+        name,
+        url,
+        description,
+        sort_order,
+        enabled
+      })
+      if (!item) {
+        res.status(404).json({ message: '友情链接不存在' })
+        return
+      }
+      res.status(200).json({ item })
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || '更新友情链接失败' })
+    }
+  }
+})
+
+// 删除友情链接
+router.delete('/links/:id', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const { id } = req.params
+    
+    const { error } = await supabase
+      .from('link_exchange')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    res.status(200).json({ success: true })
+  } catch (err: any) {
+    console.warn('[admin routes] 删除友情链接失败，降级为本地开发存储：', err?.message)
+    try {
+      const { id } = req.params
+      const ok = await devDeleteLink(id)
+      if (!ok) {
+        res.status(404).json({ message: '友情链接不存在' })
+        return
+      }
+      res.status(200).json({ success: true })
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || '删除友情链接失败' })
     }
   }
 })

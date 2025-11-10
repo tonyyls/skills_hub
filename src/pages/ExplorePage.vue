@@ -22,6 +22,7 @@
                   <Search class="w-5 h-5 text-gray-400 ml-4" />
                   <input
                     v-model="searchQuery"
+                    @keyup.enter="handleSearch"
                     type="text"
                     placeholder="关键词搜索"
                     class="flex-1 bg-transparent border-none outline-none px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
@@ -294,12 +295,15 @@ const filteredSkills = computed(() => {
 
 // 搜索处理
 /**
- * 执行搜索动作（示例）
- * 当前仅记录日志，后续可接入实际检索或路由跳转。
- * 安全性：不直接拼接到请求中，避免潜在注入风险。
+ * 执行搜索跳转到搜索结果页。
+ * - 当输入为空时不跳转。
+ * - 使用 encodeURIComponent 防止注入风险。
+ * @returns {void}
  */
 const handleSearch = (): void => {
-  console.log('搜索:', searchQuery.value)
+  const q = (searchQuery.value || '').trim()
+  if (!q) return
+  router.push(`/search?q=${encodeURIComponent(q)}`)
 }
 
 // 切换收藏

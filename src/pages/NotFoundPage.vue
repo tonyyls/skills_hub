@@ -84,7 +84,7 @@ const goBack = () => {
  */
 const performSearch = () => {
   if (searchQuery.value.trim()) {
-    router.push(`/skills?search=${encodeURIComponent(searchQuery.value)}`)
+    router.push(`/search?q=${encodeURIComponent(searchQuery.value)}`)
   }
 }
 </script>

@@ -5,6 +5,7 @@ const dataDir = path.join(process.cwd(), 'api', 'data')
 const categoriesFile = path.join(dataDir, 'categories.dev.json')
 const skillsFile = path.join(dataDir, 'skills.dev.json')
 const usersFile = path.join(dataDir, 'users.dev.json')
+const linksFile = path.join(dataDir, 'links.dev.json')
 
 export interface DevCategory {
   id: string
@@ -60,6 +61,17 @@ export interface DevUser {
   updated_at?: string
 }
 
+export interface DevLink {
+  id: string
+  name: string
+  url: string
+  description?: string | null
+  sort_order: number
+  enabled: boolean
+  created_at: string
+  updated_at?: string
+}
+
 /**
  * 确保开发数据文件存在。
  * 若目录或文件缺失则创建空文件。
@@ -75,6 +87,9 @@ async function ensureFile(): Promise<void> {
     })
     await fs.access(usersFile).catch(async () => {
       await fs.writeFile(usersFile, '[]', 'utf-8')
+    })
+    await fs.access(linksFile).catch(async () => {
+      await fs.writeFile(linksFile, '[]', 'utf-8')
     })
   } catch {}
 }
@@ -317,5 +332,72 @@ export async function deleteCategory(id: string): Promise<boolean> {
   const list = await readCategories()
   const next = list.filter(c => c.id !== id)
   await writeCategories(next)
+  return next.length !== list.length
+}
+
+/**
+ * 读取友情链接的开发数据列表。
+ */
+export async function readLinks(): Promise<DevLink[]> {
+  await ensureFile()
+  const buf = await fs.readFile(linksFile, 'utf-8')
+  try {
+    const data = JSON.parse(buf)
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 写入友情链接的开发数据列表到本地 JSON 文件。
+ */
+export async function writeLinks(items: DevLink[]): Promise<void> {
+  await ensureFile()
+  await fs.writeFile(linksFile, JSON.stringify(items, null, 2), 'utf-8')
+}
+
+/**
+ * 添加一个友情链接到开发存储。
+ */
+export async function addLink(item: Omit<DevLink, 'id' | 'created_at'> & { id?: string }): Promise<DevLink> {
+  const list = await readLinks()
+  const now = new Date().toISOString()
+  const id = item.id || (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}`)
+  const newItem: DevLink = {
+    id,
+    name: item.name,
+    url: item.url,
+    description: item.description ?? null,
+    sort_order: item.sort_order ?? 0,
+    enabled: item.enabled ?? true,
+    created_at: now,
+    updated_at: now
+  }
+  list.push(newItem)
+  await writeLinks(list)
+  return newItem
+}
+
+/**
+ * 更新一个友情链接（按 id）。
+ */
+export async function updateLink(id: string, patch: Partial<DevLink>): Promise<DevLink | null> {
+  const list = await readLinks()
+  const idx = list.findIndex(l => l.id === id)
+  if (idx === -1) return null
+  const updated = { ...list[idx], ...patch, updated_at: new Date().toISOString() }
+  list[idx] = updated
+  await writeLinks(list)
+  return updated
+}
+
+/**
+ * 删除一个友情链接（按 id）。
+ */
+export async function deleteLink(id: string): Promise<boolean> {
+  const list = await readLinks()
+  const next = list.filter(l => l.id !== id)
+  await writeLinks(next)
   return next.length !== list.length
 }

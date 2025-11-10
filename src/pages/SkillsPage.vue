@@ -105,7 +105,7 @@
           <!-- 当前分类标题 -->
           <div class="mb-6" v-if="selectedCategory">
             <div class="flex items-center gap-2 mb-4">
-              <component :is="getCategoryIcon(getCategoryName(selectedCategory))" class="w-6 h-6 text-blue-600" />
+              <component :is="getCategoryIcon(getCategoryName(selectedCategory))" class="w-6 h-6 text-orange-600" />
               <h2 class="text-2xl font-bold text-gray-900">{{ getCategoryName(selectedCategory) }}</h2>
             </div>
           </div>
@@ -163,7 +163,7 @@
               <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-2">
                   <span
-                    v-if="skill.isRecommended || skill.isSponsored || skill.isFeatured"
+                    v-if="skill.recommended || skill.featured"
                     class="px-2 py-1 text-xs rounded-full bg-[#FF7A45] text-white"
                   >
                     精选
@@ -191,16 +191,16 @@
               <div class="flex flex-wrap gap-2 mb-4">
                 <span
                   v-for="tag in (skill.tags || []).slice(0, 3)"
-                  :key="tag"
+                  :key="typeof tag === 'string' ? tag : (tag?.id || String(tag))"
                   class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700"
                 >
-                  {{ tag }}
+                  {{ typeof tag === 'string' ? tag : (tag?.name || '') }}
                 </span>
               </div>
 
               <!-- 页脚：左分类、右作者（无作者显示“官方”） -->
               <div class="mt-auto flex items-center justify-between text-gray-500 text-sm">
-                <span>{{ getCategoryName(skill.category_id || skill.category) || '未分类' }}</span>
+                <span>{{ getCategoryName(skill.category_id || (typeof skill.category === 'string' ? skill.category : (skill.category?.name || ''))) || '未分类' }}</span>
                 <span v-if="(skill.author_name && skill.author_name.trim()) || (skill.author && (skill.author.username || skill.author.avatar_url))" class="inline-flex items-center gap-2">
                   <img
                     v-if="skill.author?.avatar_url"
@@ -266,7 +266,8 @@ import {
   Star,
   TrendingUp,
   Clock,
-  Filter
+  Filter,
+  Grid3x3
 } from 'lucide-vue-next'
 import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
@@ -325,7 +326,7 @@ const filteredList = computed(() => {
     list = list.filter(s =>
       (s.title || '').toLowerCase().includes(q) ||
       (s.description || '').toLowerCase().includes(q) ||
-      (Array.isArray(s.tags) ? s.tags : []).some(t => (t || '').toLowerCase().includes(q))
+      (Array.isArray(s.tags) ? s.tags : []).some(t => (typeof t === 'string' ? t : (t?.name || '')).toLowerCase().includes(q))
     )
   }
   if (selectedCategory.value) {
@@ -479,15 +480,15 @@ const cancelFavorite = () => {
  * @param {string} categoryName - 分类名称（如“前端开发”、“UI设计”等）
  * @returns {any} 对应的 lucide 图标组件
  */
+/**
+ * 返回用于表示“分类”的统一图标。
+ * 无论传入的分类名称为何，统一返回 Grid3x3 以提高可识别性。
+ * 保留函数签名以兼容现有模板调用点。
+ * @param {string} categoryName - 分类名称。
+ * @returns {any} Vue 图标组件。
+ */
 const getCategoryIcon = (categoryName: string) => {
-  const iconMap: Record<string, any> = {
-    '前端开发': Code,
-    'UI设计': Palette,
-    '数据分析': Database,
-    '产品管理': Settings,
-    'default': Code
-  }
-  return iconMap[categoryName] || iconMap.default
+  return Grid3x3
 }
 
 /**

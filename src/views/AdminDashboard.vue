@@ -61,6 +61,15 @@
               <UserCircle class="mr-3 h-5 w-5" />
               个人资料
             </router-link>
+
+            <router-link
+              to="/admin/links"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/links') ? 'bg-orange-100 text-orange-700' : 'text-gray-600 hover:bg-gray-100'"
+            >
+              <Link class="mr-3 h-5 w-5" />
+              友情链接
+            </router-link>
           </div>
         </nav>
       </div>
@@ -77,7 +86,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { LayoutDashboard, Tags, Wrench, Users, UserCircle } from 'lucide-vue-next'
+import { LayoutDashboard, Tags, Wrench, Users, UserCircle, Link } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
