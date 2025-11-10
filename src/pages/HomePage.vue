@@ -30,9 +30,7 @@
       <section class="relative py-16 lg:py-20 overflow-hidden">
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-[#333] mb-6 leading-tight">
-            发现优秀的
-            <span class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] bg-clip-text text-transparent">Skills</span>
-            技能资源
+  发现优秀的 Skills 技能资源
           </h1>
           <p class="text-lg md:text-xl text-[#666] mb-10 max-w-3xl mx-auto leading-relaxed">
             Skills Hub 是一个第三方技能市场，共收录了 {{ totalSkills }} 个技能。
@@ -48,8 +46,8 @@
                     v-model="searchQuery"
                     @keyup.enter="handleSearch"
                     type="text"
-                    placeholder="关键词搜索"
-                    class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
+                    placeholder="关键字搜索技能..."
+                    class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:border-transparent focus-visible:border-transparent focus:ring-0 focus-visible:ring-0 px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
                   />
                   <!-- 清除输入按钮：仅在有内容时显示 -->
                   <button
@@ -143,16 +141,18 @@
             <!-- 卡片头部 -->
             <div class="flex justify-between items-start mb-4">
               <div class="flex-1">
-                <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
-                  {{ skill.title }}
-                </h3>
-                <!-- 赞助商标签 -->
-                <span
-                  v-if="skill.isSponsored"
-                  class="inline-block mt-2 px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full"
-                >
-                  精选
-                </span>
+                <div class="flex items-center gap-2">
+                  <!-- 精选徽章：featured 或包含“精选”标签均显示 -->
+                  <span
+                    v-if="skill.featured || (Array.isArray(skill.tags) && skill.tags.includes('精选'))"
+                    class="inline-block px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full"
+                  >
+                    精选
+                  </span>
+                  <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
+                    {{ skill.title }}
+                  </h3>
+                </div>
               </div>
               <!-- 收藏星标 -->
               <button

@@ -31,9 +31,9 @@
     <div class="bg-transparent">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="text-left">
-          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">精选技能资源</h1>
+<h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">技能资源</h1>
           <p class="text-lg text-gray-600 max-w-2xl">
-            发现社区中优质的 Skills 资源，提升你的AI使用效率
+汇聚社区中优质的 Skills 技能资源，助力全面提升 AI 使用效率
           </p>
         </div>
       </div>

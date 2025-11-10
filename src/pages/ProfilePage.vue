@@ -64,7 +64,7 @@
                 <CalendarDays class="w-4 h-4 text-gray-600" /> 加入于 {{ memberSince }}
               </p>
             </div>
-            <p class="text-gray-500 mt-2">发现社区中优质的 Skills 资源，提升你的AI使用效率</p>
+<p class="text-gray-500 mt-2">汇聚社区中优质的 Skills 技能资源，助力全面提升 AI 使用效率</p>
             <div class="flex flex-wrap items-center gap-3 mt-3 text-sm">
               <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-600 hover:text-blue-600">
                 <Mail class="w-4 h-4" />
@@ -161,7 +161,8 @@ const loadProfile = async (): Promise<void> => {
         profile.value = {
           username: auth.adminUser.username,
           avatar_url: null,
-          bio: null
+          bio: null,
+          github_url: null
         }
       }
       return

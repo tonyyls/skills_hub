@@ -16,20 +16,32 @@ export const useSkillsStore = defineStore('skills', () => {
   const currentPage = ref(1)
   const itemsPerPage = ref(12)
 
+  /**
+   * 过滤后的技能列表
+   * - 文本搜索：标题/描述/标签名（兼容 Tag 对象或字符串）
+   * - 分类筛选：优先使用 `category_id`，回退 `category.id`
+   */
   const filteredSkills = computed(() => {
     let result = skills.value
 
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
-      result = result.filter(skill =>
-        skill.title.toLowerCase().includes(query) ||
-        skill.description.toLowerCase().includes(query) ||
-        skill.tags.some(tag => tag.toLowerCase().includes(query))
-      )
+      result = result.filter((skill: any) => {
+        const inTitle = String(skill.title || '').toLowerCase().includes(query)
+        const inDesc = String(skill.description || '').toLowerCase().includes(query)
+        const inTags = Array.isArray(skill.tags) && skill.tags.some((tag: any) => {
+          const name = typeof tag === 'string' ? tag : (tag?.name || '')
+          return String(name).toLowerCase().includes(query)
+        })
+        return inTitle || inDesc || inTags
+      })
     }
 
     if (selectedCategory.value) {
-      result = result.filter(skill => skill.category === selectedCategory.value)
+      result = result.filter((skill: any) => {
+        const cid = skill.category_id || skill.category?.id || ''
+        return cid === selectedCategory.value
+      })
     }
 
     return result
@@ -109,7 +121,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-15T10:00:00Z',
             updated_at: '2024-01-15T10:00:00Z',
             content: 'Vue 3组件开发的完整指南',
-            tags: ['Vue.js', '前端开发', 'TypeScript']
+            tags: [
+              { id: 'mock-vue', name: 'Vue.js', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-ts', name: 'TypeScript', created_at: '1970-01-01T00:00:00Z' }
+            ]
           },
           {
             id: '2',
@@ -121,7 +137,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-14T09:30:00Z',
             updated_at: '2024-01-14T09:30:00Z',
             content: 'React Hooks完整教程',
-            tags: ['React', '前端开发', 'JavaScript']
+            tags: [
+              { id: 'mock-react', name: 'React', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-js', name: 'JavaScript', created_at: '1970-01-01T00:00:00Z' }
+            ]
           },
           {
             id: '3',
@@ -133,7 +153,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-13T14:20:00Z',
             updated_at: '2024-01-13T14:20:00Z',
             content: 'Figma设计系统构建指南',
-            tags: ['Figma', 'UI设计', '设计系统']
+            tags: [
+              { id: 'mock-figma', name: 'Figma', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-ui', name: 'UI设计', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-design-system', name: '设计系统', created_at: '1970-01-01T00:00:00Z' }
+            ]
           },
           {
             id: '4',
@@ -145,7 +169,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-12T11:15:00Z',
             updated_at: '2024-01-12T11:15:00Z',
             content: 'Python数据分析完整教程',
-            tags: ['Python', '数据分析', '机器学习']
+            tags: [
+              { id: 'mock-python', name: 'Python', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-data', name: '数据分析', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-ml', name: '机器学习', created_at: '1970-01-01T00:00:00Z' }
+            ]
           },
           {
             id: '5',
@@ -157,7 +185,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-11T16:45:00Z',
             updated_at: '2024-01-11T16:45:00Z',
             content: '产品经理工作指南',
-            tags: ['产品管理', '需求分析', '项目管理']
+            tags: [
+              { id: 'mock-pm', name: '产品管理', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-req', name: '需求分析', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-project', name: '项目管理', created_at: '1970-01-01T00:00:00Z' }
+            ]
           },
           {
             id: '6',
@@ -169,7 +201,11 @@ export const useSkillsStore = defineStore('skills', () => {
             created_at: '2024-01-10T13:30:00Z',
             updated_at: '2024-01-10T13:30:00Z',
             content: 'TypeScript高级编程指南',
-            tags: ['TypeScript', '前端开发', 'JavaScript']
+            tags: [
+              { id: 'mock-ts', name: 'TypeScript', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
+              { id: 'mock-js', name: 'JavaScript', created_at: '1970-01-01T00:00:00Z' }
+            ]
           }
         ]
         setSkills(mockSkills)
@@ -273,15 +309,20 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   /**
-   * 获取精选技能列表（featured=true 且仅已发布，按创建时间倒序）。
-   * 匿名访问受 RLS 限制，需过滤 `status = 'published'`。
+   * 获取精选技能列表（按创建时间倒序，仅已发布）。
+   * 规则：featured=true 或 tags 包含“精选”。
+   * - 使用两次查询合并去重，避免复杂 OR 语法不兼容导致的问题。
+   * - 参考官方文档：
+   *   - Query Filters contains/overlaps：https://supabase.com/docs/reference/javascript/select#filters
+   *   - Realtime/Row Level Security 约束：https://supabase.com/docs/guides/auth#row-level-security
    * @returns {Promise<Skill[]>} 精选技能数组
    */
   const fetchFeaturedSkills = async (): Promise<Skill[]> => {
     setLoading(true)
     setError(null)
     try {
-      const { data, error: supabaseError } = await supabase
+      // A: featured=true
+      const { data: featuredRows, error: errA } = await supabase
         .from('skills')
         .select('*')
         .eq('featured', true)
@@ -289,8 +330,24 @@ export const useSkillsStore = defineStore('skills', () => {
         .order('created_at', { ascending: false })
         .limit(24)
 
-      if (supabaseError) throw supabaseError
-      const mapped = (data || []).map((row: any) => ({
+      // B: tags 包含“精选”
+      const { data: taggedRows, error: errB } = await supabase
+        .from('skills')
+        .select('*')
+        .contains('tags', ['精选'])
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(24)
+
+      if (errA && errB) throw (errA || errB)
+
+      // 合并去重并按时间排序后截断 24 条
+      const merged = [...(featuredRows || []), ...(taggedRows || [])]
+      const unique = Array.from(new Map(merged.map((r: any) => [r.id, r])).values())
+      unique.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      const finalRows = unique.slice(0, 24)
+
+      const mapped = (finalRows || []).map((row: any) => ({
         id: row.id,
         user_id: row.author_id || row.user_id || '',
         title: row.title || row.name || '未命名技能',
@@ -356,43 +413,37 @@ export const useSkillsStore = defineStore('skills', () => {
             id: '1',
             name: '前端开发',
             description: 'HTML, CSS, JavaScript, Vue, React等前端技术',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '2',
             name: 'UI设计',
             description: 'Figma, Sketch, Adobe XD等设计工具和理论',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '3',
             name: '数据分析',
             description: 'Python, R, SQL, Excel等数据分析工具',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '4',
             name: '产品管理',
             description: '产品规划、需求分析、项目管理等产品技能',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '5',
             name: '移动开发',
             description: 'iOS, Android, React Native, Flutter等移动开发技术',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '6',
             name: '云计算',
             description: 'AWS, Azure, Google Cloud等云服务平台',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           }
         ]
         setCategories(mockCategories)
@@ -407,22 +458,19 @@ export const useSkillsStore = defineStore('skills', () => {
           id: '1',
           name: '前端开发',
           description: 'HTML, CSS, JavaScript, Vue, React等前端技术',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         },
         {
           id: '2',
           name: 'UI设计',
           description: 'Figma, Sketch, Adobe XD等设计工具和理论',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         },
         {
           id: '3',
           name: '数据分析',
           description: 'Python, R, SQL, Excel等数据分析工具',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         }
       ]
       setCategories(mockCategories)
@@ -473,38 +521,32 @@ export const useSkillsStore = defineStore('skills', () => {
           {
             id: '1',
             name: 'Vue.js',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '2',
             name: 'React',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '3',
             name: 'TypeScript',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '4',
             name: 'Figma',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '5',
             name: 'Python',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           },
           {
             id: '6',
             name: '产品管理',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            created_at: '2024-01-01T00:00:00Z'
           }
         ]
         setTags(mockTags)
@@ -518,20 +560,17 @@ export const useSkillsStore = defineStore('skills', () => {
         {
           id: '1',
           name: 'Vue.js',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         },
         {
           id: '2',
           name: 'React',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         },
         {
           id: '3',
           name: 'TypeScript',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: '2024-01-01T00:00:00Z'
         }
       ]
       setTags(mockTags)
@@ -575,19 +614,27 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
+  /**
+   * 增加下载次数（非原子，适合作为演示用）。
+   * - 读取当前本地 `download_count`，更新到数据库并同步到本地状态。
+   * - 若需原子性，建议使用数据库函数（RPC）在服务端递增。
+   */
   const incrementDownloadCount = async (skillId: string) => {
     try {
+      const current = skills.value.find((s: any) => s.id === skillId)?.download_count ?? 0
+      const next = current + 1
+
       const { error: supabaseError } = await supabase
         .from('skills')
-        .update({ downloads: supabase.raw('downloads + 1') })
+        .update({ download_count: next })
         .eq('id', skillId)
 
       if (supabaseError) throw supabaseError
 
-      const updatedSkills = skills.value.map(skill =>
-        skill.id === skillId ? { ...skill, downloads: skill.downloads + 1 } : skill
+      const updatedSkills = skills.value.map((skill: any) =>
+        skill.id === skillId ? { ...skill, download_count: next } : skill
       )
-      setSkills(updatedSkills)
+      setSkills(updatedSkills as unknown as Skill[])
     } catch (err) {
       console.error('更新下载次数失败:', err)
     }

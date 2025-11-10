@@ -70,7 +70,7 @@
                 class="w-8 h-8 rounded-full"
               />
               <div v-else class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <UserCircle class="w-4 h-4 text-gray-600" />
+                <User class="w-4 h-4 text-gray-600" />
               </div>
               <span class="text-sm font-medium text-gray-700">
                 {{ displayUsername }}
@@ -213,7 +213,7 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              <UserCircle class="w-5 h-5 mr-2 inline" /> 个人资料
+              <User class="w-5 h-5 mr-2 inline" /> 个人资料
             </router-link>
             <!-- 移除移动端发布技能入口：根据需求暂不展示 -->
             <!-- 管理后台入口：仅管理员可见 -->
@@ -264,31 +264,31 @@
         <div class="space-y-3">
           <button
             class="w-full px-4 py-3 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
-            :disabled="authStore.isLoading"
+            :disabled="authStore.loading"
             @click="loginWithGithub"
           >
             <Github class="w-5 h-5" />
-            <span>{{ authStore.isLoading ? '登录中...' : 'GitHub 登录' }}</span>
+            <span>{{ authStore.loading ? '登录中...' : 'GitHub 登录' }}</span>
           </button>
           <button
             class="w-full px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
             @click="loginAsAdmin"
           >
-            <UserCircle class="w-5 h-5" />
+            <User class="w-5 h-5" />
             <span>管理员登录</span>
           </button>
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
           >
-            <UserCircle class="w-5 h-5" />
+            <User class="w-5 h-5" />
             <span>微信登录（敬请期待）</span>
           </button>
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
           >
-            <UserCircle class="w-5 h-5" />
+            <User class="w-5 h-5" />
             <span>邮箱登录（敬请期待）</span>
           </button>
         </div>
@@ -335,7 +335,7 @@ import { useRouter } from 'vue-router'
 import { 
   Home,
   FilePlus,
-  UserCircle,
+  User,
   Github, 
   ChevronDown, 
   Menu, 
@@ -392,6 +392,14 @@ const avatarUrl = computed<string>(() => authStore.user?.avatar_url || '')
  */
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value
+}
+
+/**
+ * 切换移动端菜单展开状态
+ * 与模板中的 @click="toggleMobileMenu" 联动，控制移动端菜单显隐。
+ */
+const toggleMobileMenu = () => {
+  showMobileMenu.value = !showMobileMenu.value
 }
 
 /**

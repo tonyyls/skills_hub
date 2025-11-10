@@ -11,7 +11,7 @@
     <!-- 页脚（统一橙白主题） -->
     <footer class="bg-white text-[#333] py-8 mt-12 border-t border-[#E5E5E5]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center text-center">
           <div>
             <h3 class="text-lg font-semibold mb-4 text-[#333]">Skills Hub</h3>
             <p class="text-[#666] text-sm">
@@ -52,13 +52,7 @@
               <li><router-link to="/admin" class="text-[#666] hover:text-[#FF7A45]">管理后台</router-link></li>
             </ul>
           </div>
-          <div>
-            <h4 class="text-md font-medium mb-4 text-[#333]">联系我们</h4>
-            <ul class="space-y-2 text-sm text-[#666]">
-              <li>feedback@skillshub.com</li>
-              <li>github.com/skillshub</li>
-            </ul>
-          </div>
+          
         </div>
         <div class="border-t border-[#E5E5E5] mt-8 pt-8 text-center text-sm text-[#666]">
           <p>&copy; 2025 Skills Hub. All rights reserved.</p>

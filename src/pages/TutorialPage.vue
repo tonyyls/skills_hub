@@ -15,10 +15,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="bg-white/90 backdrop-blur rounded-xl shadow-lg p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900 inline-flex items-center gap-3">
-              <Sparkles class="w-6 h-6 text-orange-600" /> AI 工具教程
+              <Sparkles class="w-6 h-6 text-orange-600" /> 使用教程
             </h1>
             <p class="text-gray-700 mt-2">
-              覆盖 Claude、Trae、Cursor、Codebuddy 的核心能力、使用场景与上手技巧，帮助你高效完成代码生成、重构、调试与协作。
+              覆盖 Claude，Codebuddy 等 AI工具如何使用 Skills 的教程。
             </p>
           </div>
         </div>
