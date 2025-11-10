@@ -1,482 +1,563 @@
-/**
- * 首页组件
- * 包含Banner区域、搜索功能、分类展示、技能列表等
- */
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-    <!-- Hero Section -->
-    <section class="relative py-24 lg:py-32 overflow-hidden">
-      <!-- Background Elements -->
-      <div class="absolute inset-0">
-        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute top-40 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-20 left-1/4 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 4s;"></div>
-      </div>
-      
-      <!-- Content -->
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-          <div class="mb-8">
-            <div class="inline-flex items-center bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-6 py-2 mb-8">
-              <Sparkles class="w-5 h-5 text-blue-400 mr-2"/>
-              <span class="text-blue-300 text-sm font-medium">技能分享平台</span>
-            </div>
-          </div>
-          
-          <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
-            发现 & 分享
-            <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">专业技能</span>
-          </h1>
-          
-          <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            连接全球开发者、设计师和创作者，共同构建技能共享生态
-          </p>
-          
-          <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <router-link
-              to="/explore"
-              class="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-semibold text-white hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300"
-            >
-              <span>探索技能</span>
-              <ArrowRight class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"/>
-            </router-link>
-            
-            <button
-              v-if="!authStore.isAuthenticated"
-              @click="authStore.signInWithGitHub()"
-              class="group relative inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
-            >
-              <Github class="w-5 h-5 mr-2"/>
-              <span>GitHub 登录</span>
-            </button>
-            
-            <!-- 发布技能入口已关闭：仅管理员后台发布 -->
-            <!-- 管理后台入口：仅管理员登录可见 -->
-            <router-link
-              v-else-if="authStore.adminUser"
-              to="/admin"
-              class="group relative inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-md bg-green-500/20 backdrop-blur-sm border border-green-400/30 text-white hover:bg-green-500/30 transition-all duration-300"
-            >
-              <Plus class="w-5 h-5 mr-2"/>
-              <span>进入管理后台</span>
-            </router-link>
-          </div>
-          
-          <!-- Stats -->
-          <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <div class="text-center">
-              <div class="text-3xl md:text-4xl font-bold text-white mb-2">500+</div>
-              <div class="text-gray-400 text-sm">技能资源</div>
-            </div>
-            <div class="text-center">
-              <div class="text-3xl md:text-4xl font-bold text-white mb-2">1K+</div>
-              <div class="text-gray-400 text-sm">开发者</div>
-            </div>
-            <div class="text-center">
-              <div class="text-3xl md:text-4xl font-bold text-white mb-2">100+</div>
-              <div class="text-gray-400 text-sm">技术分类</div>
-            </div>
-            <div class="text-center">
-              <div class="text-3xl md:text-4xl font-bold text-white mb-2">24/7</div>
-              <div class="text-gray-400 text-sm">在线支持</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div class="min-h-screen bg-[#F7F3EF]">
 
-    <!-- Search Section -->
-    <section class="py-16 relative">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
-            快速找到你需要的
-            <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">专业技能</span>
-          </h2>
-          <p class="text-lg text-gray-400 max-w-2xl mx-auto">
-            从编程开发到设计创意，从数据分析到产品运营，一站式搜索所有技能资源
-          </p>
+    <!-- 轻量提示：登录引导，与 /skills 保持一致 -->
+    <div
+      v-if="showToast"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow z-50"
+    >
+      {{ loginToast }}
+    </div>
+
+    <!-- 收藏确认弹层：与 /skills 保持一致 -->
+    <div
+      v-if="showFavoriteConfirm"
+      class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      @click.self="cancelFavorite"
+    >
+      <div class="bg-white rounded-lg shadow p-5 w-full max-w-sm">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">加入收藏</h3>
+        <p class="text-gray-600 mb-4">是否将该技能加入收藏？</p>
+        <div class="flex justify-end gap-2">
+          <button class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200" @click="cancelFavorite">取消</button>
+          <button class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200" @click="confirmFavorite">确认</button>
         </div>
-        
-        <!-- Search Container -->
-        <div class="max-w-2xl mx-auto">
-          <div class="relative group">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-30 group-hover:opacity-50"></div>
-            
-            <div class="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-xl p-1">
-              <div class="flex items-center">
-                <Search class="w-5 h-5 text-gray-400 ml-4" />
-                <input
-                  v-model="searchQuery"
-                  @input="handleSearch"
-                  @keyup.enter="performSearch"
-                  @focus="showSuggestions = true"
-                  @blur="setTimeout(() => { showSuggestions = false }, 150)"
-                  type="text"
-                  placeholder="搜索技能、技术或工具..."
-                  class="flex-1 bg-transparent border-none outline-none px-4 py-4 text-white placeholder-gray-400 text-lg"
-                />
-                <button
-                  @click="performSearch"
-                  class="px-3 py-1.5 text-sm rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 mr-1"
-                >
-                  搜索
-                </button>
+      </div>
+    </div>
+
+    <div class="relative z-10">
+      <!-- 顶部 Banner（统一为首页风格：深色背景 + 渐变强调） -->
+      <section class="relative py-16 lg:py-20 overflow-hidden">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-[#333] mb-6 leading-tight">
+            发现优秀的
+            <span class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] bg-clip-text text-transparent">Skills</span>
+            技能资源
+          </h1>
+          <p class="text-lg md:text-xl text-[#666] mb-10 max-w-3xl mx-auto leading-relaxed">
+            Skills Hub 是一个第三方技能市场，共收录了 {{ totalSkills }} 个技能。
+          </p>
+
+          <!-- 搜索框：与首页一致的现代化样式 -->
+          <div class="max-w-2xl mx-auto">
+            <div class="relative">
+              <div class="relative bg-white rounded-full p-1">
+                <div class="flex items-center">
+                  <Search class="w-5 h-5 text-gray-400 ml-4" />
+                  <input
+                    v-model="searchQuery"
+                    @keyup.enter="handleSearch"
+                    type="text"
+                    placeholder="关键词搜索"
+                    class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
+                  />
+                  <!-- 清除输入按钮：仅在有内容时显示 -->
+                  <button
+                    v-if="searchQuery"
+                    @click="clearSearchInput"
+                    type="button"
+                    class="ml-2 mr-2 rounded-full p-1 text-gray-400 hover:text-[#FF7A45] transition-colors"
+                    aria-label="清除搜索"
+                    title="清除"
+                  >
+                    <XCircle class="w-4 h-4" />
+                  </button>
+                  <button
+                    @click="handleSearch"
+                    class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white px-5 py-2 rounded-full font-semibold hover:shadow-md transition-all duration-300 mr-1"
+                  >
+                    搜索
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          
-          <!-- Search Suggestions -->
-          <div
-            v-if="showSuggestions && searchSuggestions.length > 0"
-            class="mt-4 bg-slate-800/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl z-10"
-          >
-            <div
-              v-for="suggestion in searchSuggestions"
-              :key="suggestion"
-              @click="selectSuggestion(suggestion)"
-              class="px-6 py-3 hover:bg-white/10 cursor-pointer text-gray-300 hover:text-white transition-all duration-200 first:rounded-t-xl last:rounded-b-xl flex items-center"
+        </div>
+      </section>
+
+      
+
+      
+
+      <!-- 内容区域 -->
+      <div class="max-w-7xl mx-auto px-4 pb-16">
+        <!-- 区域标题 -->
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl font-semibold text-[#444]">{{ sectionTitle }}</h2>
+          <div class="flex items-center gap-3">
+            <button
+              v-for="filter in filters"
+              :key="filter.value"
+              @click="activeFilter = filter.value"
+              :class="[
+                'px-4 py-2 rounded-full text-sm font-medium transition-all duration-300',
+                activeFilter === filter.value
+                  ? 'bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white shadow-sm'
+                  : 'bg-white text-[#555] border border-[#E5E5E5] hover:bg-[#FFF5EF] hover:text-[#333]'
+              ]"
             >
-              <Search class="w-4 h-4 mr-3 text-blue-400"/>
-              <span class="font-medium">{{ suggestion }}</span>
+              <component :is="filter.icon" class="h-4 w-4 inline mr-2" v-if="filter.icon" />
+              {{ filter.label }}
+            </button>
+          </div>
+          <router-link
+            to="/skills"
+            class="text-[#FF7A45] hover:text-[#ff8a55] transition-colors flex items-center gap-1"
+          >
+            查看全部
+            <ChevronRight class="h-4 w-4" />
+          </router-link>
+        </div>
+
+        <!-- 骨架屏：加载中展示 3 行（xl 下共 12 张卡片） -->
+        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div v-for="i in 12" :key="i" class="bg-white border border-[#EEEEEE] rounded-xl p-6 animate-pulse flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="h-5 bg-gray-200 rounded w-3/4"></div>
+                <div class="mt-2 h-4 bg-gray-200 rounded w-20"></div>
+              </div>
+              <div class="h-5 w-5 bg-gray-200 rounded-full"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 rounded w-full"></div>
+              <div class="h-4 bg-gray-200 rounded w-11/12"></div>
+              <div class="h-4 bg-gray-200 rounded w-10/12"></div>
+              <div class="h-4 bg-gray-200 rounded w-9/12"></div>
+            </div>
+            <div class="mt-auto flex items-center justify-between">
+              <div class="h-4 bg-gray-200 rounded w-24"></div>
+              <div class="h-5 bg-gray-200 rounded w-16"></div>
             </div>
           </div>
-          
-          <!-- Popular Searches -->
-          <div class="mt-8 text-center">
-            <p class="text-gray-400 text-sm mb-4">热门搜索：</p>
-            <div class="flex flex-wrap justify-center gap-3">
+        </div>
+
+        <!-- 技能卡片网格 -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div
+            v-for="skill in filteredSkills"
+            :key="skill.id"
+            class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
+            @click="goToSkillDetail(skill.id)"
+          >
+            <!-- 卡片头部 -->
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex-1">
+                <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
+                  {{ skill.title }}
+                </h3>
+                <!-- 赞助商标签 -->
+                <span
+                  v-if="skill.isSponsored"
+                  class="inline-block mt-2 px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full"
+                >
+                  精选
+                </span>
+              </div>
+              <!-- 收藏星标 -->
               <button
-                v-for="tag in ['React', 'Vue', 'Python', 'UI Design', '数据分析']"
-                :key="tag"
-                @click="searchQuery = tag; performSearch()"
-                class="px-3 py-1.5 text-sm rounded-md bg-white/5 backdrop-blur-sm border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300"
+                @click.stop="handleFavorite(skill)"
+                class="text-gray-400 hover:text-yellow-400 transition-colors ml-2"
               >
-                {{ tag }}
+                <Star
+                  :class="[
+                    'h-5 w-5',
+                    favorites.includes(skill.id) ? 'text-yellow-400 fill-current' : ''
+                  ]"
+                />
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Categories Section -->
-    <section class="py-20 relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
-            探索热门
-            <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">技能领域</span>
-          </h2>
-          <p class="text-lg text-gray-400 max-w-2xl mx-auto">
-            从编程开发到创意设计，发现最适合你的学习方向和发展路径
-          </p>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div
-            v-for="category in categories"
-            :key="category.id"
-            @click="selectCategory(category.name)"
-            class="group relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 cursor-pointer hover:border-blue-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
-          >
-            <!-- Background Glow Effect -->
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
-            <div class="relative z-10">
-              <div class="w-14 h-14 mx-auto mb-5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <component :is="getCategoryIcon(category.name)" class="w-7 h-7 text-white" />
-              </div>
-              
-              <h3 class="text-lg font-semibold text-white mb-3 text-center group-hover:text-blue-300 transition-colors duration-300">
-                {{ category.name }}
-              </h3>
-              
-              <p class="text-gray-400 text-sm text-center leading-relaxed">
-                {{ category.description }}
-              </p>
-              
-              <div class="mt-4 flex justify-center items-center text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span class="text-sm mr-2">探索更多</span>
-                <ArrowRight class="w-4 h-4" />
-              </div>
+            <!-- 描述 -->
+            <p class="text-gray-600 text-sm line-clamp-3 mb-4">
+              {{ skill.description }}
+            </p>
+
+            <!-- 标签 -->
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                v-for="tag in skill.tags.slice(0, 3)"
+                :key="tag"
+                class="px-2 py-1 bg-[#F4F4F4] text-[#666] text-xs rounded-full"
+              >
+                {{ tag }}
+              </span>
+            </div>
+
+            <!-- 底部信息：左分类、右作者（无作者显示“官方”），置底显示 -->
+            <div class="mt-auto flex items-center justify-between text-gray-500 text-sm">
+              <span>{{ getCategoryName(skill.category_id) || '未分类' }}</span>
+              <span v-if="(skill.author_name && skill.author_name.trim()) || (skill.author && (skill.author.username || skill.author.avatar_url))" class="inline-flex items-center gap-2">
+                <img
+                  v-if="skill.author?.avatar_url"
+                  :src="skill.author.avatar_url"
+                  alt="avatar"
+                  class="w-5 h-5 rounded-full"
+                />
+                <span>{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</span>
+              </span>
+              <span v-else>官方</span>
             </div>
           </div>
         </div>
-        
-        <!-- View All Categories Button -->
-        <div class="text-center mt-12">
-          <button
-            @click="$router.push('/skills')"
-            class="inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
-          >
-            查看全部分类
-            <ArrowRight class="w-5 h-5 ml-2" />
-          </button>
-        </div>
-      </div>
-    </section>
 
-    <!-- Featured Skills Section -->
-    <section class="py-20 relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
-            热门
-            <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">技能推荐</span>
-          </h2>
-          <p class="text-lg text-gray-400 max-w-2xl mx-auto">
-            发现社区中最受欢迎和高质量的专业技能资源
-          </p>
-        </div>
-        
-        <div v-if="skillsStore.isLoading" class="text-center py-20">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          <p class="mt-6 text-gray-400 text-lg">加载中...</p>
-        </div>
-        
-        <div v-else-if="skillsStore.error" class="text-center py-20">
-          <div class="text-red-400 text-lg mb-6">{{ skillsStore.error }}</div>
-          <button
-            @click="loadSkills"
-            class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 font-semibold"
-          >
-            重试
-          </button>
-        </div>
-        
-        <div v-else-if="skills.length === 0" class="text-center py-20">
-          <Search class="w-20 h-20 text-gray-600 mx-auto mb-6" />
-          <p class="text-gray-500 text-lg">暂无技能资源</p>
-        </div>
-        
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="skill in skills.slice(0, 6)"
-            :key="skill.id"
-            class="group relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-blue-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
-          >
-            <!-- Background Glow Effect -->
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
-            <div class="relative z-10">
-              <!-- Header -->
-              <div class="flex items-center justify-between mb-5">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg flex items-center justify-center border border-white/10">
-                  <Code class="w-5 h-5 text-blue-400" />
-                </div>
-                <div class="flex items-center text-yellow-400">
-                  <Star class="w-4 h-4 fill-current" />
-                  <span class="ml-1 text-sm font-semibold">{{ skill.rating || 4.8 }}</span>
-                </div>
-              </div>
-              
-              <!-- Content -->
-              <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-blue-300 transition-colors duration-300 line-clamp-2">
-                {{ skill.title }}
-              </h3>
-              
-              <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-3">
-                {{ skill.description }}
-              </p>
-              
-              <!-- Footer -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center text-gray-400 text-xs">
-                  <Download class="w-3 h-3 mr-1" />
-                  <span>{{ skill.downloads || 0 }} 下载</span>
-                </div>
-                
-                <button
-                  @click="handleDownload(skill.id)"
-                  class="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold rounded-md hover:shadow-md hover:shadow-blue-500/25 transition-all duration-300"
-                >
-                  获取
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- View More Button -->
-        <div class="text-center mt-12">
-          <button
-            @click="$router.push('/skills')"
-            class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
-          >
-            浏览更多技能
-            <ArrowRight class="w-5 h-5 ml-2" />
-          </button>
-        </div>
+        <!-- 友情链接区域移除：不再显示标题与链接列表 -->
+
+        <!-- 去掉加载更多：首页不再使用该按钮 -->
       </div>
-    </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, ArrowRight, Code, Palette, BarChart3, Briefcase, Sparkles, Users, BookOpen, Award, Zap } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth'
+import { Search, ChevronRight, Star, Flame, Award, XCircle } from 'lucide-vue-next'
 import { useSkillsStore } from '@/stores/skills'
-import { supabase, type Category } from '@/lib/supabase'
-import SkillCard from '@/components/SkillCard.vue'
+import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const skillsStore = useSkillsStore()
+const authStore = useAuthStore()
+const { fetchLatestSkills, fetchFeaturedSkills } = skillsStore
 
+// 搜索查询
 const searchQuery = ref('')
-const showSuggestions = ref(false)
-const searchSuggestions = ref<string[]>([])
 
-const skills = computed(() => skillsStore.skills)
-const categories = computed(() => skillsStore.categories)
+// 清空首页搜索输入（不触发搜索）
+/**
+ * 清空首页搜索输入，不触发搜索行为。
+ * @returns {void}
+ */
+const clearSearchInput = (): void => {
+  console.log('clearSearchInput called, before:', searchQuery.value)
+  searchQuery.value = ''
+}
 
-const stats = [
-  { icon: BookOpen, label: '技能资源', value: '10K+', description: '优质学习资源' },
-  { icon: Users, label: '开发者', value: '50K+', description: '活跃社区成员' },
-  { icon: Award, label: '技术分类', value: '20+', description: '专业领域覆盖' },
-  { icon: Zap, label: '在线支持', value: '24/7', description: '实时技术交流' }
+// MCP 服务器统计（示例展示用）
+const serverCount = ref(16946)
+
+// 收藏列表
+const favorites = ref<string[]>([])
+
+// 筛选器：仅保留“最新、精选”两项
+const filters = [
+  { value: 'latest', label: '最新', icon: Award },
+  { value: 'featured', label: '精选', icon: Flame }
 ]
 
+// 当前筛选：默认定位到“最新”
+const activeFilter = ref('latest')
+
+// 区域标题：随筛选动态变化
 /**
- * 获取分类图标
+ * 根据当前筛选返回区域标题文案。
+ * - latest: "最新技能资源"
+ * - featured: "精选技能资源"
  */
-const getCategoryIcon = (categoryName: string) => {
-  const iconMap: Record<string, any> = {
-    '编程开发': Code,
-    '设计创意': Palette,
-    '数据分析': BarChart3,
-    '产品运营': Briefcase,
-    '其他': Sparkles
+const sectionTitle = computed<string>(() => {
+  return activeFilter.value === 'latest' ? '最新技能资源' : '精选技能资源'
+})
+
+// 首页总数统计：通过 Supabase RPC 获取
+/** 当前站点已发布技能总数 */
+const totalSkills = ref<number>(0)
+
+// 技能数据：从数据库动态获取
+const skills = ref<any[]>([])
+/**
+ * 页面加载状态：用于骨架屏显示
+ */
+const loading = ref(true)
+
+// 过滤后的技能列表（首页不根据关键词搜索过滤，仅按筛选）
+const filteredSkills = computed(() => {
+  // 服务端已按筛选返回结果，这里直接透传
+  return skills.value
+})
+
+// 友情链接数据（公开接口）
+interface FriendLink {
+  id: string
+  name: string
+  url: string
+  description?: string
+  sort_order: number
+  enabled: boolean
+}
+const friendLinks = ref<FriendLink[]>([])
+
+/**
+ * 加载友情链接：从公开接口 `/api/links` 读取启用项。
+ * - 按服务端排序结果展示
+ * - 若返回空列表，页面不显示友情链接区域
+ * @returns {Promise<void>} 无返回
+ */
+const loadFriendLinks = async (): Promise<void> => {
+  try {
+    const res = await fetch('/api/links', {
+      headers: { 'Accept': 'application/json' }
+    })
+    if (!res.ok) return
+    const data = await res.json().catch(() => ({ items: [] }))
+    friendLinks.value = Array.isArray(data.items) ? data.items : []
+  } catch {
+    friendLinks.value = []
   }
-  return iconMap[categoryName] || Sparkles
+}
+
+// 数据加载
+/**
+ * 根据当前 activeFilter 从数据库加载技能列表。
+ * - latest: 调用 fetchLatestSkills()
+ * - featured: 调用 fetchFeaturedSkills()
+ * 成功后赋值到本地 skills；错误时打印日志。
+ */
+/**
+ * 根据当前筛选加载技能列表，并控制骨架屏显示。
+ * @returns {Promise<void>} 无返回
+ */
+const loadSkillsForFilter = async (): Promise<void> => {
+  loading.value = true
+  try {
+    const list = activeFilter.value === 'latest'
+      ? await fetchLatestSkills()
+      : await fetchFeaturedSkills()
+    skills.value = list
+  } catch (e) {
+    console.error('加载技能失败:', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 /**
- * 处理搜索输入
+ * 根据分类ID获取分类名称（空值安全）。
+ * 优先使用全局分类列表，其次回退到映射 categoryMap。
+ * 若仍不可用，返回空字符串，模板层统一显示“未分类”。
+ * @param {string} categoryId 分类主键ID
+ * @returns {string} 分类中文名称或空字符串
  */
-const handleSearch = async () => {
-  if (!searchQuery.value.trim()) {
-    showSuggestions.value = false
+const getCategoryName = (categoryId?: string): string => {
+  if (!categoryId) return ''
+  const byId = skillsStore.categories.find(c => c.id === categoryId)
+  return byId?.name || skillsStore.categoryMap[categoryId] || ''
+}
+
+// 监听筛选切换，动态拉取数据
+watch(activeFilter, () => {
+  loadSkillsForFilter()
+})
+
+// 搜索处理
+/**
+ * 执行搜索跳转到搜索结果页。
+ * - 当输入为空时不跳转。
+ * - 使用 encodeURIComponent 防止注入风险。
+ * @returns {void}
+ */
+const handleSearch = (): void => {
+  const q = (searchQuery.value || '').trim()
+  if (!q) return
+  router.push(`/search?q=${encodeURIComponent(q)}`)
+}
+
+// 收藏交互（与 /skills 对齐）
+/**
+ * 轻量 Toast 文案
+ */
+const loginToast = ref<string>('')
+/** 是否显示 Toast */
+const showToast = ref(false)
+let toastTimer: number | null = null
+/**
+ * 显示底部 Toast，并在3秒后自动隐藏。
+ * @param {string} message 提示文案
+ */
+const showToastMessage = (message: string) => {
+  loginToast.value = message
+  showToast.value = true
+  if (toastTimer) {
+    window.clearTimeout(toastTimer)
+    toastTimer = null
+  }
+  toastTimer = window.setTimeout(() => {
+    showToast.value = false
+    toastTimer = null
+  }, 3000)
+}
+
+/** 收藏确认弹层状态 */
+const showFavoriteConfirm = ref(false)
+/** 待收藏的技能 */
+const pendingFavoriteSkill = ref<any | null>(null)
+
+/**
+ * 处理收藏点击：登录校验，已收藏则取消，未收藏弹出确认。
+ * @param {any} skill 技能对象
+ */
+const handleFavorite = async (skill: any) => {
+  if (!authStore.isAuthenticated) {
+    showToastMessage('请先登录以收藏')
     return
   }
-  
+  if (favorites.value.includes(skill.id)) {
+    await removeFavorite(skill.id)
+    return
+  }
+  pendingFavoriteSkill.value = skill
+  showFavoriteConfirm.value = true
+}
+
+/**
+ * 确认收藏：插入 Supabase `user_favorites`
+ */
+const confirmFavorite = async (): Promise<void> => {
+  const skill = pendingFavoriteSkill.value
+  showFavoriteConfirm.value = false
+  if (!skill) return
+  if (favorites.value.includes(skill.id)) return
   try {
-    const { data, error } = await supabase
-      .from('skills')
-      .select('title')
-      .ilike('title', `%${searchQuery.value}%`)
-      .limit(5)
-    
-    if (!error && data) {
-      searchSuggestions.value = data.map(item => item.title)
-      showSuggestions.value = true
+    const { error } = await supabase
+      .from('user_favorites')
+      .insert({ user_id: authStore.user.id, skill_id: skill.id })
+    if (error) {
+      console.warn('收藏失败或已收藏：', error.message)
+      showToastMessage('已收藏或操作失败')
+    } else {
+      favorites.value = Array.from(new Set([...favorites.value, skill.id]))
+      showToastMessage('已加入收藏')
     }
-  } catch (error) {
-    console.error('Search suggestions error:', error)
+  } catch (e: any) {
+    console.error('收藏异常：', e)
+    showToastMessage('操作异常，请稍后重试')
+  } finally {
+    pendingFavoriteSkill.value = null
   }
 }
 
 /**
- * 选择搜索建议
- */
-const selectSuggestion = (suggestion: string) => {
-  searchQuery.value = suggestion
-  showSuggestions.value = false
-  performSearch()
-}
-
-/**
- * 执行搜索
- */
-const performSearch = () => {
-  showSuggestions.value = false
-  if (searchQuery.value.trim()) {
-    router.push(`/skills?search=${encodeURIComponent(searchQuery.value)}`)
-  }
-}
-
-/**
- * 选择分类
- */
-const selectCategory = (categoryName: string) => {
-  router.push(`/skills?category=${encodeURIComponent(categoryName)}`)
-}
-
-/**
- * 加载技能数据
- */
-const loadSkills = async () => {
-  await skillsStore.fetchSkills(1, '', '')
-}
-
-/**
- * 处理技能下载
- */
-/**
- * 处理技能下载或查看详情：直接跳转详情页，无需登录。
+ * 取消收藏：删除 Supabase `user_favorites` 记录
  * @param {string} skillId 技能ID
  */
-const handleDownload = (skillId: string) => {
+const removeFavorite = async (skillId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('user_favorites')
+      .delete()
+      .eq('user_id', authStore.user.id)
+      .eq('skill_id', skillId)
+    if (error) {
+      console.warn('取消收藏失败：', error.message)
+      showToastMessage('取消收藏失败或未收藏')
+      return
+    }
+    favorites.value = favorites.value.filter(id => id !== skillId)
+    showToastMessage('已取消收藏')
+  } catch (e: any) {
+    console.error('取消收藏异常：', e)
+    showToastMessage('操作异常，请稍后重试')
+  }
+}
+
+/** 取消收藏确认 */
+const cancelFavorite = (): void => {
+  showFavoriteConfirm.value = false
+  pendingFavoriteSkill.value = null
+}
+
+/**
+ * 加载当前用户的收藏列表
+ */
+const loadFavorites = async (): Promise<void> => {
+  try {
+    if (!authStore.isAuthenticated) {
+      favorites.value = []
+      return
+    }
+    const { data, error } = await supabase
+      .from('user_favorites')
+      .select('skill_id')
+      .eq('user_id', authStore.user.id)
+    if (error) {
+      console.warn('加载收藏失败：', error.message)
+      return
+    }
+    favorites.value = (data || []).map((r: any) => r.skill_id)
+  } catch (e) {
+    console.warn('加载收藏异常：', e)
+  }
+}
+
+// 跳转到技能详情
+/**
+ * 跳转到技能详情页
+ * 修复错误的路由路径 `/skill/:id` -> `/skills/:id`
+ * @param {string} skillId 技能ID
+ */
+const goToSkillDetail = (skillId: string) => {
   router.push(`/skills/${skillId}`)
 }
 
+// 加载更多
+/**
+ * 加载更多技能卡片（示例）
+ * 可替换为真实分页或懒加载逻辑。
+ */
+const loadMore = (): void => {
+  // 模拟加载更多数据
+  console.log('加载更多技能...')
+}
+
+// 初始化
 onMounted(async () => {
-  // 加载分类数据
-  await skillsStore.fetchCategories()
-  // 加载技能数据
-  await loadSkills()
+  // 确保分类映射可用
+  await skillsStore.ensureCategoriesLoaded()
+  // 初始加载当前筛选数据
+  await loadSkillsForFilter()
+  // 加载总数（仅已发布）
+  const count = await skillsStore.fetchTotalCount()
+  totalSkills.value = count
+  // 加载用户收藏（登录后）
+  await loadFavorites()
+  // 加载友情链接（公开接口）
+  await loadFriendLinks()
 })
+
+// 监听登录状态变化，同步收藏列表
+watch(
+  () => authStore.isAuthenticated,
+  async (isAuthed) => {
+    if (isAuthed) {
+      await loadFavorites()
+    } else {
+      favorites.value = []
+    }
+  }
+)
 </script>
 
 <style scoped>
-/* 自定义样式 */
-
-/* 自定义滚动条样式 */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 3px;
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-}
-
-/* 动画效果 */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.float-animation {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
-  }
-}
-
-.glow-animation {
-  animation: glow 2s ease-in-out infinite;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 </style>
