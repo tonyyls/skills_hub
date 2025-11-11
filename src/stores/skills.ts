@@ -92,6 +92,55 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   /**
+   * 返回用于首页展示的内置示例技能数据。
+   * 当 Supabase 查询失败或无数据时作为回退数据。
+   * @param {('latest'|'featured')} kind 数据类型（仅用于示例标记 featured）
+   * @returns {Skill[]} 示例技能数组
+   */
+  const getMockSkills = (kind: 'latest' | 'featured' = 'latest'): Skill[] => {
+    const base: Skill[] = [
+      {
+        id: 'mock-1',
+        user_id: 'mock-user',
+        title: 'Vue 3 组件开发指南',
+        description: '深入学习 Vue 3 组件开发与 TypeScript 集成',
+        category_id: 'cat-fe',
+        download_count: 128,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tags: ['Vue.js', '前端开发', 'TypeScript'],
+        featured: true
+      },
+      {
+        id: 'mock-2',
+        user_id: 'mock-user',
+        title: 'React Hooks 实战教程',
+        description: '系统掌握 useState/useEffect 以及自定义 Hook',
+        category_id: 'cat-fe',
+        download_count: 256,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tags: ['React', '前端开发', 'JavaScript']
+      },
+      {
+        id: 'mock-3',
+        user_id: 'mock-user',
+        title: 'Python 数据分析入门',
+        description: '使用 pandas/numpy 进行数据处理与可视化',
+        category_id: 'cat-da',
+        download_count: 89,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tags: ['Python', '数据分析']
+      }
+    ]
+    if (kind === 'featured') {
+      return base.map(s => ({ ...s, featured: true }))
+    }
+    return base
+  }
+
+  /**
    * 从 Supabase 获取技能列表并映射为前端使用的字段结构。
    * - 将数据库列 `name` 映射为前端的 `title`，避免标题缺失。
    * - 兼容 `author_id` → `user_id`，`download_count`/`downloads`。
@@ -268,24 +317,31 @@ export const useSkillsStore = defineStore('skills', () => {
   /**
    * 获取最新技能列表（按创建时间倒序，仅已发布）。
    * 匿名访问受 RLS 限制，需过滤 `status = 'published'`。
-   * @returns {Promise<Skill[]>} 最新技能数组
+   * 无模拟数据回退：错误时返回空数组。
+   * @returns {Promise<Skill[]>} 最新技能数组（失败时为空）
    */
   const fetchLatestSkills = async (): Promise<Skill[]> => {
+    console.log('[skillsStore] fetchLatestSkills:start')
     setLoading(true)
     setError(null)
     try {
       const { data, error: supabaseError } = await supabase
         .from('skills')
-        .select('*')
+        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(24)
 
-      if (supabaseError) throw supabaseError
+      if (supabaseError) {
+        console.warn('[skillsStore] fetchLatestSkills:error', supabaseError?.message || supabaseError)
+        setError(supabaseError?.message || '加载最新技能失败')
+        setLoading(false)
+        return []
+      }
       const mapped = (data || []).map((row: any) => ({
         id: row.id,
         user_id: row.author_id || row.user_id || '',
-        title: row.title || row.name || '未命名技能',
+        title: row.title || '未命名技能',
         description: row.description || '',
         content: row.content || '',
         category_id: row.category_id || row.category?.id || '',
@@ -299,10 +355,12 @@ export const useSkillsStore = defineStore('skills', () => {
           ? row.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
           : []
       }))
+      console.log('[skillsStore] fetchLatestSkills:success', { count: mapped.length })
       setLoading(false)
       return mapped
     } catch (err) {
-      console.error('获取最新技能失败:', err)
+      console.error('[skillsStore] 获取最新技能失败:', err)
+      setError((err as any)?.message || '加载最新技能异常')
       setLoading(false)
       return []
     }
@@ -310,21 +368,23 @@ export const useSkillsStore = defineStore('skills', () => {
 
   /**
    * 获取精选技能列表（按创建时间倒序，仅已发布）。
-   * 规则：featured=true 或 tags 包含“精选”。
-   * - 使用两次查询合并去重，避免复杂 OR 语法不兼容导致的问题。
-   * - 参考官方文档：
-   *   - Query Filters contains/overlaps：https://supabase.com/docs/reference/javascript/select#filters
-   *   - Realtime/Row Level Security 约束：https://supabase.com/docs/guides/auth#row-level-security
-   * @returns {Promise<Skill[]>} 精选技能数组
+    * 规则：featured=true 或 tags 包含“精选”。
+    * - 使用两次查询合并去重，避免复杂 OR 语法不兼容导致的问题。
+    * - 参考官方文档：
+     *   - Query Filters contains/overlaps：https://supabase.com/docs/reference/javascript/select#filters
+     *   - Realtime/Row Level Security 约束：https://supabase.com/docs/guides/auth#row-level-security
+   * 无模拟数据回退：错误时返回空数组。
+   * @returns {Promise<Skill[]>} 精选技能数组（失败时为空）
    */
   const fetchFeaturedSkills = async (): Promise<Skill[]> => {
+    console.log('[skillsStore] fetchFeaturedSkills:start')
     setLoading(true)
     setError(null)
     try {
       // A: featured=true
       const { data: featuredRows, error: errA } = await supabase
         .from('skills')
-        .select('*')
+        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
         .eq('featured', true)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -333,13 +393,18 @@ export const useSkillsStore = defineStore('skills', () => {
       // B: tags 包含“精选”
       const { data: taggedRows, error: errB } = await supabase
         .from('skills')
-        .select('*')
+        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
         .contains('tags', ['精选'])
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(24)
 
-      if (errA && errB) throw (errA || errB)
+      if (errA && errB) {
+        console.warn('[skillsStore] fetchFeaturedSkills:both queries error', errA || errB)
+        setError((errA || errB)?.message || '加载精选技能失败')
+        setLoading(false)
+        return []
+      }
 
       // 合并去重并按时间排序后截断 24 条
       const merged = [...(featuredRows || []), ...(taggedRows || [])]
@@ -350,7 +415,7 @@ export const useSkillsStore = defineStore('skills', () => {
       const mapped = (finalRows || []).map((row: any) => ({
         id: row.id,
         user_id: row.author_id || row.user_id || '',
-        title: row.title || row.name || '未命名技能',
+        title: row.title || '未命名技能',
         description: row.description || '',
         content: row.content || '',
         category_id: row.category_id || row.category?.id || '',
@@ -364,10 +429,12 @@ export const useSkillsStore = defineStore('skills', () => {
           ? row.tags.map((t: any) => (typeof t === 'string' ? t : (t?.name || '')))
           : []
       }))
+      console.log('[skillsStore] fetchFeaturedSkills:success', { count: mapped.length })
       setLoading(false)
       return mapped
     } catch (err) {
-      console.error('获取精选技能失败:', err)
+      console.error('[skillsStore] 获取精选技能失败:', err)
+      setError((err as any)?.message || '加载精选技能异常')
       setLoading(false)
       return []
     }
@@ -615,6 +682,48 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   /**
+   * 获取技能状态分布统计。
+   *
+   * 分别统计 `published`、`draft`、`archived` 三种状态的数量，以及 `total` 总数。
+   * 若任一查询失败，返回的该项为 0，并在控制台记录错误。
+   *
+   * 参考官方文档：
+   * - Select head+count：https://supabase.com/docs/reference/javascript/select#head
+   * - 过滤条件 eq：https://supabase.com/docs/reference/javascript/select#filters
+   *
+   * @returns {Promise<{ published: number; draft: number; archived: number; total: number }>} 状态统计结果
+   */
+  const getStatusCounts = async (): Promise<{ published: number; draft: number; archived: number; total: number }> => {
+    try {
+      const [publishedRes, draftRes, archivedRes, totalRes] = await Promise.all([
+        supabase
+          .from('skills')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'published'),
+        supabase
+          .from('skills')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'draft'),
+        supabase
+          .from('skills')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'archived'),
+        supabase.from('skills').select('id', { count: 'exact', head: true }),
+      ])
+
+      const published = publishedRes.count ?? 0
+      const draft = draftRes.count ?? 0
+      const archived = archivedRes.count ?? 0
+      const total = totalRes.count ?? 0
+
+      return { published, draft, archived, total }
+    } catch (err) {
+      console.error('[skillsStore] 获取状态统计失败:', err)
+      return { published: 0, draft: 0, archived: 0, total: 0 }
+    }
+  }
+
+  /**
    * 增加下载次数（非原子，适合作为演示用）。
    * - 读取当前本地 `download_count`，更新到数据库并同步到本地状态。
    * - 若需原子性，建议使用数据库函数（RPC）在服务端递增。
@@ -670,6 +779,7 @@ export const useSkillsStore = defineStore('skills', () => {
     ensureCategoriesLoaded,
     fetchTags,
     fetchSkillById,
-    incrementDownloadCount
+    incrementDownloadCount,
+    getStatusCounts
   }
 })

@@ -7,17 +7,26 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+/** 是否已配置 Supabase 环境变量 */
+export const supabaseEnabled = Boolean(supabaseUrl && supabaseAnonKey)
+
+if (!supabaseEnabled) {
+  // 软失败：在开发/缺省环境不抛出致命错误，允许前端使用示例数据回退
+  // 使用不可达占位域名，避免误向生产发起请求
+  console.warn('[Supabase] 未配置 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY，客户端将不可用，前端会使用示例数据。')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(
+  supabaseEnabled ? supabaseUrl! : 'https://invalid.supabase.local',
+  supabaseEnabled ? supabaseAnonKey! : 'invalid-anon-key',
+  {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true
   }
-})
+}
+)
 
 /**
  * 数据库表名常量

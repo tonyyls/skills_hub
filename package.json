@@ -12,7 +12,9 @@
     "check": "vue-tsc -b",
     "lint": "eslint . --ext .ts,.vue",
     "lint:fix": "eslint . --ext .ts,.vue --fix",
-    "start:api": "tsx api/server.ts"
+    "start:api": "tsx api/server.ts",
+    "data:clean": "node api/data/clean-test-data.js",
+    "data:clean:dry": "node api/data/clean-test-data.js --dry-run"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

@@ -268,9 +268,9 @@
           </button>
         </div>
         <p id="loginDialogDesc" class="text-[#666] text-sm mb-4 text-center">选择登录方式</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-3 items-center">
           <button
-            class="w-full px-4 py-3 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
+            class="px-4 py-3 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
             :disabled="authStore.loading"
             @click="loginWithGithub"
           >
@@ -278,7 +278,7 @@
             <span>{{ authStore.loading ? '登录中...' : 'GitHub 登录' }}</span>
           </button>
           <button
-            class="w-full px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
+            class="px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
             @click="loginAsAdmin"
             v-if="isDev"
           >
@@ -286,7 +286,7 @@
             <span>管理员登录</span>
           </button>
           <button
-            class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
+            class="px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all inline-flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
             v-if="false"
           >
@@ -294,7 +294,7 @@
             <span>微信登录（敬请期待）</span>
           </button>
           <button
-            class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
+            class="px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all inline-flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
             v-if="false"
           >
@@ -360,8 +360,19 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-// 仅在开发环境下显示管理员入口
-const isDev: boolean = import.meta.env.DEV
+/**
+ * 是否开发环境（用于在开发环境显示管理员入口）。
+ * 避免在模板或不支持的解析器中直接使用 `import.meta.env`，
+ * 通过浏览器 `hostname` 进行兼容性判断。
+ *
+ * - 在本地开发（例如 `localhost` / `127.0.0.1` / `*.local`）返回 true
+ * - 在其他环境返回 false
+ */
+const isDev = computed<boolean>(() => {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname
+  return host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local')
+})
 
 const showUserMenu = ref(false)
 const showLanguageMenu = ref(false)

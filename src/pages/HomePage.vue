@@ -272,10 +272,11 @@ const skills = ref<any[]>([])
 const loading = ref(true)
 
 // 过滤后的技能列表（首页不根据关键词搜索过滤，仅按筛选）
-const filteredSkills = computed(() => {
-  // 服务端已按筛选返回结果，这里直接透传
-  return skills.value
-})
+/**
+ * 首页卡片列表（直接透传 store 返回的数据）。
+ * 保持简单：不做关键词过滤，仅根据当前筛选（latest/featured）加载不同数据集。
+ */
+const filteredSkills = computed(() => skills.value)
 
 // 友情链接数据（公开接口）
 interface FriendLink {
@@ -319,16 +320,19 @@ const loadFriendLinks = async (): Promise<void> => {
  * @returns {Promise<void>} 无返回
  */
 const loadSkillsForFilter = async (): Promise<void> => {
+  console.log('[HomePage] loadSkillsForFilter:start', { activeFilter: activeFilter.value })
   loading.value = true
   try {
-    const list = activeFilter.value === 'latest'
-      ? await fetchLatestSkills()
-      : await fetchFeaturedSkills()
-    skills.value = list
-  } catch (e) {
-    console.error('加载技能失败:', e)
+    const isLatest = activeFilter.value === 'latest'
+    console.log('[HomePage] invoking store fetch', { isLatest })
+    const list = isLatest ? await fetchLatestSkills() : await fetchFeaturedSkills()
+    console.log('[HomePage] store fetch returned', { count: list?.length, sample: list?.[0] })
+    skills.value = Array.isArray(list) ? list : []
+  } catch (e: any) {
+    console.error('[HomePage] 加载技能失败:', e?.message || e)
   } finally {
     loading.value = false
+    console.log('[HomePage] loadSkillsForFilter:end', { loading: loading.value, skillsCount: skills.value.length })
   }
 }
 
@@ -512,17 +516,45 @@ const loadMore = (): void => {
 
 // 初始化
 onMounted(async () => {
-  // 确保分类映射可用
-  await skillsStore.ensureCategoriesLoaded()
-  // 初始加载当前筛选数据
-  await loadSkillsForFilter()
-  // 加载总数（仅已发布）
-  const count = await skillsStore.fetchTotalCount()
-  totalSkills.value = count
-  // 加载用户收藏（登录后）
-  await loadFavorites()
-  // 加载友情链接（公开接口）
-  await loadFriendLinks()
+  console.log('[HomePage] onMounted:start')
+  try {
+    // 确保分类映射可用
+    console.log('[HomePage] ensureCategoriesLoaded:begin')
+    await skillsStore.ensureCategoriesLoaded()
+    console.log('[HomePage] ensureCategoriesLoaded:end', { categories: skillsStore.categories.length })
+
+    // 初始加载当前筛选数据
+    await loadSkillsForFilter()
+
+    // 加载总数（仅已发布）
+    console.log('[HomePage] fetchTotalCount:begin')
+    const count = await skillsStore.fetchTotalCount()
+    totalSkills.value = count
+    console.log('[HomePage] fetchTotalCount:end', { totalSkills: totalSkills.value })
+
+    // 统计状态分布并输出到控制台，便于核对首页显示
+    console.log('[HomePage] getStatusCounts:begin')
+    try {
+      const counts = await skillsStore.getStatusCounts()
+      console.log('[HomePage] getStatusCounts:end', counts)
+    } catch (e) {
+      console.warn('[HomePage] 获取状态统计失败:', e)
+    }
+
+    // 加载用户收藏（登录后）
+    console.log('[HomePage] loadFavorites:begin', { isAuthenticated: authStore.isAuthenticated })
+    await loadFavorites()
+    console.log('[HomePage] loadFavorites:end', { favoritesCount: favorites.value.length })
+
+    // 加载友情链接（公开接口）
+    console.log('[HomePage] loadFriendLinks:begin')
+    await loadFriendLinks()
+    console.log('[HomePage] loadFriendLinks:end', { linksCount: friendLinks.value.length })
+  } catch (e) {
+    console.error('[HomePage] onMounted:error', e)
+  } finally {
+    console.log('[HomePage] onMounted:end')
+  }
 })
 
 // 监听登录状态变化，同步收藏列表
