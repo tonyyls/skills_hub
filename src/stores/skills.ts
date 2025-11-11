@@ -327,7 +327,7 @@ export const useSkillsStore = defineStore('skills', () => {
     try {
       const { data, error: supabaseError } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(24)
@@ -347,7 +347,7 @@ export const useSkillsStore = defineStore('skills', () => {
         category_id: row.category_id || row.category?.id || '',
         featured: !!row.featured,
         recommended: !!row.recommended,
-        download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+        download_count: typeof row.download_count === 'number' ? row.download_count : (typeof row.downloads === 'number' ? row.downloads : 0),
         created_at: row.created_at,
         updated_at: row.updated_at,
         author_name: row.author_name || '',
@@ -384,7 +384,7 @@ export const useSkillsStore = defineStore('skills', () => {
       // A: featured=true
       const { data: featuredRows, error: errA } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .eq('featured', true)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -393,7 +393,7 @@ export const useSkillsStore = defineStore('skills', () => {
       // B: tags 包含“精选”
       const { data: taggedRows, error: errB } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, download_count, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .contains('tags', ['精选'])
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -421,7 +421,7 @@ export const useSkillsStore = defineStore('skills', () => {
         category_id: row.category_id || row.category?.id || '',
         featured: !!row.featured,
         recommended: !!row.recommended,
-        download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+        download_count: typeof row.download_count === 'number' ? row.download_count : (typeof row.downloads === 'number' ? row.downloads : 0),
         created_at: row.created_at,
         updated_at: row.updated_at,
         author_name: row.author_name || '',
@@ -666,7 +666,7 @@ export const useSkillsStore = defineStore('skills', () => {
         install_command: data.install_command || data.install || '',
         featured: !!data.featured,
         recommended: !!data.recommended,
-        download_count: typeof data.download_count === 'number' ? data.download_count : (data.downloads ?? 0),
+        download_count: typeof data.download_count === 'number' ? data.download_count : (typeof data.downloads === 'number' ? data.downloads : 0),
         created_at: data.created_at,
         updated_at: data.updated_at,
         author_name: data.author_name || '',
