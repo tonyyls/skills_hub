@@ -10,6 +10,13 @@ const __dirname = path.dirname(__filename);
 // 加载环境变量
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+// 保护：默认禁止在生产/部署环境自动种子，需显式 ALLOW_DEV_SEED=true
+const allowDevSeed = String(process.env.ALLOW_DEV_SEED || '').toLowerCase() === 'true'
+if (!allowDevSeed) {
+  console.error('🚫 已阻止种子：未设置 ALLOW_DEV_SEED=true（为避免部署环境重复插入）')
+  process.exit(1)
+}
+
 // 从 .env 加载，同时支持回退到非 VITE_ 前缀变量
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -99,14 +106,8 @@ async function insertSkills() {
     console.log('✅ 数据库连接正常');
     
     // 清空现有技能数据（可选）
-    console.log('🗑️ 清空现有技能数据...');
-    // 使用 not('id','is',null) 避免 UUID 类型转换错误，删除所有非空 id 的记录
-    const { error: deleteError } = await supabase.from('skills').delete().not('id', 'is', null);
-    if (deleteError) {
-      console.error('❌ 清空数据失败:', deleteError.message);
-      process.exit(1);
-    }
-    console.log('✅ 已清空现有技能数据');
+    // 安全：不再全表清空，避免误删生产数据
+    // 若确需清空，请使用 supabase/scripts/clear_skills.sql 并在安全环境下执行
     
     // 获取作者用户ID
     console.log('👤 获取作者用户...');
@@ -124,17 +125,38 @@ async function insertSkills() {
     for (let i = 0; i < skillsData.length; i += batchSize) {
       const batch = skillsData.slice(i, i + batchSize).map(dev => mapToDbSkill(dev, authorId));
       
-      const { data, error } = await supabase
-        .from('skills')
-        .insert(batch);
-      
-      if (error) {
-        console.error(`❌ 第 ${Math.floor(i/batchSize) + 1} 批数据插入失败:`, error.message);
-        console.error('失败的数据:', skillsData.slice(i, i + batchSize).map(s => ({ id: s.id, title: s.title })));
-        continue;
+      // 改为按名称幂等插入：若 name 唯一，则可使用 upsert；否则在插入前探测存在性
+      // 优先尝试 upsert（需要唯一约束，否则会全量插入）；若失败则回退逐条探测
+      let error = null
+      try {
+        const upsertRes = await supabase.from('skills').upsert(batch, { onConflict: 'name' })
+        error = upsertRes.error || null
+      } catch (e) {
+        error = e
       }
       
-      insertedCount += batch.length;
+      if (error) {
+        // 回退：逐条插入前先查重
+        const singleBatch = skillsData.slice(i, i + batchSize).map(dev => mapToDbSkill(dev, authorId))
+        for (const item of singleBatch) {
+          const { data: existsRows, error: existsErr } = await supabase.from('skills').select('id').eq('name', item.name).limit(1)
+          if (existsErr) {
+            console.error('⚠️ 查重失败，跳过：', existsErr.message)
+            continue
+          }
+          if (existsRows && existsRows.length) {
+            continue
+          }
+          const { error: insErr } = await supabase.from('skills').insert(item)
+          if (insErr) {
+            console.error('⚠️ 单条插入失败，跳过：', insErr.message)
+            continue
+          }
+          insertedCount += 1
+        }
+      } else {
+        insertedCount += batch.length
+      }
       console.log(`✅ 已插入 ${insertedCount}/${skillsData.length} 条数据`);
       
       // 短暂延迟避免数据库压力过大
