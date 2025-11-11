@@ -3,7 +3,7 @@
  * 用于展示技能的基本信息和下载功能
  */
 <template>
-  <div class="glass rounded-2xl overflow-hidden card-hover group">
+  <div class="glass rounded-2xl overflow-hidden card-hover group min-h-[280px] h-auto flex flex-col">
     <!-- 技能封面 -->
     <div class="h-56 bg-gradient-to-br from-neon-blue/20 via-neon-purple/20 to-neon-pink/20 flex items-center justify-center relative overflow-hidden">
       <!-- 背景装饰 -->
@@ -16,7 +16,12 @@
           :is="getCategoryIcon(skill.category)" 
           class="w-16 h-16 text-neon-blue mx-auto mb-4 group-hover:scale-110 transition-transform duration-300"
         />
-        <h3 class="text-xl font-bold text-white">{{ skill.title }}</h3>
+        <h3
+          class="text-xl font-bold text-white truncate"
+          v-truncate-title="skill.title"
+        >
+          {{ skill.title }}
+        </h3>
       </div>
     </div>
     
@@ -32,7 +37,7 @@
         </div>
       </div>
       
-      <p class="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">{{ skill.description }}</p>
+      <p class="text-gray-300 text-sm mb-4 line-clamp-5 leading-relaxed">{{ skill.description }}</p>
       
       <!-- 标签 -->
       <div class="flex flex-wrap gap-2 mb-4">
@@ -142,6 +147,14 @@ const handleDownload = () => {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 多行省略：限制为 5 行 */
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

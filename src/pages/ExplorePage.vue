@@ -26,6 +26,7 @@
                     type="text"
                     placeholder="关键词搜索"
                     class="flex-1 bg-transparent border-none outline-none px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
+                    v-select-all-shortcut
                   />
                   <button
                     @click="handleSearch"
@@ -81,27 +82,33 @@
           <div
             v-for="skill in filteredSkills"
             :key="skill.id"
-            class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer"
+            class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden min-h-[280px] h-auto flex flex-col"
             @click="goToSkillDetail(skill.id)"
           >
             <!-- 卡片头部 -->
             <div class="flex justify-between items-start mb-4">
-              <div class="flex-1">
-                <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
-                  {{ skill.title }}
-                </h3>
-                <!-- 赞助商标签 -->
-                <span
-                  v-if="skill.isSponsored"
-                  class="inline-block mt-2 px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full"
-                >
-                  精选
-                </span>
+              <!-- 左侧：标题（允许收缩） + 精选徽章（不压缩） -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <h3
+                    class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors truncate min-w-0"
+                    v-truncate-title="skill.title"
+                  >
+                    {{ skill.title }}
+                  </h3>
+                  <!-- 赞助商标签 -->
+                  <span
+                    v-if="skill.isSponsored"
+                    class="inline-block px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full flex-shrink-0"
+                  >
+                    精选
+                  </span>
+                </div>
               </div>
               <!-- 收藏星标 -->
               <button
                 @click.stop="toggleFavorite(skill.id)"
-                class="text-gray-400 hover:text-yellow-400 transition-colors ml-2"
+                class="text-gray-400 hover:text-yellow-400 transition-colors ml-2 flex-shrink-0"
               >
                 <Star
                   :class="[
@@ -112,8 +119,8 @@
               </button>
             </div>
 
-            <!-- 描述 -->
-            <p class="text-gray-600 text-sm line-clamp-3 mb-4">
+            <!-- 描述：限制为 5 行，超出省略 -->
+            <p class="text-gray-600 text-sm line-clamp-5 mb-4">
               {{ skill.description }}
             </p>
 
@@ -346,6 +353,16 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+/* 多行省略：限制为 5 行 */
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
 
 <style scoped>
 .line-clamp-2 {

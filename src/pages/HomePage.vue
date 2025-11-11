@@ -44,10 +44,11 @@
                   <Search class="w-5 h-5 text-gray-400 ml-4" />
                   <input
                     v-model="searchQuery"
+                    v-select-all-shortcut
                     @keyup.enter="handleSearch"
                     type="text"
                     placeholder="关键字搜索技能..."
-                    class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:border-transparent focus-visible:border-transparent focus:ring-0 focus-visible:ring-0 px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
+                    class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:border-transparent focus-visible:border-transparent focus:ring-0 focus-visible:ring-0 px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg select-text"
                   />
                   <!-- 清除输入按钮：仅在有内容时显示 -->
                   <button
@@ -135,21 +136,26 @@
           <div
             v-for="skill in filteredSkills"
             :key="skill.id"
-            class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
+            class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col overflow-hidden min-h-[280px] h-auto"
             @click="goToSkillDetail(skill.id)"
           >
             <!-- 卡片头部 -->
             <div class="flex justify-between items-start mb-4">
-              <div class="flex-1">
+              <!-- 左侧：徽章 + 标题（标题容器允许收缩） -->
+              <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <!-- 精选徽章：featured 或包含“精选”标签均显示 -->
                   <span
                     v-if="skill.featured || (Array.isArray(skill.tags) && skill.tags.includes('精选'))"
-                    class="inline-block px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full"
+                    class="inline-block px-2 py-1 bg-gradient-to-r from-[#FF7A45] to-[#FF6A3A] text-white text-xs rounded-full flex-shrink-0"
                   >
                     精选
                   </span>
-                  <h3 class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors line-clamp-2">
+                  <!-- 标题：允许收缩、单行省略，避免与星标挤在一起 -->
+                  <h3
+                    class="font-semibold text-gray-800 group-hover:text-[#FF7A45] transition-colors truncate min-w-0"
+                    v-truncate-title="skill.title"
+                  >
                     {{ skill.title }}
                   </h3>
                 </div>
@@ -157,7 +163,7 @@
               <!-- 收藏星标 -->
               <button
                 @click.stop="handleFavorite(skill)"
-                class="text-gray-400 hover:text-yellow-400 transition-colors ml-2"
+                class="text-gray-400 hover:text-yellow-400 transition-colors ml-2 flex-shrink-0"
               >
                 <Star
                   :class="[
@@ -168,8 +174,8 @@
               </button>
             </div>
 
-            <!-- 描述 -->
-            <p class="text-gray-600 text-sm line-clamp-3 mb-4">
+            <!-- 描述：限制为 5 行，超出省略 -->
+            <p class="text-gray-600 text-sm line-clamp-5 mb-4">
               {{ skill.description }}
             </p>
 
@@ -569,6 +575,16 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+/* 多行省略：限制为 5 行 */
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
 
 <style scoped>
 .line-clamp-2 {

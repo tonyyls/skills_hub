@@ -55,6 +55,7 @@
                   type="text"
                   placeholder="搜索技能名称"
                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  v-select-all-shortcut
                 />
               </div>
             </div>
@@ -156,22 +157,28 @@
             <div
               v-for="skill in displayedSkills"
               :key="skill.id"
-              class="group bg-white rounded-2xl shadow-sm border border-[#EEEEEE] p-6 cursor-pointer hover:shadow-md transition-all duration-300 flex flex-col h-full"
+              class="group bg-white rounded-2xl shadow-sm border border-[#EEEEEE] p-6 cursor-pointer hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden min-h-[280px] h-auto"
               @click="handleDownload(skill.id)"
             >
               <!-- 顶部：精选徽章、标题与星标 -->
               <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-2">
+                <!-- 左侧：徽章 + 标题（标题容器允许收缩） -->
+                <div class="flex items-center gap-2 flex-1 min-w-0">
                   <span
                     v-if="skill.recommended || skill.featured"
-                    class="px-2 py-1 text-xs rounded-full bg-[#FF7A45] text-white"
+                    class="px-2 py-1 text-xs rounded-full bg-[#FF7A45] text-white flex-shrink-0"
                   >
                     精选
                   </span>
-                  <h3 class="font-semibold text-gray-800 text-lg">{{ skill.title }}</h3>
+                  <h3
+                    class="font-semibold text-gray-800 text-lg truncate min-w-0 transition-colors duration-200 group-hover:text-[#FF7A45]"
+                    v-truncate-title="skill.title"
+                  >
+                    {{ skill.title }}
+                  </h3>
                 </div>
                 <button
-                  class="p-1 rounded hover:bg-gray-100"
+                  class="p-1 rounded hover:bg-gray-100 flex-shrink-0"
                   title="收藏"
                   @click.stop="handleFavorite(skill)"
                 >
@@ -184,8 +191,8 @@
                 </button>
               </div>
 
-              <!-- 描述 -->
-              <p class="text-gray-600 text-sm leading-relaxed mb-4">{{ skill.description }}</p>
+              <!-- 描述：限制为 5 行，超出省略 -->
+              <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-5">{{ skill.description }}</p>
 
               <!-- 标签芯片 -->
               <div class="flex flex-wrap gap-2 mb-4">
@@ -662,6 +669,16 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+/* 多行省略：限制为 5 行 */
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
 
 <style scoped>
 .line-clamp-3 {
