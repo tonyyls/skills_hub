@@ -533,10 +533,10 @@ onMounted(async () => {
     console.log('[HomePage] fetchTotalCount:end', { totalSkills: totalSkills.value })
 
     // 统计状态分布并输出到控制台，便于核对首页显示
-    console.log('[HomePage] getStatusCounts:begin')
+    console.log('[HomePage] getStatusCountsAggregate:begin')
     try {
-      const counts = await skillsStore.getStatusCounts()
-      console.log('[HomePage] getStatusCounts:end', counts)
+      const counts = await skillsStore.getStatusCountsAggregate()
+      console.log('[HomePage] getStatusCountsAggregate:end', counts)
     } catch (e) {
       console.warn('[HomePage] 获取状态统计失败:', e)
     }

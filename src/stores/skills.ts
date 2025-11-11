@@ -466,79 +466,59 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   const fetchCategories = async () => {
+    /**
+     * 获取分类数据（带5分钟内存缓存与精简字段）。
+     * - 若 `categories` 已存在且在缓存期内，直接返回，避免重复请求。
+     * - 仅选择必要字段并按 `sort_order, name` 排序，减少负载。
+     * - 只取 `is_active=true` 的分类。
+     * 官方文档：
+     * - supabase-js select：https://supabase.com/docs/reference/javascript/select
+     * - PostgREST 查询参数：https://postgrest.org/en/stable/api.html#horizontal-filtering-rows
+     */
+    const CATEGORIES_CACHE_TTL_MS = 5 * 60 * 1000
+    // 简易缓存：时间戳记录（作用域内变量，刷新期间有效）
+    // 注意：页面重载会失效，如需跨会话缓存可改为 localStorage + ETag
+    // 这里使用闭包变量，在 store 生命周期内有效
+    // @ts-ignore 增加内部缓存时间戳（若未定义则初始化为0）
+    if (!(fetchCategories as any)._cacheTs) (fetchCategories as any)._cacheTs = 0
+    const cacheTs: number = (fetchCategories as any)._cacheTs
+    const now = Date.now()
+    if (categories.value && categories.value.length > 0 && now - cacheTs < CATEGORIES_CACHE_TTL_MS) {
+      return
+    }
+
     try {
       const { data, error: supabaseError } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, description, created_at, sort_order')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
         .order('name', { ascending: true })
 
       if (supabaseError) {
         console.warn('Supabase分类连接失败，使用模拟数据:', supabaseError)
         // 使用模拟分类数据
         const mockCategories: Category[] = [
-          {
-            id: '1',
-            name: '前端开发',
-            description: 'HTML, CSS, JavaScript, Vue, React等前端技术',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'UI设计',
-            description: 'Figma, Sketch, Adobe XD等设计工具和理论',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: '3',
-            name: '数据分析',
-            description: 'Python, R, SQL, Excel等数据分析工具',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: '4',
-            name: '产品管理',
-            description: '产品规划、需求分析、项目管理等产品技能',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: '5',
-            name: '移动开发',
-            description: 'iOS, Android, React Native, Flutter等移动开发技术',
-            created_at: '2024-01-01T00:00:00Z'
-          },
-          {
-            id: '6',
-            name: '云计算',
-            description: 'AWS, Azure, Google Cloud等云服务平台',
-            created_at: '2024-01-01T00:00:00Z'
-          }
+          { id: '1', name: '前端开发', description: 'HTML, CSS, JavaScript, Vue, React等前端技术', created_at: '2024-01-01T00:00:00Z' },
+          { id: '2', name: 'UI设计', description: 'Figma, Sketch, Adobe XD等设计工具和理论', created_at: '2024-01-01T00:00:00Z' },
+          { id: '3', name: '数据分析', description: 'Python, R, SQL, Excel等数据分析工具', created_at: '2024-01-01T00:00:00Z' },
+          { id: '4', name: '产品管理', description: '产品规划、需求分析、项目管理等产品技能', created_at: '2024-01-01T00:00:00Z' },
+          { id: '5', name: '移动开发', description: 'iOS, Android, React Native, Flutter等移动开发技术', created_at: '2024-01-01T00:00:00Z' },
+          { id: '6', name: '云计算', description: 'AWS, Azure, Google Cloud等云服务平台', created_at: '2024-01-01T00:00:00Z' }
         ]
         setCategories(mockCategories)
       } else {
-        setCategories(data || [])
+        setCategories((data || []) as Category[])
+        // 更新缓存时间戳
+        ;(fetchCategories as any)._cacheTs = Date.now()
       }
     } catch (err) {
       console.error('获取分类失败:', err)
       // 使用模拟分类数据作为后备
       const mockCategories: Category[] = [
-        {
-          id: '1',
-          name: '前端开发',
-          description: 'HTML, CSS, JavaScript, Vue, React等前端技术',
-          created_at: '2024-01-01T00:00:00Z'
-        },
-        {
-          id: '2',
-          name: 'UI设计',
-          description: 'Figma, Sketch, Adobe XD等设计工具和理论',
-          created_at: '2024-01-01T00:00:00Z'
-        },
-        {
-          id: '3',
-          name: '数据分析',
-          description: 'Python, R, SQL, Excel等数据分析工具',
-          created_at: '2024-01-01T00:00:00Z'
-        }
+        { id: '1', name: '前端开发', description: 'HTML, CSS, JavaScript, Vue, React等前端技术', created_at: '2024-01-01T00:00:00Z' },
+        { id: '2', name: 'UI设计', description: 'Figma, Sketch, Adobe XD等设计工具和理论', created_at: '2024-01-01T00:00:00Z' },
+        { id: '3', name: '数据分析', description: 'Python, R, SQL, Excel等数据分析工具', created_at: '2024-01-01T00:00:00Z' }
       ]
       setCategories(mockCategories)
     }
@@ -724,6 +704,34 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   /**
+   * 获取技能状态分布统计（RPC聚合）。
+   * 使用单次 RPC 调用 `public.skills_status_counts()` 返回状态计数，减少多次请求。
+   * 官方文档：
+   * - Database Functions: https://supabase.com/docs/guides/database/functions
+   * - JS RPC: https://supabase.com/docs/reference/javascript/rpc
+   * @returns {Promise<{ published: number; draft: number; archived: number; total: number }>} 状态统计结果
+   */
+  const getStatusCountsAggregate = async (): Promise<{ published: number; draft: number; archived: number; total: number }> => {
+    try {
+      const { data, error } = await supabase.rpc('skills_status_counts')
+      if (error) throw error
+      const init = { published: 0, draft: 0, archived: 0, total: 0 }
+      const result = (Array.isArray(data) ? data : []).reduce((acc: any, row: any) => {
+        const key = String(row.status)
+        const val = Number(row.count) || 0
+        if (key === 'published' || key === 'draft' || key === 'archived' || key === 'total') {
+          acc[key] = val
+        }
+        return acc
+      }, init)
+      return result
+    } catch (err) {
+      console.error('[skillsStore] 获取状态统计（聚合）失败:', err)
+      return { published: 0, draft: 0, archived: 0, total: 0 }
+    }
+  }
+
+  /**
    * 增加下载次数（非原子，适合作为演示用）。
    * - 读取当前本地 `download_count`，更新到数据库并同步到本地状态。
    * - 若需原子性，建议使用数据库函数（RPC）在服务端递增。
@@ -780,6 +788,7 @@ export const useSkillsStore = defineStore('skills', () => {
     fetchTags,
     fetchSkillById,
     incrementDownloadCount,
-    getStatusCounts
+    getStatusCounts,
+    getStatusCountsAggregate
   }
 })
