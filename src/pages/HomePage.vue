@@ -30,7 +30,9 @@
       <section class="relative py-16 lg:py-20 overflow-hidden">
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-[#333] mb-6 leading-tight">
-  发现优秀的 Skills 技能资源
+            发现优秀的 
+            <span class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] bg-clip-text text-transparent">Skills</span>
+            技能资源
           </h1>
           <p class="text-lg md:text-xl text-[#666] mb-10 max-w-3xl mx-auto leading-relaxed">
             Skills Hub 是一个第三方技能市场，共收录了 {{ totalSkills }} 个技能。

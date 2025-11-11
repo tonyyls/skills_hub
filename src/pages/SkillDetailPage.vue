@@ -77,7 +77,7 @@
                 推荐
               </p>
             <p class="text-xs text-gray-600">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
-              <p class="text-sm text-gray-500">最新更新于 {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
+        <p class="text-sm text-gray-500">最近更新于 {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
             </div>
             <!-- 技能标签显示 -->
             <div v-if="skill.tags && skill.tags.length" class="mt-4">
@@ -333,7 +333,7 @@ const goBack = () => {
 
 /**
  * 格式化日期时间为 `YYYY/MM/DD HH:mm`。
- * - 优先用于“最新更新于”展示，若无更新时间则回退到创建时间。
+ * - 优先用于“最近更新于”展示，若无更新时间则回退到创建时间。
  * - 使用原生 `Intl.DateTimeFormat` 保持可控格式与跨浏览器一致性。
  * @param {string} date ISO 风格时间字符串
  * @returns {string} 形如 `2025/11/11 12:00` 的字符串
