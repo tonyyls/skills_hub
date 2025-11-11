@@ -48,6 +48,7 @@
             to="/about" 
             class="nav-link text-[#333] hover:text-[#FF7A45]"
             :class="{ 'active': $route.path === '/about' }"
+            v-if="false"
           >
             关于我们
           </router-link>
@@ -118,7 +119,7 @@
           <!-- 语言切换 + 登录文字链接（未登录时显示） -->
           <div v-else class="flex items-center space-x-2">
             <!-- 语言下拉菜单 -->
-            <div class="relative language-menu-container">
+            <div class="relative language-menu-container" v-if="false">
               <button
                 @click="toggleLanguageMenu"
                 class="px-2 py-2 text-[#333] hover:text-[#FF7A45] font-medium flex items-center space-x-1"
@@ -203,6 +204,7 @@
             to="/about" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
+            v-if="false"
           >
             <Info class="w-5 h-5 mr-2 inline" /> 关于我们
           </router-link>
@@ -239,6 +241,7 @@
               to="/admin/login"
               class="mobile-nav-link"
               @click="showMobileMenu = false"
+              v-if="isDev"
             >
               <LogIn class="w-5 h-5 mr-2 inline" /> 管理员登录
             </router-link>
@@ -252,16 +255,20 @@
       v-if="showLoginModal"
       class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
       @click.self="closeLoginModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="loginDialogTitle"
+      aria-describedby="loginDialogDesc"
     >
-      <div class="bg-white max-w-md w-full p-6 shadow-2xl border border-[#E5E5E5]">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-[#333]">登录</h3>
-          <button class="p-2 hover:bg-[#FFF5EF]" @click="closeLoginModal">
+      <div class="bg-white max-w-md w-full p-6 shadow-2xl border border-[#E5E5E5] rounded-lg">
+        <div class="relative mb-4">
+          <h3 id="loginDialogTitle" class="text-lg font-bold text-[#333] text-center">登录</h3>
+          <button class="absolute right-2 top-1.5 p-2 hover:bg-[#FFF5EF]" @click="closeLoginModal" aria-label="关闭登录弹窗">
             <X class="w-5 h-5 text-gray-600" />
           </button>
         </div>
-        <p class="text-[#666] text-sm mb-4">选择登录方式</p>
-        <div class="space-y-3">
+        <p id="loginDialogDesc" class="text-[#666] text-sm mb-4 text-center">选择登录方式</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             class="w-full px-4 py-3 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
             :disabled="authStore.loading"
@@ -273,6 +280,7 @@
           <button
             class="w-full px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all flex items-center justify-center space-x-2"
             @click="loginAsAdmin"
+            v-if="isDev"
           >
             <User class="w-5 h-5" />
             <span>管理员登录</span>
@@ -280,6 +288,7 @@
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
+            v-if="false"
           >
             <User class="w-5 h-5" />
             <span>微信登录（敬请期待）</span>
@@ -287,12 +296,13 @@
           <button
             class="w-full px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             disabled
+            v-if="false"
           >
             <User class="w-5 h-5" />
             <span>邮箱登录（敬请期待）</span>
           </button>
         </div>
-        <p class="mt-4 text-xs text-gray-500">继续即表示你同意我们的使用条款与隐私政策。</p>
+        <p class="mt-4 text-xs text-gray-500 text-center">继续即表示你同意我们的使用条款与隐私政策。</p>
       </div>
     </div>
 
@@ -349,6 +359,9 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 仅在开发环境下显示管理员入口
+const isDev: boolean = import.meta.env.DEV
 
 const showUserMenu = ref(false)
 const showLanguageMenu = ref(false)
