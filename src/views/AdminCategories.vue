@@ -11,6 +11,7 @@
             type="text"
             placeholder="搜索名称、描述、slug..."
             class="pl-9 pr-8 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            v-select-all-shortcut
           />
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,6 +171,7 @@
                     type="text"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     required
+                    v-select-all-shortcut
                   >
                 </div>
                 <div>
@@ -178,6 +180,7 @@
                     v-model="form.name_en"
                     type="text"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                    v-select-all-shortcut
                   >
                 </div>
                 <div>
@@ -187,6 +190,7 @@
                     type="text"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     required
+                    v-select-all-shortcut
                   >
                 </div>
               </div>
@@ -202,6 +206,7 @@
                     v-model="form.description"
                     rows="3"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                    v-select-all-shortcut
                   ></textarea>
                 </div>
                 <div>
@@ -210,6 +215,7 @@
                     v-model="form.description_en"
                     rows="3"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                    v-select-all-shortcut
                   ></textarea>
                 </div>
               </div>

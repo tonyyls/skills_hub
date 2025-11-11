@@ -48,6 +48,7 @@
                 required
                 placeholder="输入技能标题"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                v-select-all-shortcut
               />
               <p class="mt-1 text-sm text-gray-500">简洁明了地描述你的技能</p>
             </div>
@@ -85,6 +86,7 @@
                 type="text"
                 placeholder="输入开发者/作者名称，留空将显示“官方”或留空"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                v-select-all-shortcut
               />
               <p class="mt-1 text-sm text-gray-500">用于展示实际开发者或作者，不填写则不展示或显示“官方”。</p>
               <p v-if="authorError" class="mt-1 text-sm text-red-600">{{ authorError }}</p>
@@ -103,6 +105,7 @@
               rows="3"
               placeholder="详细描述你的技能"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              v-select-all-shortcut
             ></textarea>
             <p class="mt-1 text-sm text-gray-500">让其他人了解你的技能内容和价值</p>
           </div>
@@ -118,6 +121,7 @@
               rows="6"
               placeholder="提供更详细的技能说明、使用场景等"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              v-select-all-shortcut
             ></textarea>
           </div>
           
@@ -133,6 +137,7 @@
               type="text"
               placeholder="输入标签后按回车添加"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              v-select-all-shortcut
             />
             <div v-if="form.tags.length > 0" class="mt-2 flex flex-wrap gap-2">
               <span
@@ -201,6 +206,7 @@
               type="url"
               placeholder="https://github.com/..."
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              v-select-all-shortcut
             />
           </div>
 
@@ -214,6 +220,7 @@
               ref="installCommandRef"
               @input="autoResizeInstallCommand($event)"
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors leading-relaxed resize-none overflow-hidden"
+              v-select-all-shortcut
             ></textarea>
           </div>
           

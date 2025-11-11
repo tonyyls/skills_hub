@@ -53,7 +53,7 @@
                   v-model="searchQuery"
                   @input="handleSearch"
                   type="text"
-                  placeholder="搜索技能名称"
+                  placeholder="关键字搜索技能..."
                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   v-select-all-shortcut
                 />
@@ -112,7 +112,7 @@
           </div>
 
           <!-- 加载状态：骨架屏（12项） -->
-          <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 py-6">
+          <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 py-4">
             <div v-for="n in 12" :key="n" class="bg-white rounded-2xl shadow-sm border border-[#EEEEEE] p-6 animate-pulse">
               <div class="h-4 w-24 bg-gray-200 rounded mb-3"></div>
               <div class="h-5 w-48 bg-gray-200 rounded mb-2"></div>

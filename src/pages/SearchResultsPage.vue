@@ -25,6 +25,7 @@
                   type="text"
                   placeholder="关键词搜索"
                   class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:ring-0 focus:border-transparent px-4 py-3 text-gray-900 placeholder-gray-400 text-base"
+                  v-select-all-shortcut
                 />
                 <!-- 仅在有输入时显示的清除图标按钮 -->
                 <button
@@ -54,7 +55,7 @@
       <!-- 结果列表（全宽） -->
           <!-- 加载状态 -->
           <div v-if="loading" class="text-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
             <p class="text-gray-600">正在搜索...</p>
           </div>
 
@@ -70,14 +71,15 @@
             <div
               v-for="skill in searchResults"
               :key="skill.id"
-              class="px-6 py-5 border-b border-gray-200 last:border-b-0"
+              class="px-6 py-5 border-b border-gray-200 last:border-b-0 group cursor-pointer"
+              @click="goToSkillDetail(skill.id)"
             >
               <div class="flex items-start justify-between">
                 <!-- 左侧内容 -->
                 <div class="flex-1">
                   <!-- 标题与状态图标 -->
                   <div class="flex items-center gap-2 mb-1">
-                    <h3 class="text-lg font-semibold text-gray-900">
+                    <h3 class="text-lg font-semibold text-gray-900 transition-colors group-hover:text-[#FF7A45]">
                       <span v-html="highlightText(skill.title ?? skill.name ?? '', searchKeyword)"></span>
                     </h3>
                     <!-- 已移除精选/推荐图标 -->
@@ -99,10 +101,10 @@
                     </span>
                   </div>
 
-                  <!-- 元数据行：头像 • 版本 • 时间 • 依赖数 • 许可证 -->
-                  <div class="flex items-center text-xs text-gray-500 gap-2">
-                    <span class="text-gray-700">{{ getAuthorDisplay(skill) }}</span>
+                  <!-- 元数据行：左分类、右作者（两端对齐） -->
+                  <div class="flex items-center justify-between text-xs text-gray-500">
                     <span class="text-gray-600">{{ getCategoryDisplay(skill) }}</span>
+                    <span class="text-gray-700">{{ getAuthorDisplay(skill) }}</span>
                   </div>
                 </div>
 
@@ -263,9 +265,27 @@ const getAvatarUrl = (skill: Skill) => {
 }
 
 /**
+ * 跳转到技能详情页
+ * @param skillId 技能ID
+ */
+const goToSkillDetail = (skillId: string) => {
+  if (!skillId) return
+  router.push(`/skills/${skillId}`)
+}
+
+/**
  * 执行搜索
+ * 当搜索关键词为空时，不执行后端查询，直接清空结果。
  */
 const performSearch = async () => {
+  const term = searchKeyword.value.trim()
+  if (!term) {
+    searchResults.value = []
+    totalResults.value = 0
+    totalPages.value = 0
+    loading.value = false
+    return
+  }
   loading.value = true
   try {
     /**
@@ -395,6 +415,13 @@ watch(
     searchKeyword.value = (newQuery as string) || ''
     currentSearchQuery.value = searchKeyword.value
     currentPage.value = 1
+    if (!searchKeyword.value.trim()) {
+      searchResults.value = []
+      totalResults.value = 0
+      totalPages.value = 0
+      loading.value = false
+      return
+    }
     performSearch()
   },
   { immediate: true }

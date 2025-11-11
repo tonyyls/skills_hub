@@ -49,16 +49,16 @@
             <div class="flex items-center space-x-4">
               <img :src="avatarPreview || form.avatar_url || defaultAvatar" alt="avatar" class="w-16 h-16 rounded-full border" />
               <input type="file" accept="image/*" @change="handleAvatarChange" />
-            </div>
           </div>
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">用户名</label>
-            <input v-model="form.username" type="text" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="请输入用户名" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-700 mb-1">邮箱</label>
-            <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="请输入邮箱" />
-          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">用户名</label>
+          <input v-model="form.username" type="text" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="请输入用户名" v-select-all-shortcut />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 mb-1">邮箱</label>
+          <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="请输入邮箱" v-select-all-shortcut />
+        </div>
         </div>
         <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
           <button @click="showEditModal = false" class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200">取消</button>

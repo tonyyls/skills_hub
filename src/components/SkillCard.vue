@@ -16,12 +16,17 @@
           :is="getCategoryIcon(skill.category)" 
           class="w-16 h-16 text-neon-blue mx-auto mb-4 group-hover:scale-110 transition-transform duration-300"
         />
-        <h3
-          class="text-xl font-bold text-white truncate"
-          v-truncate-title="skill.title"
+        <router-link
+          :to="`/skills/${skill.id}`"
+          class="block"
         >
-          {{ skill.title }}
-        </h3>
+          <h3
+            class="text-xl font-bold text-white truncate group-hover:text-[#FF7A45] transition-colors"
+            v-truncate-title="skill.title"
+          >
+            {{ skill.title }}
+          </h3>
+        </router-link>
       </div>
     </div>
     
@@ -56,23 +61,20 @@
         </span>
       </div>
       
-      <!-- 作者信息 -->
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center space-x-3">
+      <!-- 底部信息：左分类、右作者（置底显示，与首页一致） -->
+      <div class="flex items-center justify-between mb-6 text-xs text-gray-300">
+        <!-- 左侧分类 -->
+        <span>{{ skill.category || '未分类' }}</span>
+        <!-- 右侧作者（可选，空则显示“官方”） -->
+        <span class="inline-flex items-center gap-2">
           <img
-            :src="skill.author?.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent((skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方'))}&background=cccccc&color=ffffff`"
+            v-if="skill.author?.avatar_url"
+            :src="skill.author.avatar_url"
             :alt="(skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方')"
-            class="w-8 h-8 rounded-full border-2 border-neon-blue/30"
+            class="w-5 h-5 rounded-full"
           />
-          <div>
-            <span class="text-sm text-gray-300 font-medium">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方') }}</span>
-            <div class="text-xs text-gray-500">{{ formatDate((skill.created_at ?? skill.createdAt) ?? new Date().toISOString()) }}</div>
-          </div>
-        </div>
-        <div class="flex items-center space-x-1 text-gray-400 text-sm">
-          <Download class="w-4 h-4"/>
-          <span>{{ skill.download_count ?? (skill.downloads ?? 0) }}</span>
-        </div>
+          <span>{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username ?? '官方') }}</span>
+        </span>
       </div>
       
       <!-- 操作按钮 -->

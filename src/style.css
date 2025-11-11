@@ -114,6 +114,14 @@ input, textarea, select {
   transition: all 0.2s ease;
 }
 
+/* 修复：确保输入类控件可选中文本（覆盖潜在继承的 user-select:none） */
+input, textarea, select {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--brand-orange-end);

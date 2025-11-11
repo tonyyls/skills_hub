@@ -119,6 +119,7 @@
               required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="请输入网站名称"
+              v-select-all-shortcut
             />
           </div>
 
@@ -130,6 +131,7 @@
               required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="https://example.com"
+              v-select-all-shortcut
             />
           </div>
 
@@ -140,6 +142,7 @@
               rows="2"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="请输入网站描述（可选）"
+              v-select-all-shortcut
             />
           </div>
 
@@ -152,6 +155,7 @@
                 min="0"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="0"
+                v-select-all-shortcut
               />
             </div>
 

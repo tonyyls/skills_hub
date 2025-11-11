@@ -26,6 +26,7 @@
             type="text"
             :placeholder="activeTab === 'registered' ? '搜索用户名、邮箱...' : '搜索管理员用户名、邮箱...'"
             class="pl-9 pr-8 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            v-select-all-shortcut
           />
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,6 +190,7 @@
                     type="text"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     required
+                    v-select-all-shortcut
                   >
                 </div>
                 <div>
@@ -198,6 +200,7 @@
                     type="email"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     required
+                    v-select-all-shortcut
                   >
                 </div>
                 <div>
@@ -207,6 +210,7 @@
                     type="password"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     :required="!showEditModal"
+                    v-select-all-shortcut
                   >
                 </div>
                 <div>
@@ -216,6 +220,7 @@
                     type="password"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     :required="!showEditModal"
+                    v-select-all-shortcut
                   >
                   <div v-if="passwordError" class="mt-1 text-xs text-red-600">{{ passwordError }}</div>
                 </div>

@@ -151,9 +151,16 @@ export const useSkillsStore = defineStore('skills', () => {
     setError(null)
 
     try {
+      /**
+       * 拉取技能列表（仅已发布），并按创建时间倒序。
+       * 参考官方文档：
+       * - select：https://supabase.com/docs/reference/javascript/select
+       * - 过滤条件（eq）：https://supabase.com/docs/reference/javascript/using-filters#equals
+       */
       const { data, error: supabaseError } = await supabase
         .from('skills')
         .select('*')
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
 
       if (supabaseError) {

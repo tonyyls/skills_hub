@@ -24,7 +24,7 @@
                     v-model="searchQuery"
                     @keyup.enter="handleSearch"
                     type="text"
-                    placeholder="关键词搜索"
+                    placeholder="关键字搜索技能..."
                     class="flex-1 bg-transparent border-none outline-none px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg"
                     v-select-all-shortcut
                   />

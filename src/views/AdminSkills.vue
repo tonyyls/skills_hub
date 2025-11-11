@@ -14,6 +14,7 @@
             placeholder="搜索技能..."
             class="pl-9 pr-8 py-1.5 w-full sm:w-56 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             @keyup.enter="handleSearch"
+            v-select-all-shortcut
           >
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
             <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -335,6 +336,7 @@
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="输入技能标题"
                   required
+                  v-select-all-shortcut
                 >
               </div>
               <div>
@@ -346,6 +348,7 @@
                   type="text"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="Enter skill title"
+                  v-select-all-shortcut
                 >
               </div>
             </div>
@@ -383,6 +386,7 @@
                     authorNameError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
                   ]"
                   placeholder="输入开发者名称(可选)"
+                  v-select-all-shortcut
                 >
                 <p class="mt-1 text-xs text-gray-500">留空则在前端显示为“官方”。</p>
                 <p v-if="authorNameError" class="mt-1 text-xs text-red-600">{{ authorNameError }}</p>
@@ -396,6 +400,7 @@
                   type="text"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="例如：官方文档、社区教程"
+                  v-select-all-shortcut
                 >
               </div>
               <div class="md:col-span-2 lg:col-span-4">
@@ -407,6 +412,7 @@
                   type="url"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="https://github.com/..."
+                  v-select-all-shortcut
                 >
               </div>
               <div class="md:col-span-2 lg:col-span-4">
@@ -420,6 +426,7 @@
                   @input="autoResizeInstallCommand($event)"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors leading-relaxed resize-none overflow-hidden"
                   placeholder="例如：npm install package-name"
+                  v-select-all-shortcut
                 ></textarea>
               </div>
               <div>
@@ -489,6 +496,7 @@
                   placeholder="添加标签"
                   class="flex-1 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   @keydown.enter.stop.prevent="addTag"
+                  v-select-all-shortcut
                 >
                 <button
                   type="button"
@@ -507,43 +515,47 @@
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
-                  <textarea
-                    v-model="form.description"
-                    rows="3"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    placeholder="输入技能描述"
-                  ></textarea>
+                <textarea
+                  v-model="form.description"
+                  rows="3"
+                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  placeholder="输入技能描述"
+                  v-select-all-shortcut
+                ></textarea>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">英文描述</label>
-                  <textarea
-                    v-model="form.description_en"
-                    rows="3"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    placeholder="Enter skill description"
-                  ></textarea>
+                <textarea
+                  v-model="form.description_en"
+                  rows="3"
+                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  placeholder="Enter skill description"
+                  v-select-all-shortcut
+                ></textarea>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">技能内容 <span class="text-red-500">*</span></label>
-                  <textarea
-                    v-model="form.content"
-                    rows="6"
-                    :class="[
-                      'w-full px-2.5 py-1.5 text-sm border rounded-md focus:ring-2 transition-colors',
-                      contentError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-                    ]"
-                    placeholder="输入详细的技能内容"
-                  ></textarea>
+                <textarea
+                  v-model="form.content"
+                  rows="6"
+                  :class="[
+                    'w-full px-2.5 py-1.5 text-sm border rounded-md focus:ring-2 transition-colors',
+                    contentError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
+                  ]"
+                  placeholder="输入详细的技能内容"
+                  v-select-all-shortcut
+                ></textarea>
                   <p v-if="contentError" class="mt-1 text-xs text-red-600">请填写技能内容，不能为空。</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">英文内容</label>
-                  <textarea
-                    v-model="form.content_en"
-                    rows="6"
-                    class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    placeholder="Enter detailed skill content"
-                  ></textarea>
+                <textarea
+                  v-model="form.content_en"
+                  rows="6"
+                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  placeholder="Enter detailed skill content"
+                  v-select-all-shortcut
+                ></textarea>
                 </div>
               </div>
             </div>

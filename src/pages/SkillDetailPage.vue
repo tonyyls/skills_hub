@@ -12,19 +12,12 @@
       </div>
     </div>
     
-    <!-- 错误状态 -->
+    <!-- 错误状态（整站橙色主题统一） -->
     <div v-else-if="error" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <AlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
+        <AlertCircle class="w-16 h-16 text-[#FF7A45] mx-auto mb-4" />
         <h2 class="text-xl font-semibold text-gray-900 mb-2">加载失败</h2>
-        <p class="text-gray-600 mb-4">{{ error }}</p>
-        <a
-          href="#"
-          @click.prevent="loadSkill"
-          class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-        >
-          重试
-        </a>
+        <p class="text-gray-600 mb-2">{{ error }}</p>
       </div>
     </div>
     
@@ -84,7 +77,7 @@
                 推荐
               </p>
             <p class="text-xs text-gray-600">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
-              <p class="text-sm text-gray-500">创建于 {{ formatDate(skill.created_at) }}</p>
+              <p class="text-sm text-gray-500">最新更新于 {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
             </div>
             <!-- 技能标签显示 -->
             <div v-if="skill.tags && skill.tags.length" class="mt-4">
@@ -98,7 +91,7 @@
         </div>
         
         <!-- 顶部标签导航（静态） -->
-        <div class="px-6 lg:px-8 mt-4 border-b border-gray-200 flex items-center gap-6">
+        <div class="px-6 lg:px-8 mt-4 flex items-center gap-6">
           <span class="relative pb-3 text-[#E07245]">
             概述
             <span class="absolute left-0 -bottom-px w-full h-0.5 bg-[#E07245]"></span>
@@ -106,69 +99,47 @@
           <span class="pb-3 text-gray-600 hover:text-gray-900 transition">评论</span>
         </div>
         
-        <!-- 两栏主体：左概述，右CTA与代码块 -->
+        <!-- 主体：概述单列铺满 -->
         <div class="p-6 lg:p-8">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 左：概述卡片 -->
-            <div class="lg:col-span-2">
-              <div class="bg-white rounded-xl shadow-sm border p-6">
-                <h2 class="text-lg font-semibold text-gray-900">Overview</h2>
-                <div class="mt-4 space-y-6">
+          <div class="grid grid-cols-1 gap-6">
+            <!-- 概述内容：直接放在概述下方，无卡片容器 -->
+            <div>
+              <div class="mt-4 space-y-6">
                   <div>
                     <h3 class="font-semibold text-gray-900 mb-2">是什么？</h3>
                     <p class="text-gray-700 leading-relaxed">{{ skill.content || skill.description || '暂无描述。' }}</p>
                   </div>
                   <div>
                     <h3 class="font-semibold text-gray-900 mb-2">如何使用？</h3>
-                    <p v-if="skill.install_command" class="text-gray-700 leading-relaxed">通过右侧的安装命令快速开始，或访问源码仓库获取更多示例。</p>
+                    <p v-if="skill.install_command" class="text-gray-700 leading-relaxed">通过下方的安装命令快速开始，或访问源码仓库获取更多示例。</p>
                     <p v-else class="text-gray-500">暂无安装说明。</p>
                   </div>
 
-                </div>
+                  <!-- 安装命令：移动到“如何使用？”下方，始终完整展示 -->
+                  <div v-if="skill.install_command" class="relative group mt-3">
+                    <h3 class="font-semibold text-gray-900 mb-2">安装命令</h3>
+                    <pre
+                      class="relative bg-gray-50 rounded-md px-3 pt-4 pb-3 pr-10 text-gray-800 whitespace-pre-wrap break-all font-mono text-sm"
+                    >
+<code>{{ skill.install_command }}</code>
+                      <a
+                        href="#"
+                        class="absolute top-3 right-3 inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
+                        @click.prevent="copyToClipboard(skill.install_command)"
+                        aria-label="复制安装命令"
+                      >
+                        <Copy class="w-4 h-4" />
+                      </a>
+                    </pre>
+                  </div>
+
               </div>
               <!-- 元信息：已移除 -->
-            </div>
-
-            <!-- 右：操作与代码块 -->
-            <div class="space-y-6">
-
-              <div class="bg-white rounded-xl shadow-sm border p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-3">安装命令</h3>
-                <div v-if="skill.install_command" class="relative group">
-                  <pre
-                    class="bg-gray-50 rounded-md px-3 py-2 text-gray-800 whitespace-pre-wrap break-all font-mono text-sm"
-                    :class="isInstallExpanded ? '' : 'max-h-24 overflow-hidden pr-10'"
-                  >
-<code>{{ skill.install_command }}</code>
-                  </pre>
-                  <div v-if="!isInstallExpanded" class="pointer-events-none absolute bottom-2 left-2 right-2 h-8 bg-gradient-to-t from-gray-50 to-transparent rounded-b-md"></div>
-                  <a
-                    href="#"
-                    class="absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
-                    @click.prevent="copyToClipboard(skill.install_command)"
-                    aria-label="复制安装命令"
-                  >
-                    <Copy class="w-4 h-4" />
-                  </a>
-                  <a
-                    href="#"
-                    class="absolute top-2 right-12 inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 transition-opacity opacity-0 group-hover:opacity-100"
-                    @click.prevent="toggleInstallExpanded()"
-                    aria-label="展开/收起安装命令"
-                  >
-                    <ChevronUp v-if="isInstallExpanded" class="w-4 h-4" />
-                    <ChevronDown v-else class="w-4 h-4" />
-                  </a>
-                </div>
-                <p v-else class="text-gray-500">暂无安装说明。</p>
-              </div>
-
-              <!-- 右侧原 Git 地址卡片移除（已上移至标题下方） -->
             </div>
           </div>
         </div>
       </div>
-      
+
       <!-- 相关推荐 -->
       <div v-if="relatedSkills.length > 0" class="mt-12">
         <h2 class="text-3xl font-bold text-gray-900 mb-8">相关推荐</h2>
@@ -181,6 +152,16 @@
           />
         </div>
       </div>
+
+      <!-- Toast 提示：固定定位，自动消失 -->
+      <div
+        v-if="toastVisible"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="text-sm">{{ toastMessage }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -188,7 +169,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Star, AlertCircle, Github, Copy, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ArrowLeft, Star, AlertCircle, Github, Copy } from 'lucide-vue-next'
 import { useSkillsStore } from '@/stores/skills'
 import { supabase, type Skill } from '@/lib/supabase'
 import SkillCard from '@/components/SkillCard.vue'
@@ -217,17 +198,26 @@ const error = ref('')
 const isDownloading = ref(false)
 const relatedSkills = ref<Skill[]>([])
 
-/**
- * 安装命令展开状态
- * 控制长命令的折叠/展开展示。
- */
-const isInstallExpanded = ref(false)
+// 安装命令始终完整展示，移除折叠/展开逻辑
 
+// Toast 状态与展示
 /**
- * 切换安装命令折叠/展开状态。
+ * 轻量 Toast 通知状态。
+ * - `toastMessage` 当前提示文案
+ * - `toastVisible` 控制显示/隐藏
+ * - `showToast` 展示指定文案并在指定毫秒后自动隐藏
+ * @param {string} message 提示文案
+ * @param {number} duration 自动消失时长（毫秒），默认 2000ms
  */
-const toggleInstallExpanded = () => {
-  isInstallExpanded.value = !isInstallExpanded.value
+const toastMessage = ref('')
+const toastVisible = ref(false)
+const showToast = (message: string, duration = 2000) => {
+  toastMessage.value = message
+  toastVisible.value = true
+  window.setTimeout(() => {
+    toastVisible.value = false
+    toastMessage.value = ''
+  }, duration)
 }
 
 /**
@@ -342,14 +332,22 @@ const goBack = () => {
 }
 
 /**
- * 格式化日期
+ * 格式化日期时间为 `YYYY/MM/DD HH:mm`。
+ * - 优先用于“最新更新于”展示，若无更新时间则回退到创建时间。
+ * - 使用原生 `Intl.DateTimeFormat` 保持可控格式与跨浏览器一致性。
+ * @param {string} date ISO 风格时间字符串
+ * @returns {string} 形如 `2025/11/11 12:00` 的字符串
  */
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+const formatDate = (date: string): string => {
+  if (!date) return ''
+  const d = new Date(date)
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`)
+  const y = d.getFullYear()
+  const m = pad(d.getMonth() + 1)
+  const day = pad(d.getDate())
+  const hh = pad(d.getHours())
+  const mm = pad(d.getMinutes())
+  return `${y}/${m}/${day} ${hh}:${mm}`
 }
 
 onMounted(() => {
@@ -378,10 +376,10 @@ const copyToClipboard = async (text: string): Promise<void> => {
       document.execCommand('copy')
       document.body.removeChild(input)
     }
-    alert('已复制到剪贴板')
+    showToast('已复制到剪贴板')
   } catch (e) {
     console.error('复制失败：', e)
-    alert('复制失败，请手动复制')
+    showToast('复制失败，请手动复制')
   }
 }
 </script>
