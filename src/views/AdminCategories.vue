@@ -66,7 +66,7 @@
               标识（slug）
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              描述
+              排序
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               状态
@@ -99,9 +99,8 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ category.slug }}
               </td>
-              <td class="px-6 py-4">
-                <div class="text-sm text-gray-900">{{ category.description }}</div>
-                <div class="text-sm text-gray-500">{{ category.description_en }}</div>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ category.sort_order ?? 0 }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
@@ -185,12 +184,32 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">标识（slug） <span class="text-red-500">*</span></label>
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model="form.slug"
+                      type="text"
+                      class="flex-1 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                      required
+                      v-select-all-shortcut
+                    >
+                    <button
+                      type="button"
+                      @click="generateSlugFromName"
+                      class="bg-orange-600 text-white px-2 py-1.5 text-sm rounded-md hover:bg-orange-700 transition-colors"
+                      title="根据英文名称生成标识"
+                      aria-label="生成标识"
+                    >
+                      生成
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">排序</label>
                   <input
-                    v-model="form.slug"
-                    type="text"
+                    v-model.number="form.sort_order"
+                    type="number"
+                    min="0"
                     class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    required
-                    v-select-all-shortcut
                   >
                 </div>
               </div>
@@ -298,6 +317,7 @@ interface Category {
   description?: string
   description_en?: string
   is_active: boolean
+  sort_order?: number
   created_at: string
 }
 
@@ -330,8 +350,33 @@ const form = ref({
   slug: '',
   description: '',
   description_en: '',
-  is_active: true
+  is_active: true,
+  sort_order: 100
 })
+
+/**
+ * 根据名称生成 slug 并写入到表单。
+ * 规则：优先使用英文名称 `name_en`，否则退回中文名称 `name`；
+ * - 转为小写；
+ * - 去除首尾空格；
+ * - 将连续空白替换为单个连字符 `-`；
+ * - 去除非字母数字与连字符的字符（简单保守清理）。
+ */
+const generateSlugFromName = (): void => {
+  const source = (form.value.name_en || form.value.name || '').trim()
+  if (!source) {
+    // 无来源则不写入，保持当前 slug
+    return
+  }
+  // 规范化：小写、空白转连字符、清理非法字符、合并多重连字符
+  const slug = source
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$|_/g, '')
+  form.value.slug = slug
+}
 
 /**
  * 加载分类列表，支持搜索。
@@ -387,7 +432,8 @@ const editCategory = (category: Category) => {
     slug: category.slug,
     description: category.description || '',
     description_en: category.description_en || '',
-    is_active: category.is_active
+    is_active: category.is_active,
+    sort_order: typeof category.sort_order === 'number' ? category.sort_order : 100
   }
   showEditModal.value = true
 }
@@ -526,7 +572,8 @@ const closeModal = (): void => {
     slug: '',
     description: '',
     description_en: '',
-    is_active: true
+    is_active: true,
+    sort_order: 100
   }
 }
 
