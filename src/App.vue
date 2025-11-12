@@ -9,48 +9,19 @@
     </main>
     
     <!-- 页脚（统一橙白主题） -->
-    <footer class="bg-white text-[#333] py-8 mt-12 border-t border-[#E5E5E5]">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 justify-items-center items-start text-center">
-          <div>
-            <h3 class="text-lg font-semibold mb-3 text-[#333]">Skills Hub</h3>
-            <p class="text-[#666] text-sm leading-relaxed">
-              汇聚全网最优秀的Skills资源
-            </p>
+    <footer class="bg-white text-[#333] py-6 mt-12 border-t border-[#E5E5E5]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- 单行双端对齐：左简介，右版权，与顶部栅格对齐 -->
+        <div class="flex items-center justify-between gap-6">
+          <!-- 左侧：Skills Hub 简介 -->
+          <div class="inline-flex items-center gap-3">
+            <span class="text-lg font-semibold text-[#333]">Skills Hub</span>
+            <span class="text-[#999]">·</span>
+            <span class="text-[#666] text-sm">汇聚全网最优秀的Skills资源</span>
           </div>
-          
-          <!-- 第二列：在此位置显示友情链接（有数据时），无数据时显示用户中心 -->
-          <div v-if="friendLinks.length > 0">
-            <h4 class="text-lg font-semibold mb-3 text-[#333]">友情链接</h4>
-            <ul class="space-y-2 text-sm leading-relaxed">
-              <li v-for="link in friendLinks" :key="link.id">
-                <a
-                  :href="link.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-[#666] hover:text-[#FF7A45] transition-colors"
-                >
-                  {{ link.name }}
-                </a>
-              </li>
-            </ul>
-          </div>
-          <!-- 无数据时回退显示用户中心，避免布局空列 -->
-          <div v-else>
-            <h4 class="text-lg font-semibold mb-3 text-[#333]">用户中心</h4>
-            <ul class="space-y-2 text-sm leading-relaxed">
-              <li>
-                <router-link to="/profile" class="text-[#666] hover:text-[#FF7A45] transition-colors">个人资料</router-link>
-              </li>
-              <li>
-                <router-link to="/admin" class="text-[#666] hover:text-[#FF7A45] transition-colors">管理后台</router-link>
-              </li>
-            </ul>
-          </div>
-          
-        </div>
-        <div class="border-t border-[#E5E5E5] mt-8 pt-8 text-center text-sm text-[#666]">
-          <p>&copy; 2025 Skills Hub. All rights reserved.</p>
+
+          <!-- 右侧：版权信息 -->
+          <p class="text-sm text-[#666]">© 2025 Skills Hub. All rights reserved.</p>
         </div>
       </div>
     </footer>
