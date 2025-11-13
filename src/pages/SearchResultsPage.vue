@@ -95,7 +95,7 @@
                     <span
                       v-for="tag in (skill.tags || []).slice(0, 5)"
                       :key="tag"
-                      class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                      class="px-2 py-1 text-xs rounded-full bg-gradient-to-r from-[#FF7A45] to-[#E07245] text-white shadow-sm ring-1 ring-white/10"
                     >
                       {{ tag }}
                     </span>

@@ -110,8 +110,8 @@
           </router-link>
         </div>
 
-        <!-- 骨架屏：加载中展示 3 行（xl 下共 12 张卡片） -->
-        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- 骨架屏：仅首次加载显示 -->
+        <div v-if="loading && initialRender" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div v-for="i in 12" :key="i" class="bg-white border border-[#EEEEEE] rounded-xl p-6 animate-pulse flex flex-col gap-4">
             <div class="flex justify-between items-start">
               <div class="flex-1">
@@ -278,6 +278,7 @@ const skills = ref<any[]>([])
  * 页面加载状态：用于骨架屏显示
  */
 const loading = ref(true)
+const initialRender = ref(true)
 
 // 过滤后的技能列表（首页不根据关键词搜索过滤，仅按筛选）
 /**
@@ -328,19 +329,16 @@ const loadFriendLinks = async (): Promise<void> => {
  * @returns {Promise<void>} 无返回
  */
 const loadSkillsForFilter = async (): Promise<void> => {
-  console.log('[HomePage] loadSkillsForFilter:start', { activeFilter: activeFilter.value })
   loading.value = true
   try {
     const isLatest = activeFilter.value === 'latest'
-    console.log('[HomePage] invoking store fetch', { isLatest })
     const list = isLatest ? await fetchLatestSkills() : await fetchFeaturedSkills()
-    console.log('[HomePage] store fetch returned', { count: list?.length, sample: list?.[0] })
     skills.value = Array.isArray(list) ? list : []
   } catch (e: any) {
     console.error('[HomePage] 加载技能失败:', e?.message || e)
   } finally {
     loading.value = false
-    console.log('[HomePage] loadSkillsForFilter:end', { loading: loading.value, skillsCount: skills.value.length })
+    if (initialRender.value) initialRender.value = false
   }
 }
 
@@ -533,6 +531,7 @@ onMounted(async () => {
 
     // 初始加载当前筛选数据
     await loadSkillsForFilter()
+    // 取消预取另一数据集，简化逻辑
 
     // 加载总数（仅已发布）
     console.log('[HomePage] fetchTotalCount:begin')
@@ -610,4 +609,6 @@ watch(
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* 移除列表与骨架过渡，恢复简单切换以避免视觉波动 */
 </style>

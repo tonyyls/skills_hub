@@ -571,6 +571,14 @@
                 取消
               </button>
               <button
+                type="button"
+                @click="openPreview"
+                class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-50 transition-colors disabled:opacity-50"
+                :disabled="saving || !editingSkill"
+              >
+                预览
+              </button>
+              <button
                 type="submit"
                 class="px-3 py-1.5 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
                 :disabled="saving"
@@ -1183,6 +1191,13 @@ const closeModal = () => {
   showEditModal.value = false
   editingSkill.value = null
   resetForm()
+}
+
+const openPreview = () => {
+  const id = editingSkill.value?.id
+  if (!id) return
+  const url = `/skills/${id}`
+  window.open(url, '_blank')
 }
 
 // 监听筛选条件变化
