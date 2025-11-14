@@ -41,6 +41,12 @@ export interface DevSkill {
    * 用于前端“设为推荐技能”复选框的持久化。
    */
   recommended: boolean
+  /** 来源描述，如官方文档、社区教程等 */
+  source?: string | null
+  /** Git 仓库地址 */
+  git_url?: string | null
+  /** 安装命令或步骤说明 */
+  install_command?: string | null
   created_at: string
   updated_at?: string
 }
@@ -218,6 +224,9 @@ export async function addSkill(item: Omit<DevSkill, 'id' | 'created_at' | 'view_
     like_count: 0,
     featured: !!item.featured,
     recommended: !!(item as any).recommended,
+    source: item.source ?? null,
+    git_url: item.git_url ?? null,
+    install_command: item.install_command ?? null,
     created_at: now,
     updated_at: now
   }

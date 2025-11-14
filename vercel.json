@@ -1,17 +1,11 @@
 {
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "env": {
-    "VITE_SUPABASE_URL": "",
-    "VITE_SUPABASE_ANON_KEY": "",
-    "SUPABASE_SERVICE_ROLE_KEY": "",
-    "ADMIN_USERNAME": "admin",
-    "ADMIN_PASSWORD": "tonyadmin",
-    "ADMIN_JWT_SECRET": ""
-  },
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
+    { "src": "api/index.ts", "use": "@vercel/node" }
+  ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

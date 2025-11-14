@@ -512,6 +512,53 @@ router.get('/skills', verifyAdminToken, async (req: Request, res: Response): Pro
 })
 
 /**
+ * 技能搜索（按 git_url 或 title+author_name 精确匹配）
+ * GET /api/admin/skills/search?git_url=...&title=...&author_name=...
+ */
+router.get('/skills/search', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const gitUrl = (req.query.git_url as string | undefined)?.trim()
+    const title = (req.query.title as string | undefined)?.trim()
+    const authorName = (req.query.author_name as string | undefined)?.trim()
+
+    let query = supabase
+      .from('skills')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (gitUrl) query = query.eq('git_url', gitUrl)
+    if (title) query = query.eq('name', title)
+    if (authorName) query = query.eq('author_name', authorName)
+
+    const { data, error } = await query.limit(50)
+    if (error) throw error
+    res.status(200).json({ items: data || [] })
+  } catch (err: any) {
+    // 降级为开发存储
+    try {
+      const gitUrl = (req.query.git_url as string | undefined)?.trim()
+      const title = (req.query.title as string | undefined)?.trim()
+      const authorName = (req.query.author_name as string | undefined)?.trim()
+      const items = await readSkills()
+      const filtered = items.filter(s => {
+        const name = (s as any).title ?? (s as any).name
+        const git = (s as any).git_url ?? (s as any).repo_url
+        const author = (s as any).author_name
+        const okGit = gitUrl ? git === gitUrl : true
+        const okTitle = title ? name === title : true
+        const okAuthor = authorName ? author === authorName : true
+        return okGit && okTitle && okAuthor
+      })
+      res.status(200).json({ items: filtered })
+    } catch (e: any) {
+      const msg = err instanceof Error ? err.message : '服务器错误'
+      res.status(500).json({ message: msg })
+    }
+  }
+})
+
+/**
  * 创建技能
  * POST /api/admin/skills
  */
@@ -545,6 +592,9 @@ router.post('/skills', verifyAdminToken, async (req: Request, res: Response): Pr
       author_name: (typeof body.author_name === 'string' && body.author_name.trim() ? body.author_name.trim().slice(0, 50) : null),
       // author_id 在当前库为非空约束，后续迁移放宽为可空
       author_id: body.author_id || null,
+      // Git地址与安装命令（新增列，空值写入 null）
+      git_url: (typeof body.git_url === 'string' && body.git_url.trim().length > 0) ? body.git_url.trim() : null,
+      install_command: (typeof body.install_command === 'string' && body.install_command.trim().length > 0) ? body.install_command.trim() : null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -781,6 +831,8 @@ router.post('/skills', verifyAdminToken, async (req: Request, res: Response): Pr
       recommended: !!body.recommended,
       author_name: (typeof body.author_name === 'string' && body.author_name.trim() ? body.author_name.trim().slice(0, 50) : null),
       author_id: (typeof body.author_id === 'string' && body.author_id.trim().length > 0) ? body.author_id : null,
+      git_url: (typeof body.git_url === 'string' && body.git_url.trim().length > 0) ? body.git_url.trim() : null,
+      install_command: (typeof body.install_command === 'string' && body.install_command.trim().length > 0) ? body.install_command.trim() : null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }

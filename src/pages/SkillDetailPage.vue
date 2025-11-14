@@ -106,7 +106,7 @@
         </div>
         
         <!-- 顶部标签导航（静态） -->
-        <div class="px-6 lg:px-8 mt-2 flex items-center gap-6">
+        <div class="px-6 lg:px-8 mt-4 flex items-center gap-6">
           <span class="relative pb-1 text-[#E07245]">
             概述
             <span class="absolute left-0 -bottom-px w-full h-0.5 bg-[#E07245]"></span>

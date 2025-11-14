@@ -523,9 +523,9 @@
                   v-select-all-shortcut
                 ></textarea>
                 </div>
-                <div>
+                <div v-if="false">
                   <label class="block text-sm font-medium text-gray-700 mb-2">英文描述</label>
-                <textarea
+                  <textarea
                   v-model="form.description_en"
                   rows="3"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -534,22 +534,33 @@
                 ></textarea>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">技能内容 <span class="text-red-500">*</span></label>
-                <textarea
-                  v-model="form.content"
-                  rows="6"
-                  :class="[
-                    'w-full px-2.5 py-1.5 text-sm border rounded-md focus:ring-2 transition-colors',
-                    contentError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-                  ]"
-                  placeholder="输入详细的技能内容"
-                  v-select-all-shortcut
-                ></textarea>
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">技能内容 <span class="text-red-500">*</span></label>
+                    <button
+                      type="button"
+                      @click="syncContentFromRepo"
+                      class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-50 transition-colors disabled:opacity-50"
+                      :disabled="isSyncing"
+                      title="从 Git 地址同步 SKILL.md 内容"
+                    >
+                      {{ isSyncing ? '同步中…' : '同步' }}
+                    </button>
+                  </div>
+                  <textarea
+                    v-model="form.content"
+                    rows="6"
+                    :class="[
+                      'w-full px-2.5 py-1.5 text-sm border rounded-md focus:ring-2 transition-colors',
+                      contentError ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
+                    ]"
+                    placeholder="输入详细的技能内容"
+                    v-select-all-shortcut
+                  ></textarea>
                   <p v-if="contentError" class="mt-1 text-xs text-red-600">请填写技能内容，不能为空。</p>
                 </div>
-                <div>
+                <div v-if="false">
                   <label class="block text-sm font-medium text-gray-700 mb-2">英文内容</label>
-                <textarea
+                  <textarea
                   v-model="form.content_en"
                   rows="6"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -665,7 +676,8 @@ const limit = ref(20)
 const total = ref(0)
 const newTag = ref('')
 // 安装命令文本域引用
-const installCommandRef = ref<HTMLTextAreaElement | null>(null)
+  const installCommandRef = ref<HTMLTextAreaElement | null>(null)
+  const isSyncing = ref(false)
 
 const filters = ref({
   status: '',
@@ -1070,12 +1082,119 @@ const confirmDelete = async () => {
  * 每次输入时先重置为 auto，再设置为 scrollHeight。
  * @param {Event} evt 输入事件对象
  */
-const autoResizeInstallCommand = (evt: Event): void => {
-  const el = evt.target as HTMLTextAreaElement | null
-  if (!el) return
-  el.style.height = 'auto'
-  el.style.height = `${el.scrollHeight}px`
-}
+  const autoResizeInstallCommand = (evt: Event): void => {
+    const el = evt.target as HTMLTextAreaElement | null
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }
+
+  /**
+   * 从仓库地址同步 SKILL.md 到内容输入框。
+   * - 优先尝试：gitUrl + '/SKILL.md'
+   * - GitHub原始：raw.githubusercontent.com/{owner}/{repo}/{branch}/SKILL.md（branch: main→master回退）
+   * - GitLab原始：gitlab.com/{owner}/{repo}/-/raw/{branch}/SKILL.md（branch: main→master回退）
+   * 失败时提示：未获取到技能内容，请确认Git地址
+   */
+  const syncContentFromRepo = async (): Promise<void> => {
+    const url = form.value.git_url?.trim() || ''
+    if (!url || !/^https?:\/\//.test(url)) {
+      alert('未获取到技能内容，请确认Git地址')
+      return
+    }
+    try {
+      isSyncing.value = true
+      const candidates = buildCandidateUrls(url)
+      const txt = await fetchFirstOk(candidates)
+      if (txt && txt.trim()) {
+        form.value.content = txt
+        contentError.value = false
+      } else {
+        alert('未获取到技能内容，请确认Git地址')
+      }
+    } catch (e) {
+      alert('未获取到技能内容，请确认Git地址')
+    } finally {
+      isSyncing.value = false
+    }
+  }
+
+  /** 构造候选原始内容地址 */
+  const buildCandidateUrls = (gitUrl: string): string[] => {
+    const strip = (s: string) => s.replace(/\/$/, '')
+    const list: string[] = [`${strip(gitUrl)}/SKILL.md`]
+    const gh = parseGithub(gitUrl)
+    if (gh) {
+      const sub = gh.path ? `/${gh.path}` : ''
+      list.push(`https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/${gh.branch}${sub}/SKILL.md`)
+      list.push(`https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/refs/heads/${gh.branch}${sub}/SKILL.md`)
+      list.push(`https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/master${sub}/SKILL.md`)
+      list.push(`https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/refs/heads/master${sub}/SKILL.md`)
+    }
+    const gl = parseGitlab(gitUrl)
+    if (gl) {
+      const sub = gl.path ? `/${gl.path}` : ''
+      list.push(`https://gitlab.com/${gl.owner}/${gl.repo}/-/raw/${gl.branch}${sub}/SKILL.md`)
+      list.push(`https://gitlab.com/${gl.owner}/${gl.repo}/-/raw/master${sub}/SKILL.md`)
+    }
+    return Array.from(new Set(list))
+  }
+
+  /** 逐个尝试请求，第一个成功返回文本 */
+  const fetchFirstOk = async (urls: string[]): Promise<string | null> => {
+    for (const u of urls) {
+      try {
+        const ctl = new AbortController()
+        const timer = setTimeout(() => ctl.abort(), 8000)
+        const res = await fetch(u, { headers: { Accept: 'text/plain' }, signal: ctl.signal })
+        clearTimeout(timer)
+        if (res.ok) return await res.text()
+      } catch {}
+    }
+    return null
+  }
+
+  /** 解析 GitHub 仓库信息（owner/repo/branch），支持 /tree/{branch} */
+  const parseGithub = (url: string): { owner: string; repo: string; branch: string; path: string } | null => {
+    try {
+      const u = new URL(url)
+      if (u.hostname !== 'github.com') return null
+      const parts = u.pathname.split('/').filter(Boolean)
+      const owner = parts[0]
+      const repo = parts[1]
+      let branch = 'main'
+      let pathRest = ''
+      const i = parts.findIndex(p => p === 'tree')
+      if (i >= 0 && parts[i + 1]) {
+        branch = parts[i + 1]
+        const after = parts.slice(i + 2)
+        if (after.length > 0) pathRest = after.join('/')
+      }
+      if (!owner || !repo) return null
+      return { owner, repo, branch, path: pathRest }
+    } catch { return null }
+  }
+
+  /** 解析 GitLab 仓库信息（owner/repo/branch），支持 /-/tree/{branch} */
+  const parseGitlab = (url: string): { owner: string; repo: string; branch: string; path: string } | null => {
+    try {
+      const u = new URL(url)
+      if (u.hostname !== 'gitlab.com') return null
+      const parts = u.pathname.split('/').filter(Boolean)
+      const owner = parts[0]
+      const repo = parts[1]
+      let branch = 'main'
+      let pathRest = ''
+      const i = parts.findIndex(p => p === 'tree')
+      if (i >= 0 && parts[i + 1]) {
+        branch = parts[i + 1]
+        const after = parts.slice(i + 2)
+        if (after.length > 0) pathRest = after.join('/')
+      }
+      if (!owner || !repo) return null
+      return { owner, repo, branch, path: pathRest }
+    } catch { return null }
+  }
 
 // 保存技能
 /**
