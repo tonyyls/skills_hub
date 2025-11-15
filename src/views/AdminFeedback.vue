@@ -58,10 +58,10 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">来源ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">来源</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">问题标签</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">其他意见</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
           </tr>
         </thead>
@@ -86,7 +86,13 @@
           </tr>
           <tr v-for="fb in items" :key="fb.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 text-sm text-gray-900 break-words">{{ fb.type }}</td>
-            <td class="px-6 py-4 text-xs font-mono text-gray-900 break-all max-w-[200px]">{{ fb.source_id }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">
+              <div v-if="fb.type === 'skill' && fb.source" class="flex items-center gap-2">
+                <button type="button" class="text-orange-600 hover:underline" @click="openSkill(fb.source.id)">{{ fb.source.title || fb.source_id }}</button>
+                <span class="text-xs text-gray-400">(#{{ fb.source_id }})</span>
+              </div>
+              <div v-else class="text-xs font-mono break-all max-w-[240px]">{{ fb.source_id }}</div>
+            </td>
             <td class="px-6 py-4 text-sm text-gray-900">
               <div class="flex flex-wrap gap-1">
                 <span v-for="tag in (fb.issues || [])" :key="tag" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ tag }}</span>
@@ -95,7 +101,9 @@
             <td class="px-6 py-4 text-sm text-gray-900">
               <div class="max-w-[300px] break-words" :title="fb.comment">{{ fb.comment || '—' }}</div>
             </td>
-            <td class="px-6 py-4 text-xs font-mono text-gray-900 break-all max-w-[200px]">{{ fb.user_id }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">
+              <button type="button" class="text-orange-600 hover:underline" @click="openUser(fb.user?.id || fb.user_id)">{{ fb.user?.username || fb.user_id }}</button>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-900">{{ formatTime(fb.created_at) }}</td>
           </tr>
         </tbody>
@@ -183,6 +191,8 @@ interface FeedbackItem {
   issues: string[]
   comment: string
   created_at: string
+  user?: { id: string; username: string }
+  source?: { id: string; title: string; description?: string }
 }
 
 const router = useRouter()
@@ -259,3 +269,53 @@ onMounted(() => { reload() })
 
 <style scoped>
 </style>
+
+<template>
+  <div v-if="showSkillModal" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/30" @click="showSkillModal=false"></div>
+    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+      <h3 class="text-base font-semibold text-gray-900 mb-2">技能详情</h3>
+      <div class="text-sm text-gray-800 mb-4">{{ skillDetail?.name || skillDetail?.title }}</div>
+      <div class="text-sm text-gray-600 whitespace-pre-wrap">{{ skillDetail?.description || '—' }}</div>
+      <div class="mt-4 flex justify-end">
+        <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showSkillModal=false">关闭</button>
+      </div>
+    </div>
+  </div>
+  <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/30" @click="showUserModal=false"></div>
+    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+      <h3 class="text-base font-semibold text-gray-900 mb-2">用户详情</h3>
+      <div class="text-sm text-gray-800">{{ userDetail?.username || userDetail?.email || userDetail?.id }}</div>
+      <div class="mt-4 flex justify-end">
+        <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showUserModal=false">关闭</button>
+      </div>
+    </div>
+  </div>
+</template>
+const skillDetail = ref<any | null>(null)
+const showSkillModal = ref(false)
+const userDetail = ref<any | null>(null)
+const showUserModal = ref(false)
+
+const openSkill = async (id: string): Promise<void> => {
+  if (!id) return
+  const token = localStorage.getItem('admin_token')
+  const res = await fetch(`/api/admin/skills/${id}`, { headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
+  if (res.ok) {
+    const data = await res.json()
+    skillDetail.value = data.item || null
+    showSkillModal.value = true
+  }
+}
+
+const openUser = async (id: string): Promise<void> => {
+  if (!id) return
+  const token = localStorage.getItem('admin_token')
+  const res = await fetch(`/api/admin/users/${id}`, { headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
+  if (res.ok) {
+    const data = await res.json()
+    userDetail.value = data.item || null
+    showUserModal.value = true
+  }
+}

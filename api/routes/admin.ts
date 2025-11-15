@@ -482,8 +482,42 @@ router.get('/skills', verifyAdminToken, async (req: Request, res: Response): Pro
       const to = from + limit - 1
       const { data, error, count } = await query.range(from, to)
       if (error) throw error
-      res.status(200).json({ items: data || [], page, pageSize: limit, total: count ?? (data?.length || 0) })
-      return
+    {
+      let items: any[] = data || []
+      const userIds = Array.from(new Set(items.map((i: any) => i.user_id).filter(Boolean)))
+      const skillIds = Array.from(new Set(items.filter((i: any) => i.type === 'skill').map((i: any) => i.source_id).filter(Boolean)))
+      let profiles: any[] = []
+      let basics: any[] = []
+      let skills: any[] = []
+      try {
+        const { data: prof } = await supabase.from('user_profiles').select('*').in('user_id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000'])
+        profiles = Array.isArray(prof) ? prof : []
+      } catch {}
+      try {
+        const { data: basicUsers } = await supabase.from('users').select('id, username').in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000'])
+        basics = Array.isArray(basicUsers) ? basicUsers : []
+      } catch {}
+      try {
+        const { data: skillRows } = await supabase.from('skills').select('id, name, description').in('id', skillIds.length ? skillIds : ['00000000-0000-0000-0000-000000000000'])
+        skills = Array.isArray(skillRows) ? skillRows : []
+      } catch {}
+      const profMap = new Map<string, any>(profiles.map(p => [String(p.user_id), p]))
+      const basicMap = new Map<string, any>(basics.map(b => [String(b.id), b]))
+      const skillMap = new Map<string, any>(skills.map(s => [String(s.id), s]))
+      items = items.map((i: any) => {
+        const p = profMap.get(String(i.user_id))
+        const b = basicMap.get(String(i.user_id))
+        const u = { id: i.user_id, username: (p?.username || b?.username || ''), role: p?.role || 'user' }
+        let src: any = null
+        if (i.type === 'skill') {
+          const s = skillMap.get(String(i.source_id))
+          src = s ? { id: s.id, title: s.name, description: s.description || '' } : null
+        }
+        return { ...i, user: u, source: src }
+      })
+      res.status(200).json({ items, page, pageSize: limit, total: count ?? (items.length || 0) })
+    }
+    return
     } catch (error: any) {
       // 降级为开发本地存储
       if (/schema cache/i.test(error?.message) || error?.code === 'PGRST002' || /fetch failed/i.test(error?.message)) {
@@ -1759,5 +1793,46 @@ router.get('/feedback', verifyAdminToken, async (req: Request, res: Response): P
     res.status(200).json({ items: data || [], page, pageSize: limit, total: count ?? (data?.length || 0) })
   } catch {
     res.status(200).json({ items: [], page: 1, pageSize: 20, total: 0 })
+  }
+})
+router.get('/users/:id', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const { id } = req.params
+    const { data: userRes, error: userErr } = await (supabase as any).auth.admin.getUserById(id)
+    if (userErr) throw userErr
+    const u = userRes?.user
+    if (!u) {
+      res.status(404).json({ message: '用户不存在' })
+      return
+    }
+    let profile: any = null
+    try {
+      const { data: profRes } = await supabase.from('user_profiles').select('*').eq('user_id', id).limit(1)
+      profile = Array.isArray(profRes) ? profRes[0] : null
+    } catch {}
+    res.status(200).json({ item: {
+      id: u.id,
+      username: profile?.username || u.user_metadata?.username || u.email?.split('@')[0] || '',
+      email: u.email || '',
+      role: profile?.role || 'user',
+      is_active: profile?.is_active ?? true,
+      last_login_at: u.last_sign_in_at || null,
+      created_at: u.created_at,
+      updated_at: profile?.updated_at || u.created_at
+    } })
+  } catch (err: any) {
+    try {
+      const { id } = req.params
+      const items = await readUsers()
+      const found = items.find(u => String(u.id) === String(id))
+      if (!found) {
+        res.status(404).json({ message: '用户不存在' })
+        return
+      }
+      res.status(200).json({ item: found })
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || '服务器错误' })
+    }
   }
 })
