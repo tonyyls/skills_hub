@@ -1687,3 +1687,53 @@ router.delete('/links/:id', verifyAdminToken, async (req: Request, res: Response
 })
 
 export default router
+/**
+ * 反馈读取（管理端）
+ * GET /api/admin/feedback?page=1&limit=20&type=&source_id=&user_id=&q=&issue=
+ */
+router.get('/feedback', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    let supabase: any
+    try {
+      supabase = getSupabase()
+    } catch (e: any) {
+      res.status(200).json({ items: [], page: 1, pageSize: 20, total: 0 })
+      return
+    }
+
+    const page = Math.max(parseInt(String(req.query.page || '1'), 10) || 1, 1)
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit || '20'), 10) || 20, 1), 100)
+    const type = (req.query.type as string | undefined)?.trim()
+    const sourceId = (req.query.source_id as string | undefined)?.trim()
+    const userId = (req.query.user_id as string | undefined)?.trim()
+    const q = (req.query.q as string | undefined)?.trim()
+    const issue = (req.query.issue as string | undefined)?.trim()
+
+    let query = supabase
+      .from('feedback')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+
+    if (type) query = query.eq('type', type)
+    if (sourceId) query = query.eq('source_id', sourceId)
+    if (userId) query = query.eq('user_id', userId)
+    if (q && q.length > 0) query = query.ilike('comment', `%${q}%`)
+    if (issue && issue.length > 0) query = (query as any).contains('issues', [issue])
+
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    const { data, error, count } = await query.range(from, to)
+    if (error) {
+      const msg = String(error?.message || '')
+      if (/schema cache/i.test(msg) || error.code === 'PGRST002' || /fetch failed/i.test(msg)) {
+        res.status(200).json({ items: [], page, pageSize: limit, total: 0 })
+        return
+      }
+      res.status(500).json({ message: '查询反馈失败', error: error.message })
+      return
+    }
+    res.status(200).json({ items: data || [], page, pageSize: limit, total: count ?? (data?.length || 0) })
+  } catch {
+    res.status(200).json({ items: [], page: 1, pageSize: 20, total: 0 })
+  }
+})

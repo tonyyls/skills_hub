@@ -49,3 +49,48 @@ router.get('/links', async (req: Request, res: Response): Promise<void> => {
 })
 
 export default router
+
+router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const authHeader = req.headers.authorization || ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+    if (!token) {
+      res.status(401).json({ message: '未登录或令牌缺失' })
+      return
+    }
+    const { data: userRes, error: userErr } = await (supabase as any).auth.getUser(token)
+    if (userErr || !userRes?.user) {
+      res.status(401).json({ message: '未登录或令牌无效' })
+      return
+    }
+
+    const body = req.body as any
+    const type = String(body?.type || '').trim()
+    const sourceId = String(body?.source_id || '').trim()
+    const rawIssues = Array.isArray(body?.issues) ? body.issues : []
+    const issues = rawIssues.map((x: any) => String(x || '').trim()).filter(Boolean)
+    const comment = String(body?.comment || '').trim()
+
+    if (!type || !sourceId) {
+      res.status(400).json({ message: '缺少必填字段：type 或 source_id' })
+      return
+    }
+    if (issues.length === 0 && !comment) {
+      res.status(400).json({ message: '缺少有效反馈内容' })
+      return
+    }
+    if (comment.length > 100) {
+      res.status(400).json({ message: '其他意见最多100字' })
+      return
+    }
+
+    const { error } = await supabase
+      .from('feedback')
+      .insert({ type, source_id: sourceId, user_id: userRes.user.id, issues, comment })
+    if (error) throw error
+    res.status(201).json({ success: true })
+  } catch (e: any) {
+    res.status(500).json({ message: e?.message || '提交失败' })
+  }
+})

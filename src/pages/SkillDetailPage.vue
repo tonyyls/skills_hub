@@ -57,7 +57,7 @@
             <p class="text-xs text-gray-600">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
         <p class="text-sm text-gray-500">最近更新于 {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
             </div>
-            <!-- 技能标签显示 -->
+            <!-- 技能标签显示 与 反馈按钮 -->
             <div v-if="skill.tags && skill.tags.length" class="mt-4">
               <div class="flex flex-wrap gap-2">
                 <span v-for="tag in skill.tags" :key="typeof tag==='string'?tag:tag?.name" class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gradient-to-r from-[#FF7A45] to-[#E07245] text-white shadow-sm ring-1 ring-white/10">
@@ -65,6 +65,7 @@
                 </span>
               </div>
             </div>
+            
             
             <div v-if="skill.git_url" class="relative group mt-3">
               <h3 class="font-semibold text-gray-900 mb-2">Git地址</h3>
@@ -154,6 +155,40 @@
       >
         <span class="text-sm">{{ toastMessage }}</span>
       </div>
+      <button type="button" @click="openFeedback" class="fixed bottom-6 right-6 z-50 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#FF7A45] to-[#E07245] text-white shadow-lg hover:shadow-2xl focus:outline-none transition-transform hover:scale-105 hover:ring-2 hover:ring-white/40 group" aria-label="反馈">
+        <MessageSquare class="w-6 h-6 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-6" />
+      </button>
+    </div>
+
+    <!-- 反馈弹窗 -->
+    <div v-if="showFeedbackModal" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/30" @click="showFeedbackModal=false"></div>
+      <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-4">提交反馈</h3>
+        <div class="space-y-3">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" value="分类不准确" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>分类不准确</span>
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" value="无法安装该技能" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>无法安装该技能</span>
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" value="地址已经无法访问了" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>地址已经无法访问了</span>
+          </label>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">其他意见（最多100字）</label>
+            <textarea v-model="otherComment" maxlength="100" rows="3" class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors" placeholder="请输入其他意见"></textarea>
+            <div class="mt-1 text-xs text-gray-500">{{ otherComment.length }}/100</div>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" @click="showFeedbackModal=false" :disabled="isSubmitting">取消</button>
+          <button type="button" class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-50 disabled:opacity-50" @click="submitFeedback" :disabled="isSubmitting">{{ isSubmitting ? '提交中…' : '提交' }}</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -161,7 +196,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Star, AlertCircle, Github, Copy } from 'lucide-vue-next'
+import { ArrowLeft, Star, AlertCircle, Github, Copy, MessageSquare } from 'lucide-vue-next'
 import { useSkillsStore } from '@/stores/skills'
 import { supabase, type Skill } from '@/lib/supabase'
 import SkillCard from '@/components/SkillCard.vue'
@@ -378,6 +413,54 @@ const copyToClipboard = async (text: string): Promise<void> => {
   } catch (e) {
     console.error('复制失败：', e)
     showToast('复制失败，请手动复制')
+  }
+}
+
+const showFeedbackModal = ref(false)
+const isSubmitting = ref(false)
+const selectedIssues = ref<string[]>([])
+const otherComment = ref('')
+
+const openFeedback = async () => {
+  const { data } = await supabase.auth.getSession()
+  if (!data?.session) {
+    showToast('请先登录后再提交反馈')
+    return
+  }
+  showFeedbackModal.value = true
+}
+
+const submitFeedback = async () => {
+  const { data } = await supabase.auth.getSession()
+  if (!data?.session) {
+    showToast('请先登录后再提交反馈')
+    return
+  }
+  if (selectedIssues.value.length === 0 && !otherComment.value.trim()) {
+    showToast('请选择至少一条反馈或填写其他意见')
+    return
+  }
+  if (!skill.value?.id) return
+  isSubmitting.value = true
+  try {
+    const res = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        Authorization: `Bearer ${data.session.access_token}`
+      },
+      body: JSON.stringify({ type: 'skill', source_id: skill.value.id, issues: selectedIssues.value, comment: otherComment.value.trim() })
+    })
+    if (!res.ok) throw new Error('提交失败')
+    showFeedbackModal.value = false
+    selectedIssues.value = []
+    otherComment.value = ''
+    showToast('反馈已提交，谢谢！')
+  } catch {
+    showToast('提交失败，请稍后再试')
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>

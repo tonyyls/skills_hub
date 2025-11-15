@@ -141,6 +141,15 @@ const routes: RouteRecordRaw[] = [
           title: '友情链接管理 - Skills Hub'
         }
       }
+      ,
+      {
+        path: 'feedback',
+        name: 'AdminFeedback',
+        component: () => import('@/views/AdminFeedback.vue'),
+        meta: {
+          title: '用户反馈 - Skills Hub'
+        }
+      }
     ]
   },
   {

@@ -70,6 +70,15 @@
               <Link class="mr-3 h-5 w-5" />
               友情链接
             </router-link>
+
+            <router-link
+              to="/admin/feedback"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors"
+              :class="$route.path.startsWith('/admin/feedback') ? 'bg-orange-100 text-orange-700' : 'text-gray-600 hover:bg-gray-100'"
+            >
+              <MessageSquare class="mr-3 h-5 w-5" />
+              用户反馈
+            </router-link>
           </div>
         </nav>
       </div>
@@ -86,7 +95,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { LayoutDashboard, Tags, Wrench, Users, User, Link } from 'lucide-vue-next'
+import { LayoutDashboard, Tags, Wrench, Users, User, Link, MessageSquare } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
