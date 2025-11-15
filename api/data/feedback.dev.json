@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1763186358153",
+    "type": "skill",
+    "source_id": "f27376bb-cedf-4f5f-a0d7-c1ecdf5bc5d5",
+    "user_id": "00000000-0000-0000-0000-000000000000",
+    "issues": [
+      "管理员反馈：描述不清晰"
+    ],
+    "comment": "",
+    "created_at": "2025-11-15T05:59:18.153Z"
+  },
+  {
+    "id": "1763186242722",
+    "type": "skill",
+    "source_id": "f27376bb-cedf-4f5f-a0d7-c1ecdf5bc5d5",
+    "user_id": "dev-user",
+    "issues": [
+      "分类不准确",
+      "无法安装该技能"
+    ],
+    "comment": "",
+    "created_at": "2025-11-15T05:57:22.722Z"
+  },
+  {
+    "id": "1763185782123",
+    "type": "skill",
+    "source_id": "f27376bb-cedf-4f5f-a0d7-c1ecdf5bc5d5",
+    "user_id": "bd9703d9-e08c-4226-a1e4-61869d0ca6e3",
+    "issues": [
+      "分类不准确",
+      "无法安装该技能"
+    ],
+    "comment": "",
+    "created_at": "2025-11-15T05:49:42.123Z"
+  }
+]

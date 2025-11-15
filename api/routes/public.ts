@@ -3,7 +3,9 @@
  * 提供无需管理员权限的友情链接读取接口。
  */
 import { Router, type Request, type Response } from 'express'
+import { addFeedback } from '../utils/devStore.js'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import jwt from 'jsonwebtoken'
 
 const router = Router()
 
@@ -53,15 +55,32 @@ export default router
 router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
   try {
     const supabase = getSupabase()
+    const isDev = process.env.NODE_ENV === 'development'
     const authHeader = req.headers.authorization || ''
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
-    if (!token) {
+    let userId: string | null = null
+    if (token) {
+      const { data: userRes, error: userErr } = await (supabase as any).auth.getUser(token)
+      if (!userErr && userRes?.user?.id) {
+        userId = userRes.user.id
+      } else {
+        try {
+          const secret = process.env.ADMIN_JWT_SECRET
+          if (secret) {
+            const payload = jwt.verify(token, secret) as jwt.JwtPayload
+            const pid = String(payload?.sub || 'admin')
+            userId = /^[0-9a-fA-F-]{36}$/.test(pid) ? pid : '00000000-0000-0000-0000-000000000000'
+          }
+        } catch {}
+        if (!userId) {
+          res.status(401).json({ message: '未登录或令牌无效' })
+          return
+        }
+      }
+    } else if (isDev) {
+      userId = (req.headers['x-dev-user-id'] as string) || 'dev-user'
+    } else {
       res.status(401).json({ message: '未登录或令牌缺失' })
-      return
-    }
-    const { data: userRes, error: userErr } = await (supabase as any).auth.getUser(token)
-    if (userErr || !userRes?.user) {
-      res.status(401).json({ message: '未登录或令牌无效' })
       return
     }
 
@@ -85,11 +104,30 @@ router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
       return
     }
 
-    const { error } = await supabase
-      .from('feedback')
-      .insert({ type, source_id: sourceId, user_id: userRes.user.id, issues, comment })
-    if (error) throw error
-    res.status(201).json({ success: true })
+    /**
+     * 优先写入数据库，开发环境下若数据库不可用则降级写入本地文件。
+     */
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .insert({ type, source_id: sourceId, user_id: userId, issues, comment })
+      if (error) throw error
+      res.status(201).json({ success: true })
+      return
+    } catch (err: any) {
+      const msg = String(err?.message || '')
+      if (
+        process.env.NODE_ENV === 'development' &&
+        (/schema cache/i.test(msg) || err?.code === 'PGRST002' || /fetch failed/i.test(msg))
+      ) {
+        try {
+          const item = await addFeedback({ type, source_id: sourceId, user_id: userId!, issues, comment })
+          res.status(201).json({ success: true, dev: true, item })
+          return
+        } catch {}
+      }
+      throw err
+    }
   } catch (e: any) {
     res.status(500).json({ message: e?.message || '提交失败' })
   }

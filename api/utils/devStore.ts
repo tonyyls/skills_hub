@@ -6,6 +6,7 @@ const categoriesFile = path.join(dataDir, 'categories.dev.json')
 const skillsFile = path.join(dataDir, 'skills.dev.json')
 const usersFile = path.join(dataDir, 'users.dev.json')
 const linksFile = path.join(dataDir, 'links.dev.json')
+const feedbackFile = path.join(dataDir, 'feedback.dev.json')
 
 export interface DevCategory {
   id: string
@@ -96,6 +97,9 @@ async function ensureFile(): Promise<void> {
     })
     await fs.access(linksFile).catch(async () => {
       await fs.writeFile(linksFile, '[]', 'utf-8')
+    })
+    await fs.access(feedbackFile).catch(async () => {
+      await fs.writeFile(feedbackFile, '[]', 'utf-8')
     })
   } catch {}
 }
@@ -409,4 +413,48 @@ export async function deleteLink(id: string): Promise<boolean> {
   const next = list.filter(l => l.id !== id)
   await writeLinks(next)
   return next.length !== list.length
+}
+
+export interface DevFeedback {
+  id: string
+  type: string
+  source_id: string
+  user_id: string
+  issues: string[]
+  comment: string
+  created_at: string
+}
+
+export async function readFeedback(): Promise<DevFeedback[]> {
+  await ensureFile()
+  const buf = await fs.readFile(feedbackFile, 'utf-8')
+  try {
+    const data = JSON.parse(buf)
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+export async function writeFeedback(items: DevFeedback[]): Promise<void> {
+  await ensureFile()
+  await fs.writeFile(feedbackFile, JSON.stringify(items, null, 2), 'utf-8')
+}
+
+export async function addFeedback(item: Omit<DevFeedback, 'id' | 'created_at'> & { id?: string }): Promise<DevFeedback> {
+  const list = await readFeedback()
+  const now = new Date().toISOString()
+  const id = item.id || (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}`)
+  const newItem: DevFeedback = {
+    id,
+    type: item.type,
+    source_id: item.source_id,
+    user_id: item.user_id,
+    issues: Array.isArray(item.issues) ? item.issues.map(x => String(x || '').trim()).filter(Boolean) : [],
+    comment: String(item.comment || ''),
+    created_at: now
+  }
+  list.unshift(newItem)
+  await writeFeedback(list)
+  return newItem
 }

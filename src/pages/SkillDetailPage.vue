@@ -421,18 +421,30 @@ const isSubmitting = ref(false)
 const selectedIssues = ref<string[]>([])
 const otherComment = ref('')
 
-const openFeedback = async () => {
+/**
+ * 打开反馈弹窗。
+ * 允许以下身份发起反馈：
+ * - 普通用户：存在 Supabase 会话
+ * - 管理员：本地存在 `admin_token`
+ */
+const openFeedback = async (): Promise<void> => {
   const { data } = await supabase.auth.getSession()
-  if (!data?.session) {
+  const adminToken = localStorage.getItem('admin_token')
+  if (!(data?.session || adminToken)) {
     showToast('请先登录后再提交反馈')
     return
   }
   showFeedbackModal.value = true
 }
 
-const submitFeedback = async () => {
+/**
+ * 提交反馈。
+ * 令牌选择优先级：Supabase 用户令牌 > 管理员令牌。
+ */
+const submitFeedback = async (): Promise<void> => {
   const { data } = await supabase.auth.getSession()
-  if (!data?.session) {
+  const adminToken = localStorage.getItem('admin_token')
+  if (!(data?.session || adminToken)) {
     showToast('请先登录后再提交反馈')
     return
   }
@@ -443,12 +455,13 @@ const submitFeedback = async () => {
   if (!skill.value?.id) return
   isSubmitting.value = true
   try {
+    const token = data?.session?.access_token || adminToken || ''
     const res = await fetch('/api/feedback', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        Authorization: `Bearer ${data.session.access_token}`
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       body: JSON.stringify({ type: 'skill', source_id: skill.value.id, issues: selectedIssues.value, comment: otherComment.value.trim() })
     })

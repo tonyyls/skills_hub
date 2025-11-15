@@ -85,18 +85,18 @@
             </td>
           </tr>
           <tr v-for="fb in items" :key="fb.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ fb.type }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ fb.source_id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-6 py-4 text-sm text-gray-900 break-words">{{ fb.type }}</td>
+            <td class="px-6 py-4 text-xs font-mono text-gray-900 break-all max-w-[200px]">{{ fb.source_id }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">
               <div class="flex flex-wrap gap-1">
                 <span v-for="tag in (fb.issues || [])" :key="tag" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ tag }}</span>
               </div>
             </td>
             <td class="px-6 py-4 text-sm text-gray-900">
-              <div class="max-w-xs truncate" :title="fb.comment">{{ fb.comment || '—' }}</div>
+              <div class="max-w-[300px] break-words" :title="fb.comment">{{ fb.comment || '—' }}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ fb.user_id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatTime(fb.created_at) }}</td>
+            <td class="px-6 py-4 text-xs font-mono text-gray-900 break-all max-w-[200px]">{{ fb.user_id }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-900">{{ formatTime(fb.created_at) }}</td>
           </tr>
         </tbody>
       </table>

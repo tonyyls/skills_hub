@@ -6,6 +6,7 @@
 import { Router, type Request, type Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { readFeedback } from '../utils/devStore.js'
 import { verifyPassword as devVerifyPassword } from '../utils/crypto.js'
 import {
   readCategories,
@@ -1724,12 +1725,30 @@ router.get('/feedback', verifyAdminToken, async (req: Request, res: Response): P
     const to = from + limit - 1
     const { data, error, count } = await query.range(from, to)
     if (error) {
-      const msg = String(error?.message || '')
-      if (/schema cache/i.test(msg) || error.code === 'PGRST002' || /fetch failed/i.test(msg)) {
+      const msg = String((error as any)?.message || '')
+      if (
+        process.env.NODE_ENV === 'development' &&
+        (/schema cache/i.test(msg) || (error as any).code === 'PGRST002' || /fetch failed/i.test(msg))
+      ) {
+        try {
+          let items = await readFeedback()
+          if (type) items = items.filter(i => i.type === type)
+          if (sourceId) items = items.filter(i => i.source_id === sourceId)
+          if (userId) items = items.filter(i => i.user_id === userId)
+          if (q && q.length > 0) items = items.filter(i => (i.comment || '').toLowerCase().includes(q.toLowerCase()))
+          if (issue && issue.length > 0) items = items.filter(i => Array.isArray(i.issues) && i.issues.includes(issue))
+          items.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+          const total = items.length
+          const start = (page - 1) * limit
+          const end = start + limit
+          const pageItems = items.slice(start, end)
+          res.status(200).json({ items: pageItems, page, pageSize: limit, total })
+          return
+        } catch {}
         res.status(200).json({ items: [], page, pageSize: limit, total: 0 })
         return
       }
-      res.status(500).json({ message: '查询反馈失败', error: error.message })
+      res.status(500).json({ message: '查询反馈失败', error: (error as any).message })
       return
     }
     res.status(200).json({ items: data || [], page, pageSize: limit, total: count ?? (data?.length || 0) })
