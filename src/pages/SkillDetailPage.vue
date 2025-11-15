@@ -65,11 +65,7 @@
                 </span>
               </div>
             </div>
-            <div class="mt-4">
-              <h3 class="font-semibold text-gray-900 mb-2">如何使用？</h3>
-              <p v-if="skill.install_command" class="text-gray-700 leading-relaxed">通过下方的安装命令快速开始，或访问源码仓库获取更多示例。</p>
-              <p v-else class="text-gray-500">暂无安装说明。</p>
-            </div>
+            
             <div v-if="skill.git_url" class="relative group mt-3">
               <h3 class="font-semibold text-gray-900 mb-2">Git地址</h3>
               <pre
@@ -184,8 +180,7 @@ const skillsStore = useSkillsStore()
  */
 const getCategoryName = (categoryId: string): string => {
   if (!categoryId) return ''
-  const category = skillsStore.categories.find(c => c.id === categoryId)
-  return category?.name || ''
+  return (skillsStore as any).categoryMap?.[categoryId] || ''
 }
 
 // 状态管理
@@ -352,7 +347,8 @@ const formatDate = (date: string): string => {
   return `${y}/${m}/${day} ${hh}:${mm}`
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try { await (skillsStore as any).ensureCategoriesLoaded?.() } catch {}
   loadSkill()
 })
 
