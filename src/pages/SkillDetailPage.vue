@@ -155,13 +155,13 @@
       >
         <span class="text-sm">{{ toastMessage }}</span>
       </div>
-      <button type="button" @click="openFeedback" class="fixed bottom-6 right-6 z-50 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#FF7A45] to-[#E07245] text-white shadow-lg hover:shadow-2xl focus:outline-none transition-transform hover:scale-105 hover:ring-2 hover:ring-white/40 group" aria-label="反馈">
+      <button v-if="enableFeedback" type="button" @click="openFeedback" class="fixed bottom-6 right-6 z-50 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#FF7A45] to-[#E07245] text-white shadow-lg hover:shadow-2xl focus:outline-none transition-transform hover:scale-105 hover:ring-2 hover:ring-white/40 group" aria-label="反馈">
         <MessageSquare class="w-6 h-6 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-6" />
       </button>
     </div>
 
     <!-- 反馈弹窗 -->
-    <div v-if="showFeedbackModal" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div v-if="enableFeedback && showFeedbackModal" class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="absolute inset-0 bg-black/30" @click="showFeedbackModal=false"></div>
       <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
         <h3 class="text-base font-semibold text-gray-900 mb-4">提交反馈</h3>
@@ -201,6 +201,8 @@ import { useSkillsStore } from '@/stores/skills'
 import { supabase, type Skill } from '@/lib/supabase'
 import SkillCard from '@/components/SkillCard.vue'
 import { renderMarkdown } from '@/utils/markdown'
+
+const enableFeedback = import.meta.env.VITE_ENABLE_FEEDBACK !== 'false'
 
 const route = useRoute()
 const router = useRouter()

@@ -8,6 +8,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
+const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
 
 /**
  * 惰性初始化 Supabase 服务端客户端（使用 Service Role Key）
@@ -53,6 +54,10 @@ router.get('/links', async (req: Request, res: Response): Promise<void> => {
 export default router
 
 router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
+  if (!enableFeedback) {
+    res.status(404).json({ message: '反馈功能已关闭' })
+    return
+  }
   try {
     const supabase = getSupabase()
     const isDev = process.env.NODE_ENV === 'development'

@@ -82,7 +82,7 @@
       <div class="bg-white rounded-lg shadow-sm p-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">联系我们</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
+          <div v-if="enableFeedback">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">反馈和建议</h3>
             <p class="text-gray-600 mb-4">
               如果您有任何建议或发现了问题，欢迎通过以下方式联系我们：
@@ -122,4 +122,5 @@
 
 <script setup lang="ts">
 import { Upload, Search, Star, Users, Mail, Github, HelpCircle, Clock } from 'lucide-vue-next'
+const enableFeedback = import.meta.env.VITE_ENABLE_FEEDBACK !== 'false'
 </script>

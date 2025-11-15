@@ -28,6 +28,7 @@ import {
 } from '../utils/devStore.js'
 
 const router = Router()
+const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
 
 /**
  * Supabase 服务端客户端惰性初始化（使用 Service Role Key）
@@ -1693,6 +1694,10 @@ export default router
  * GET /api/admin/feedback?page=1&limit=20&type=&source_id=&user_id=&q=&issue=
  */
 router.get('/feedback', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  if (!enableFeedback) {
+    res.status(404).json({ message: '反馈功能已关闭' })
+    return
+  }
   try {
     let supabase: any
     try {

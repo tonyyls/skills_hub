@@ -12,7 +12,7 @@
     "check": "vue-tsc -b",
     "lint": "eslint . --ext .ts,.vue",
     "lint:fix": "eslint . --ext .ts,.vue --fix",
-    "start:api": "tsx api/server.ts",
+    "start:api": "tsx dev-server/server.ts",
     "data:clean": "node api/data/clean-test-data.js",
     "data:clean:dry": "node api/data/clean-test-data.js --dry-run"
   },
