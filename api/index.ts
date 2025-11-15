@@ -9,5 +9,5 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 export const config = {
-  runtime: 'nodejs20.x'
+  runtime: 'nodejs'
 }
