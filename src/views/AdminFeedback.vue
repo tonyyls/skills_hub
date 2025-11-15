@@ -174,6 +174,28 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showSkillModal" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/30" @click="showSkillModal=false"></div>
+      <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-2">技能详情</h3>
+        <div class="text-sm text-gray-800 mb-4">{{ skillDetail?.name || skillDetail?.title }}</div>
+        <div class="text-sm text-gray-600 whitespace-pre-wrap">{{ skillDetail?.description || '—' }}</div>
+        <div class="mt-4 flex justify-end">
+          <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showSkillModal=false">关闭</button>
+        </div>
+      </div>
+    </div>
+    <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/30" @click="showUserModal=false"></div>
+      <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-2">用户详情</h3>
+        <div class="text-sm text-gray-800">{{ userDetail?.username || userDetail?.email || userDetail?.id }}</div>
+        <div class="mt-4 flex justify-end">
+          <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showUserModal=false">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
   </template>
 
@@ -269,53 +291,3 @@ onMounted(() => { reload() })
 
 <style scoped>
 </style>
-
-<template>
-  <div v-if="showSkillModal" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/30" @click="showSkillModal=false"></div>
-    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
-      <h3 class="text-base font-semibold text-gray-900 mb-2">技能详情</h3>
-      <div class="text-sm text-gray-800 mb-4">{{ skillDetail?.name || skillDetail?.title }}</div>
-      <div class="text-sm text-gray-600 whitespace-pre-wrap">{{ skillDetail?.description || '—' }}</div>
-      <div class="mt-4 flex justify-end">
-        <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showSkillModal=false">关闭</button>
-      </div>
-    </div>
-  </div>
-  <div v-if="showUserModal" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/30" @click="showUserModal=false"></div>
-    <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
-      <h3 class="text-base font-semibold text-gray-900 mb-2">用户详情</h3>
-      <div class="text-sm text-gray-800">{{ userDetail?.username || userDetail?.email || userDetail?.id }}</div>
-      <div class="mt-4 flex justify-end">
-        <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md" @click="showUserModal=false">关闭</button>
-      </div>
-    </div>
-  </div>
-</template>
-const skillDetail = ref<any | null>(null)
-const showSkillModal = ref(false)
-const userDetail = ref<any | null>(null)
-const showUserModal = ref(false)
-
-const openSkill = async (id: string): Promise<void> => {
-  if (!id) return
-  const token = localStorage.getItem('admin_token')
-  const res = await fetch(`/api/admin/skills/${id}`, { headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
-  if (res.ok) {
-    const data = await res.json()
-    skillDetail.value = data.item || null
-    showSkillModal.value = true
-  }
-}
-
-const openUser = async (id: string): Promise<void> => {
-  if (!id) return
-  const token = localStorage.getItem('admin_token')
-  const res = await fetch(`/api/admin/users/${id}`, { headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
-  if (res.ok) {
-    const data = await res.json()
-    userDetail.value = data.item || null
-    showUserModal.value = true
-  }
-}
