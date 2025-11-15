@@ -287,6 +287,54 @@ const goToPage = (pageNum: number): void => {
 }
 
 onMounted(() => { reload() })
+/**
+ * 技能详情弹窗数据与显示状态
+ */
+const skillDetail = ref<any | null>(null)
+const showSkillModal = ref(false)
+/**
+ * 用户详情弹窗数据与显示状态
+ */
+const userDetail = ref<any | null>(null)
+const showUserModal = ref(false)
+
+/**
+ * 打开技能详情弹窗
+ * @param id 技能ID
+ */
+const openSkill = async (id: string): Promise<void> => {
+  if (!id) return
+  const token = localStorage.getItem('admin_token')
+  const res = await fetch(`/api/admin/skills/${id}`, {
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+  if (!res.ok) return
+  const data = await res.json()
+  skillDetail.value = data.item || null
+  showSkillModal.value = true
+}
+
+/**
+ * 打开用户详情弹窗
+ * @param id 用户ID
+ */
+const openUser = async (id: string): Promise<void> => {
+  if (!id) return
+  const token = localStorage.getItem('admin_token')
+  const res = await fetch(`/api/admin/users/${id}`, {
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+  if (!res.ok) return
+  const data = await res.json()
+  userDetail.value = data.item || null
+  showUserModal.value = true
+}
 </script>
 
 <style scoped>
