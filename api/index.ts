@@ -7,3 +7,7 @@ import app from './app.js';
 export default function handler(req: VercelRequest, res: VercelResponse) {
   return app(req, res);
 }
+
+export const config = {
+  runtime: 'nodejs20.x'
+}
