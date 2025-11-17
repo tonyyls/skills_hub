@@ -1,0 +1,51 @@
+# GIT仓库技能集合采集说明
+
+根据提供的技能集合地址以及规则进行采集：
+1.技能集合地址：例如：https://github.com/K-Dense-AI/claude-scientific-skills
+2.技能作者(author_name)：例如：K-Dense-AI
+3.技能所在的根目录：例如：scientific-skills，该文件夹下面的每一个文件夹都是一个技能
+4.技能名称(name)的命名方式：优先按文件夹名称作为技能
+4.技能描述(description)：解析文件夹下面的 SKILL.md ，获取到技能元数据 description 的内容
+5.技能内容(content)：将 SKILL.md 全部内容写入
+6.技能状态(status)：默认是草稿draft
+7.技能Git地址(git_url)：SKILL.md 所在的路径，不包含SKILL.md
+
+示例集合信息：
+地址：https://github.com/K-Dense-AI/claude-scientific-skills
+安装命令：/plugin marketplace add K-Dense-AI/claude-scientific-skills
+作者：K-Dense-AI
+技能所在根目录：scientific-skills
+
+技术上实现：
+1.先将技能集合克隆到本地目录，再通过扫描目录的方式进行采集数据。
+
+
+https://github.com/mrgoonie/claudekit-skills
+采集下面的技能集合
+仓库地址： ` `https://github.com/mrgoonie/claudekit-skills` ` 
+作者名：ClaudeKit
+技能根目录：.claude/skills
+安装命令：/plugin marketplace add mrgoonie-claudekit-skills
+
+
+https://github.com/ComposioHQ/awesome-claude-skills/
+采集下面的技能集合
+仓库地址： ` `https://github.com/ComposioHQ/awesome-claude-skills/` ` 
+作者名：ComposioHQ
+技能根目录：根目录，排除.claude-plugin
+安装命令：/plugin marketplace add ComposioHQ-awesome-claude-skills
+
+https://github.com/anthropics/skills
+采集下面的技能集合
+仓库地址： ` `https://github.com/anthropics/skills/` ` 
+作者名：Anthropic
+技能根目录：根目录，排除.claude-plugin
+安装命令：/plugin marketplace add anthropics-skills
+
+
+https://github.com/obra/superpowers/
+采集下面的技能集合
+仓库地址： ` `https://github.com/obra/superpowers/` ` 
+作者名：obra
+技能根目录：skills 目录
+安装命令：/plugin marketplace add obra-superpowers
