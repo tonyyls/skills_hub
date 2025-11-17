@@ -138,7 +138,7 @@
         <!-- 技能卡片网格 -->
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div
-            v-for="skill in filteredSkills"
+            v-for="skill in visibleSkills"
             :key="skill.id"
             class="group bg-white border border-[#EEEEEE] rounded-xl p-6 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col overflow-hidden min-h-[280px] h-auto"
             @click="goToSkillDetail(skill.id)"
@@ -288,6 +288,14 @@ const initialRender = ref(true)
  * 保持简单：不做关键词过滤，仅根据当前筛选（latest/featured）加载不同数据集。
  */
 const filteredSkills = computed(() => skills.value)
+const windowWidth = ref<number>(typeof window !== 'undefined' ? window.innerWidth : 1280)
+const maxRows = 3
+const visibleSkills = computed(() => {
+  const w = windowWidth.value
+  const cols = w >= 1280 ? 4 : w >= 1024 ? 3 : w >= 768 ? 2 : 1
+  const limit = cols * maxRows
+  return filteredSkills.value.slice(0, limit)
+})
 
 // 友情链接数据（公开接口）
 interface FriendLink {
@@ -526,6 +534,8 @@ const loadMore = (): void => {
 onMounted(async () => {
   console.log('[HomePage] onMounted:start')
   try {
+    const onResize = () => { windowWidth.value = window.innerWidth }
+    window.addEventListener('resize', onResize)
     // 确保分类映射可用
     console.log('[HomePage] ensureCategoriesLoaded:begin')
     await skillsStore.ensureCategoriesLoaded()

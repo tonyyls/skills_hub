@@ -279,7 +279,7 @@ const authStore = useAuthStore()
 const selectedCategory = ref('')
 const sortBy = ref('createdAt')
 const currentPage = ref(1)
-const itemsPerPage = ref(30)
+const itemsPerPage = ref(24)
 /**
  * 左侧分类骨架屏加载状态。
  * 在进入页面时先置为 true，待分类数据加载完成后置为 false。
