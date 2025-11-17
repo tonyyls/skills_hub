@@ -41,78 +41,50 @@
 
     <!-- 主要内容区域 -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex gap-6">
-        <!-- 左侧固定边栏 -->
-        <div class="w-64 flex-shrink-0">
-          <div class="sticky top-6 space-y-6">
-            <!-- 搜索框 -->
-            <div class="bg-white rounded-lg border border-gray-200 p-4">
-              <div class="relative">
-                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  v-model="searchQuery"
-                  @input="handleSearch"
-                  type="text"
-                  placeholder="关键字搜索技能..."
-                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  v-select-all-shortcut
-                />
-              </div>
-            </div>
-
-            <!-- 分类列表 -->
-            <div class="bg-white rounded-lg border border-gray-200">
-              <div class="p-4 border-b border-gray-200">
-                <h3 class="font-semibold text-gray-900">分类</h3>
-              </div>
-              <!-- 左侧分类骨架屏 -->
-              <div v-if="categoriesLoading" class="p-2 animate-pulse">
-                <div v-for="n in 8" :key="n" class="w-full flex items-center justify-between p-3 rounded-lg">
-                  <div class="flex items-center gap-3">
-                    <div class="w-5 h-5 bg-gray-200 rounded"></div>
-                    <div class="h-4 w-28 bg-gray-200 rounded"></div>
-                  </div>
-                  <div class="h-6 w-10 bg-gray-200 rounded-full"></div>
-                </div>
-              </div>
-              <!-- 分类列表内容 -->
-              <div v-else class="p-2">
-                <button
-                  v-for="category in categoriesWithCount"
-                  :key="category.id"
-                  @click="selectCategory(category.id)"
-                  :class="[
-                    'w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors duration-200',
-                    selectedCategory === category.id
-                      ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                      : 'hover:bg-gray-50 text-gray-700'
-                  ]"
-                >
-                  <div class="flex items-center gap-3">
-                    <component :is="getCategoryIcon(category.name)" class="w-5 h-5 text-gray-400" />
-                    <span class="font-medium">{{ category.name }}</span>
-                  </div>
-                  <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                    {{ category.count }}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="space-y-6">
 
         <!-- 右侧主内容区域 -->
-        <div class="flex-1">
-          <!-- 当前分类标题 -->
-          <div class="mb-6" v-if="selectedCategory">
+        <div>
+          
+
+          <!-- 顶部分类标签（静态快照，用于筛选） -->
+          <div class="mb-6">
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                @click="selectCategory('')"
+                :class="[
+                  'px-3 py-1.5 text-sm rounded-full border transition-colors',
+                  selectedCategory === '' ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                ]"
+              >
+                全部
+              </button>
+              <button
+                v-for="cat in categoryOptions"
+                :key="cat.id"
+                @click="selectCategory(cat.id)"
+                :class="[
+                  'px-3 py-1.5 text-sm rounded-full border transition-colors inline-flex items-center gap-2',
+                  selectedCategory === cat.id ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                ]"
+                type="button"
+              >
+                <span>{{ cat.name }}</span>
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{{ cat.count }}</span>
+              </button>
+            </div>
+          </div>
+
+
+          <div class="mb-6">
             <div class="flex items-center gap-2 mb-4">
-              <component :is="getCategoryIcon(getCategoryName(selectedCategory))" class="w-6 h-6 text-orange-600" />
-              <h2 class="text-2xl font-bold text-gray-900">{{ getCategoryName(selectedCategory) }}</h2>
+              <component :is="getCategoryIcon(currentTitle)" class="w-6 h-6 text-orange-600" />
+              <h2 class="text-2xl font-bold text-gray-900">{{ currentTitle }}</h2>
             </div>
           </div>
 
           <!-- 加载状态：骨架屏（12项） -->
-          <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 py-4">
+          <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-4">
             <div v-for="n in 12" :key="n" class="bg-white rounded-2xl shadow-sm border border-[#EEEEEE] p-6 animate-pulse">
               <div class="h-4 w-24 bg-gray-200 rounded mb-3"></div>
               <div class="h-5 w-48 bg-gray-200 rounded mb-2"></div>
@@ -143,7 +115,7 @@
           <div v-else-if="displayedSkills.length === 0" class="text-center py-12">
             <Search class="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 class="text-lg font-medium text-gray-900 mb-2">没有找到相关技能</h3>
-            <p class="text-gray-600 mb-4">试试其他关键词或分类</p>
+            <p class="text-gray-600 mb-4">试试其他分类</p>
             <button
               @click="resetFilters"
               class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200"
@@ -153,7 +125,7 @@
           </div>
           
           <!-- 技能网格（白卡风格） -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <div
               v-for="skill in displayedSkills"
               :key="skill.id"
@@ -298,7 +270,7 @@ const skillsStore = useSkillsStore()
 const authStore = useAuthStore()
 
 // 状态管理
-const searchQuery = ref('')
+// 搜索功能已移除
 const selectedCategory = ref('')
 const sortBy = ref('createdAt')
 const currentPage = ref(1)
@@ -337,8 +309,13 @@ const error = computed(() => skillsStore.error)
  * - 使用 `selectedCategory` 的分类ID进行过滤（与后端返回的 `category_id` 对齐）。
  * - 兼容旧字段 `category`（名称）但优先按ID匹配，避免名称变更导致的筛选失效。
  */
-const filteredList = computed(() => skills.value.slice())
-const totalPages = computed(() => Math.ceil((skillsStore.totalCount || 0) / itemsPerPage.value))
+  const filteredList = computed(() => skills.value.slice())
+  const totalPages = computed(() => Math.ceil((skillsStore.totalCount || 0) / itemsPerPage.value))
+
+  const currentTitle = computed(() => {
+    const name = selectedCategory.value ? getCategoryName(selectedCategory.value) : ''
+    return name && name.trim() ? name : '全部'
+  })
 
 // 带统计的分类列表
 /**
@@ -349,9 +326,11 @@ const totalPages = computed(() => Math.ceil((skillsStore.totalCount || 0) / item
 const categoriesWithCount = computed(() => {
   return categories.value.map(category => ({
     ...category,
-    count: skills.value.filter(skill => skill.category_id === category.id || getCategoryName(skill.category_id) === category.name).length
+    count: (skillsStore.categoryCounts[category.id] ?? 0)
   }))
 })
+// 静态分类选项：初始化后快照，不随右侧列表和筛选变化
+const categoryOptions = ref<any[]>([])
 
 // 可见页面
 const visiblePages = computed(() => {
@@ -508,16 +487,13 @@ const getCategoryName = (categoryOrId: string): string => {
  * 加载技能数据
  */
 const loadSkills = async () => {
-  await skillsStore.fetchSkillsPaged(currentPage.value, itemsPerPage.value, (searchQuery.value || '').trim(), selectedCategory.value || '')
+  await skillsStore.fetchSkillsPaged(currentPage.value, itemsPerPage.value, '', selectedCategory.value || '')
 }
 
 /**
  * 处理搜索
  */
-const handleSearch = () => {
-  currentPage.value = 1
-  // 这里可以实现搜索逻辑
-}
+// 搜索功能已移除
 
 /**
  * 选择分类
@@ -607,9 +583,11 @@ onMounted(async () => {
   await loadSkills()
   // 加载用户收藏数据（仅登录后）
   await loadFavorites()
+  await skillsStore.fetchCategoryCounts()
+  categoryOptions.value = categoriesWithCount.value
 })
 
-watch([currentPage, itemsPerPage, searchQuery, selectedCategory], async () => {
+watch([currentPage, itemsPerPage, selectedCategory], async () => {
   await loadSkills()
 })
 

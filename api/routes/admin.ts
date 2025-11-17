@@ -7,6 +7,7 @@ import { Router, type Request, type Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { readFeedback } from '../utils/devStore.js'
+import { flushCache } from '../utils/cache'
 import { verifyPassword as devVerifyPassword } from '../utils/crypto.js'
 import {
   readCategories,
@@ -639,7 +640,14 @@ router.post('/skills', verifyAdminToken, async (req: Request, res: Response): Pr
       res.status(500).json({ message: '创建技能失败', error: error.message })
       return
     }
-    res.status(201).json({ item: data?.[0] })
+    const item = data?.[0]
+    try {
+      if (item?.status === 'published') {
+        await supabase.rpc('refresh_category_skill_counts_mv')
+        flushCache('category-counts:published')
+      }
+    } catch {}
+    res.status(201).json({ item })
   } catch (err) {
     const msg = err instanceof Error ? err.message : '服务器错误'
     res.status(500).json({ message: msg })
@@ -700,7 +708,16 @@ router.put('/skills/:id', verifyAdminToken, async (req: Request, res: Response):
       res.status(404).json({ message: '技能不存在' })
       return
     }
-    res.status(200).json({ item: data[0] })
+    const updated = data[0]
+    try {
+      const becamePublished = String(updated?.status) === 'published'
+      const categoryPatched = Object.prototype.hasOwnProperty.call(body, 'category_id')
+      if (becamePublished || categoryPatched) {
+        await supabase.rpc('refresh_category_skill_counts_mv')
+        flushCache('category-counts:published')
+      }
+    } catch {}
+    res.status(200).json({ item: updated })
   } catch (err) {
     const msg = err instanceof Error ? err.message : '服务器错误'
     res.status(500).json({ message: msg })

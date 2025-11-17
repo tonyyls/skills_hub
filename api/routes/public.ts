@@ -6,6 +6,7 @@ import { Router, type Request, type Response } from 'express'
 import { addFeedback } from '../utils/devStore.js'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
+import { getCached, setCached, etagOf } from '../utils/cache'
 
 const router = Router()
 const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
@@ -189,3 +190,70 @@ router.get('/skills', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: err?.message || '服务器错误' })
   }
 })
+
+/**
+ * 公开接口：各分类下的已发布技能数量（不受分页影响）
+ * GET /api/skills/category-counts
+ * 返回 { items: [{ id, name, count }], totalCategories }
+ */
+router.get('/skills/category-counts', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cacheKey = 'category-counts:published'
+    const cached = getCached(cacheKey)
+    if (cached) {
+      const etag = etagOf(cached)
+      if (req.headers['if-none-match'] === etag) {
+        res.status(304).end()
+        return
+      }
+      res
+        .set('ETag', etag)
+        .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
+        .status(200).json(cached)
+      return
+    }
+
+    const supabase = getSupabase()
+    const { data: cats, error: catErr } = await supabase
+      .from('categories')
+      .select('id, name')
+      .eq('is_active', true)
+    if (catErr) throw catErr
+
+    // Try reading materialized view counts
+    const { data: mvRows, error: mvErr } = await supabase
+      .from('category_skill_counts_mv')
+      .select('category_id, count')
+
+    const countMap: Record<string, number> = {}
+    if (!mvErr && Array.isArray(mvRows)) {
+      for (const r of mvRows) countMap[String((r as any).category_id)] = Number((r as any).count) || 0
+    } else {
+      // Fallback to direct count if MV not available
+      for (const c of (cats || [])) {
+        const { count } = await supabase
+          .from('skills')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'published')
+          .eq('category_id', (c as any).id)
+        countMap[String((c as any).id)] = count ?? 0
+      }
+    }
+
+    const items = (cats || []).map((c: any) => ({
+      id: String(c.id),
+      name: String(c.name),
+      count: countMap[String(c.id)] ?? 0,
+    }))
+    const payload = { items, totalCategories: items.length }
+    setCached(cacheKey, payload, 600_000)
+    const etag = etagOf(payload)
+    res
+      .set('ETag', etag)
+      .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
+      .status(200).json(payload)
+  } catch (err: any) {
+    res.status(200).json({ items: [], totalCategories: 0 })
+  }
+})
+// Cache utils moved to shared module

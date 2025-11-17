@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 export const useSkillsStore = defineStore('skills', () => {
   const skills = ref<Skill[]>([])
   const categories = ref<Category[]>([])
+  const categoryCounts = ref<Record<string, number>>({})
+  const categoryCountsEtag = ref<string>('')
   // 分类名称映射（id -> name），避免页面重复请求
   const categoryMap = ref<Record<string, string>>({})
   const tags = ref<Tag[]>([])
@@ -592,6 +594,30 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
+  /**
+   * 拉取各分类的已发布技能数量（独立于分页与筛选）。
+   */
+  const fetchCategoryCounts = async (): Promise<void> => {
+    try {
+      const headers: Record<string, string> = { Accept: 'application/json' }
+      if (categoryCountsEtag.value) headers['If-None-Match'] = categoryCountsEtag.value
+      const res = await fetch('/api/skills/category-counts', { headers })
+      if (res.status === 304) {
+        // Not modified, keep existing counts
+        return
+      }
+      if (!res.ok) throw new Error(String(res.status))
+      const et = res.headers.get('ETag') || ''
+      const j = await res.json().catch(() => ({ items: [] }))
+      const map = Object.fromEntries(((j?.items || []) as any[]).map((it: any) => [String(it.id), Number(it.count) || 0]))
+      categoryCounts.value = map
+      if (et) categoryCountsEtag.value = et
+    } catch (e: any) {
+      // Ignore aborted fetches or network hiccups; keep existing snapshot
+      console.warn('[skillsStore] fetchCategoryCounts error:', e?.message || e)
+    }
+  }
+
   const fetchTags = async () => {
     try {
       const { data, error: supabaseError } = await supabase
@@ -799,6 +825,7 @@ export const useSkillsStore = defineStore('skills', () => {
     skills,
     categories,
     categoryMap,
+    categoryCounts,
     tags,
     loading,
     error,
@@ -824,6 +851,7 @@ export const useSkillsStore = defineStore('skills', () => {
     fetchFeaturedSkills,
     fetchTotalCount,
     fetchCategories,
+    fetchCategoryCounts,
     ensureCategoriesLoaded,
     fetchTags,
     fetchSkillById,
