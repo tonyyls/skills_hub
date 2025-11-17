@@ -9,6 +9,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { readFeedback } from '../utils/devStore.js'
 import { flushCache } from '../utils/cache.js'
 import { verifyPassword as devVerifyPassword } from '../utils/crypto.js'
+import { AiService, GlmProvider } from '../utils/ai.js'
 import {
   readCategories,
   addCategory,
@@ -30,6 +31,14 @@ import {
 
 const router = Router()
 const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
+let aiServiceInst: AiService | null = null
+const getAiService = (): AiService | null => {
+  if (aiServiceInst) return aiServiceInst
+  const k = process.env.GLM_API_KEY
+  if (!k) return null
+  aiServiceInst = new AiService(new GlmProvider({ apiKey: k }))
+  return aiServiceInst
+}
 
 /**
  * Supabase 服务端客户端惰性初始化（使用 Service Role Key）
@@ -750,6 +759,110 @@ router.delete('/skills/:id', verifyAdminToken, async (req: Request, res: Respons
   } catch (err) {
     const msg = err instanceof Error ? err.message : '服务器错误'
     res.status(500).json({ message: msg })
+  }
+})
+
+router.post('/skills/:id/ai-classify', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const aiService = getAiService()
+    if (!aiService) {
+      res.status(500).json({ message: '服务器配置错误：缺少 GLM_API_KEY' })
+      return
+    }
+    const supabase = getSupabase()
+    const { id } = req.params
+    const body = req.body as any
+    let description: string = ''
+    const titlePart = typeof body?.title === 'string' ? body.title.trim() : ''
+    const descPart = typeof body?.description === 'string' ? body.description.trim() : ''
+    const combined = [titlePart, descPart].filter(Boolean).join('\n').slice(0, 4000)
+    if (combined && combined.trim().length > 0) {
+      description = combined
+    } else if (id && id !== 'new') {
+      try {
+        const { data } = await supabase.from('skills').select('name, description').eq('id', id).limit(1)
+        const row = Array.isArray(data) ? data[0] : null
+        const parts = [row?.name, row?.description].filter(Boolean)
+        description = parts.join('\n').slice(0, 4000)
+      } catch {}
+    }
+    if (!description || !description.trim()) {
+      res.status(400).json({ message: '缺少可用于分类的描述内容' })
+      return
+    }
+    let categoriesInput: Array<{ id: string; name: string }> = []
+    if (Array.isArray(body?.categories) && body.categories.length > 0) {
+      categoriesInput = body.categories.map((c: any) => ({ id: String(c.id), name: String(c.name ?? '') }))
+    } else {
+      try {
+        const { data } = await supabase.from('categories').select('id, name').order('sort_order', { ascending: true })
+        categoriesInput = (Array.isArray(data) ? data : []).map((c: any) => ({ id: String(c.id), name: String(c.name ?? '') }))
+      } catch {}
+    }
+    if (!categoriesInput.length) {
+      res.status(400).json({ message: '未获取到类目枚举' })
+      return
+    }
+    const result = await aiService.classifyCategory(description, categoriesInput)
+    console.log('[ai-classify]', { skillId: id, result })
+    res.status(200).json(result)
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || '服务器错误' })
+  }
+})
+
+router.post('/ai/auto-classify', verifyAdminToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const aiService = getAiService()
+    if (!aiService) {
+      res.status(500).json({ message: '服务器配置错误：缺少 GLM_API_KEY' })
+      return
+    }
+    const supabase = getSupabase()
+    const body = req.body as any
+    let limit = Math.min(Math.max(parseInt(String(body?.limit ?? '50'), 10) || 50, 1), 200)
+    const minConfidence = Math.max(Math.min(Number(body?.minConfidence ?? 0.6), 1), 0)
+
+    const { data: rows, error: qErr } = await supabase
+      .from('skills')
+      .select('id, name, description, tags, category_id')
+      .is('category_id', null)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (qErr) {
+      res.status(500).json({ message: '查询未分类技能失败', error: qErr.message })
+      return
+    }
+    const items: any[] = Array.isArray(rows) ? rows : []
+    const { data: cats } = await supabase.from('categories').select('id, name').order('sort_order', { ascending: true })
+    const categoriesInput = (Array.isArray(cats) ? cats : []).map((c: any) => ({ id: String(c.id), name: String(c.name ?? '') }))
+    let updated = 0, lowConfidence = 0, errors = 0
+    for (const s of items) {
+      try {
+        const text = [String(s.name || ''), String(s.description || '')].filter(Boolean).join('\n').slice(0, 4000)
+        if (!text.trim() || !categoriesInput.length) { errors++; continue }
+        const result = await aiService.classifyCategory(text, categoriesInput)
+        const conf = Number(result?.confidence || 0)
+        const cid = String(result?.categoryId || '')
+        if (!cid || conf < minConfidence) { lowConfidence++; continue }
+        const existingTags = normalizeTags(s.tags)
+        const additions = Array.isArray((result as any).tags) ? (result as any).tags : []
+        const merged = Array.from(new Set([ ...existingTags, ...additions.map((t: any) => String(t).trim()).filter(Boolean) ])).slice(0, Math.max(existingTags.length, existingTags.length + 3))
+        const { error: uErr } = await supabase
+          .from('skills')
+          .update({ category_id: cid, tags: merged, updated_at: new Date().toISOString() })
+          .eq('id', s.id)
+        if (uErr) { errors++; continue }
+        updated++
+      } catch (e: any) {
+        errors++
+      }
+    }
+    const result = { total: items.length, updated, lowConfidence, errors }
+    console.log('[ai-auto-classify]', result)
+    res.status(200).json(result)
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || '服务器错误' })
   }
 })
 

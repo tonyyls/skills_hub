@@ -354,14 +354,37 @@
             </div>
           </div>
                 
-          <!-- 配置信息区域 -->
+            <div class="bg-orange-50 rounded-lg p-3 mb-5">
+              <h4 class="text-base font-medium text-gray-900 mb-3">AI识别</h4>
+              <div class="flex items-center gap-2 mb-3">
+                <button
+                  type="button"
+                  @click="startAiRecognize"
+                  class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-100 transition-colors disabled:opacity-50"
+                  :disabled="aiLoading"
+                >
+                  {{ aiLoading ? '识别中…' : '开始识别' }}
+                </button>
+                <span v-if="aiResult" class="text-sm text-gray-700">分类建议：{{ getCategoryName(String(aiResult.categoryId)) }}（{{ Math.round((aiResult.confidence || 0) * 100) }}%）</span>
+              </div>
+              <div v-if="aiResult && (aiResult.tags?.length)" class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">标签建议</label>
+                <div class="flex flex-wrap gap-2">
+                  <span v-for="(t, i) in aiResult.tags" :key="i" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">{{ t }}</span>
+                </div>
+              </div>
+              <div v-if="aiResult" class="flex items-center gap-2">
+                <button type="button" class="px-3 py-1.5 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700" @click="applyAiResult">应用到表单</button>
+                <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" @click="clearAiResult">清除结果</button>
+              </div>
+            </div>
+
+            <!-- 配置信息区域 -->
           <div class="bg-blue-50 rounded-lg p-3 mb-5">
             <h4 class="text-base font-medium text-gray-900 mb-3">配置信息</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  分类 <span class="text-red-500">*</span>
-                </label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">分类 <span class="text-red-500">*</span></label>
                 <select
                   v-model="form.category_id"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -372,6 +395,7 @@
                     {{ category.name }}
                   </option>
                 </select>
+                <div class="mt-2"></div>
               </div>
               <!-- 开发者（作者） -->
               <div>
@@ -571,6 +595,7 @@
               </div>
             </div>
             
+
             <!-- 表单操作按钮 -->
             <div class="flex justify-end space-x-3 pt-4 border-t">
               <button
@@ -981,6 +1006,8 @@ const validateAuthorName = (): boolean => {
 // 打开创建模态框
 const openCreateModal = () => {
   resetForm()
+  aiResult.value = null
+  aiLoading.value = false
   showCreateModal.value = true
 }
 
@@ -994,6 +1021,8 @@ const openCreateModal = () => {
  */
 const editSkill = (skill: Skill) => {
   try {
+    aiResult.value = null
+    aiLoading.value = false
     editingSkill.value = skill
 
     /**
@@ -1309,6 +1338,8 @@ const closeModal = () => {
   showCreateModal.value = false
   showEditModal.value = false
   editingSkill.value = null
+  aiResult.value = null
+  aiLoading.value = false
   resetForm()
 }
 
@@ -1320,7 +1351,7 @@ const openPreview = () => {
 }
 
 // 监听筛选条件变化
-watch([filters, searchQuery], () => {
+watch(filters, () => {
   currentPage.value = 1
   loadSkills()
 })
@@ -1340,4 +1371,47 @@ onMounted(() => {
     installCommandRef.value.style.height = `${installCommandRef.value.scrollHeight}px`
   }
 })
+
+const aiLoading = ref(false)
+const aiResult = ref<{ categoryId: string; confidence: number; tags?: string[] } | null>(null)
+const startAiRecognize = async (): Promise<void> => {
+  aiLoading.value = true
+  try {
+    const token = localStorage.getItem('admin_token')
+    const res = await fetch(`/api/admin/skills/${editingSkill.value?.id || 'new'}/ai-classify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ title: form.value.title, description: form.value.description, categories: categories.value })
+    })
+    if (!res.ok) {
+      aiResult.value = null
+      return
+    }
+    const data = await res.json()
+    console.debug('[ai-classify]', data)
+    const tags = Array.isArray(data.tags) ? Array.from(new Set(data.tags.map((t: any) => String(t).trim()).filter(Boolean))).slice(0, 3) : []
+    aiResult.value = { categoryId: String(data.categoryId), confidence: Number(data.confidence || 0), tags }
+  } catch {
+    aiResult.value = null
+  } finally {
+    aiLoading.value = false
+  }
+}
+const applyAiResult = (): void => {
+  if (aiResult.value?.categoryId) {
+    form.value.category_id = String(aiResult.value.categoryId)
+  }
+  if (Array.isArray(aiResult.value?.tags) && aiResult.value!.tags.length) {
+    const existing = new Set((form.value.tags || []).map(t => String(t)))
+    const additions = aiResult.value!.tags.filter(t => !existing.has(String(t))).slice(0, 3)
+    form.value.tags = Array.from(new Set([...(form.value.tags || []), ...additions])).filter(Boolean)
+  }
+}
+const clearAiResult = (): void => {
+  aiResult.value = null
+}
 </script>
