@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { readFeedback } from '../utils/devStore.js'
-import { flushCache } from '../utils/cache'
+import { flushCache } from '../utils/cache.js'
 import { verifyPassword as devVerifyPassword } from '../utils/crypto.js'
 import {
   readCategories,

@@ -5,8 +5,8 @@
 import { Router, type Request, type Response } from 'express'
 import { addFeedback } from '../utils/devStore.js'
 import jwt from 'jsonwebtoken'
-import { getCached, setCached, etagOf } from '../utils/cache'
-import { getSupabase } from '../supabase'
+import { getCached, setCached, etagOf } from '../utils/cache.js'
+import { getSupabase } from '../supabase.js'
 
 const router = Router()
 const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
@@ -176,6 +176,47 @@ router.get('/skills', async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ items, page, limit, total: count ?? items.length })
   } catch (err: any) {
     res.status(500).json({ message: err?.message || '服务器错误' })
+  }
+})
+
+/**
+ * 公开接口：获取启用分类列表（含缓存与 ETag）
+ * GET /api/categories
+ */
+router.get('/categories', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cacheKey = 'categories:active'
+    const cached = getCached(cacheKey)
+    if (cached) {
+      const etag = etagOf(cached)
+      if (req.headers['if-none-match'] === etag) {
+        res.status(304).end()
+        return
+      }
+      res
+        .set('ETag', etag)
+        .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
+        .status(200).json(cached)
+      return
+    }
+
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, slug, description, sort_order, is_active, created_at, updated_at')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    const payload = { items: Array.isArray(data) ? data : [] }
+    setCached(cacheKey, payload, 600_000)
+    const etag = etagOf(payload)
+    res
+      .set('ETag', etag)
+      .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
+      .status(200).json(payload)
+  } catch (err: any) {
+    res.status(200).json({ items: [] })
   }
 })
 

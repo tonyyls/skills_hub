@@ -8,6 +8,8 @@ export const useSkillsStore = defineStore('skills', () => {
   const categories = ref<Category[]>([])
   const categoryCounts = ref<Record<string, number>>({})
   const categoryCountsEtag = ref<string>('')
+  const categoriesEtag = ref<string>('')
+  const categoriesUpdatedAt = ref<number>(0)
   // 分类名称映射（id -> name），避免页面重复请求
   const categoryMap = ref<Record<string, string>>({})
   const tags = ref<Tag[]>([])
@@ -506,61 +508,26 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   const fetchCategories = async () => {
-    /**
-     * 获取分类数据（带5分钟内存缓存与精简字段）。
-     * - 若 `categories` 已存在且在缓存期内，直接返回，避免重复请求。
-     * - 仅选择必要字段并按 `sort_order, name` 排序，减少负载。
-     * - 只取 `is_active=true` 的分类。
-     * 官方文档：
-     * - supabase-js select：https://supabase.com/docs/reference/javascript/select
-     * - PostgREST 查询参数：https://postgrest.org/en/stable/api.html#horizontal-filtering-rows
-     */
-    const CATEGORIES_CACHE_TTL_MS = 5 * 60 * 1000
-    // 简易缓存：时间戳记录（作用域内变量，刷新期间有效）
-    // 注意：页面重载会失效，如需跨会话缓存可改为 localStorage + ETag
-    // 这里使用闭包变量，在 store 生命周期内有效
-    // @ts-ignore 增加内部缓存时间戳（若未定义则初始化为0）
-    if (!(fetchCategories as any)._cacheTs) (fetchCategories as any)._cacheTs = 0
-    const cacheTs: number = (fetchCategories as any)._cacheTs
     const now = Date.now()
-    if (categories.value && categories.value.length > 0 && now - cacheTs < CATEGORIES_CACHE_TTL_MS) {
-      return
-    }
-
+    // TTL 10分钟：已有数据且未过期则复用
+    if (categoriesUpdatedAt.value && (now - categoriesUpdatedAt.value) < 10 * 60 * 1000 && categories.value.length > 0) return
     try {
-      const { data, error: supabaseError } = await supabase
-        .from('categories')
-        .select('id, name, description, created_at, sort_order')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true })
-        .order('name', { ascending: true })
-
-      if (supabaseError) {
-        console.warn('Supabase分类连接失败，使用模拟数据:', supabaseError)
-        // 使用模拟分类数据
-        const mockCategories: Category[] = [
-          { id: '1', name: '前端开发', description: 'HTML, CSS, JavaScript, Vue, React等前端技术', created_at: '2024-01-01T00:00:00Z' },
-          { id: '2', name: 'UI设计', description: 'Figma, Sketch, Adobe XD等设计工具和理论', created_at: '2024-01-01T00:00:00Z' },
-          { id: '3', name: '数据分析', description: 'Python, R, SQL, Excel等数据分析工具', created_at: '2024-01-01T00:00:00Z' },
-          { id: '4', name: '产品管理', description: '产品规划、需求分析、项目管理等产品技能', created_at: '2024-01-01T00:00:00Z' },
-          { id: '5', name: '移动开发', description: 'iOS, Android, React Native, Flutter等移动开发技术', created_at: '2024-01-01T00:00:00Z' },
-          { id: '6', name: '云计算', description: 'AWS, Azure, Google Cloud等云服务平台', created_at: '2024-01-01T00:00:00Z' }
-        ]
-        setCategories(mockCategories)
-      } else {
-        setCategories((data || []) as Category[])
-        // 更新缓存时间戳
-        ;(fetchCategories as any)._cacheTs = Date.now()
+      const headers: Record<string, string> = { Accept: 'application/json' }
+      if (categoriesEtag.value) headers['If-None-Match'] = categoriesEtag.value
+      const res = await fetch('/api/categories', { headers })
+      if (res.status === 304) {
+        categoriesUpdatedAt.value = now
+        return
       }
+      if (!res.ok) throw new Error(`fetch categories failed: ${res.status}`)
+      const et = res.headers.get('ETag') || ''
+      const j = await res.json().catch(() => ({ items: [] }))
+      const items = Array.isArray(j?.items) ? j.items : []
+      setCategories(items as Category[])
+      categoriesUpdatedAt.value = now
+      if (et) categoriesEtag.value = et
     } catch (err) {
-      console.error('获取分类失败:', err)
-      // 使用模拟分类数据作为后备
-      const mockCategories: Category[] = [
-        { id: '1', name: '前端开发', description: 'HTML, CSS, JavaScript, Vue, React等前端技术', created_at: '2024-01-01T00:00:00Z' },
-        { id: '2', name: 'UI设计', description: 'Figma, Sketch, Adobe XD等设计工具和理论', created_at: '2024-01-01T00:00:00Z' },
-        { id: '3', name: '数据分析', description: 'Python, R, SQL, Excel等数据分析工具', created_at: '2024-01-01T00:00:00Z' }
-      ]
-      setCategories(mockCategories)
+      console.warn('获取分类失败，保持现有快照：', (err as any)?.message || err)
     }
   }
 
@@ -570,24 +537,10 @@ export const useSkillsStore = defineStore('skills', () => {
    * - 否则拉取 categories；若拉取失败可回退到 skill_categories。
    */
   const ensureCategoriesLoaded = async (): Promise<void> => {
-    if ((categories.value && categories.value.length > 0) && Object.keys(categoryMap.value).length > 0) return
-    // 尝试现有 categories 构建映射
-    if (categories.value && categories.value.length > 0) {
-      categoryMap.value = Object.fromEntries(categories.value.map((c: Category) => [c.id as string, c.name]))
-      return
-    }
-    // 拉取 categories
     try {
-      const { data, error } = await supabase.from('categories').select('id, name')
-      if (!error && Array.isArray(data) && data.length > 0) {
-        setCategories(data as Category[])
-        return
-      }
-      // 回退到 skill_categories
-      const { data: data2, error: error2 } = await supabase.from('skill_categories').select('id, name')
-      if (!error2 && Array.isArray(data2) && data2.length > 0) {
-        // 仅构建映射，不污染 categories 类型不一致
-        categoryMap.value = Object.fromEntries((data2 as any[]).map((c: any) => [String(c.id), String(c.name)]))
+      await fetchCategories()
+      if (categories.value && categories.value.length > 0) {
+        categoryMap.value = Object.fromEntries(categories.value.map((c: Category) => [String(c.id), String(c.name)]))
       }
     } catch (e) {
       console.warn('ensureCategoriesLoaded 失败:', e)
