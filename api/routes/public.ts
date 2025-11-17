@@ -4,9 +4,9 @@
  */
 import { Router, type Request, type Response } from 'express'
 import { addFeedback } from '../utils/devStore.js'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
 import { getCached, setCached, etagOf } from '../utils/cache'
+import { getSupabase } from '../supabase'
 
 const router = Router()
 const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_ENABLE_FEEDBACK ?? 'true') === 'true'
@@ -15,19 +15,7 @@ const enableFeedback = String(process.env.ENABLE_FEEDBACK ?? process.env.VITE_EN
  * 惰性初始化 Supabase 服务端客户端（使用 Service Role Key）
  * 避免 dotenv 未加载时读取到空值。
  */
-let supabaseClient: SupabaseClient | null = null
-const getSupabase = (): SupabaseClient => {
-  if (supabaseClient) return supabaseClient
-  const SUPABASE_URL = process.env.VITE_SUPABASE_URL
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('缺少 Supabase 服务端配置环境变量')
-  }
-  supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    db: { schema: 'public' }
-  })
-  return supabaseClient
-}
+// Supabase 服务端客户端统一由 api/supabase.ts 提供
 
 /**
  * 获取启用状态的友情链接列表（公开接口）。
