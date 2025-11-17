@@ -49,7 +49,12 @@
 
           <!-- 顶部分类标签（静态快照，用于筛选） -->
           <div class="mb-6">
-            <div class="flex flex-wrap items-center gap-2">
+            <div v-if="categoriesLoading" class="flex flex-wrap items-center gap-2 animate-pulse">
+              <div v-for="n in 10" :key="n" class="h-8 rounded-full bg-gray-200" :class="[
+                n % 5 === 0 ? 'w-28' : n % 5 === 1 ? 'w-24' : n % 5 === 2 ? 'w-20' : n % 5 === 3 ? 'w-32' : 'w-16'
+              ]"></div>
+            </div>
+            <div v-else class="flex flex-wrap items-center gap-2">
               <button
                 @click="selectCategory('')"
                 :class="[
