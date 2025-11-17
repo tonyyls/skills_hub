@@ -83,27 +83,29 @@
       <!-- 内容区域 -->
       <div class="max-w-7xl mx-auto px-4 pb-16">
         <!-- 区域标题 -->
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center justify-between mb-8">
           <h2 class="text-2xl font-semibold text-[#444]">{{ sectionTitle }}</h2>
-          <div class="flex items-center gap-3">
-            <button
-              v-for="filter in filters"
-              :key="filter.value"
-              @click="activeFilter = filter.value"
+          <div class="flex-1 flex justify-center">
+            <div class="inline-flex items-center bg-white border border-[#E5E5E5] rounded-full p-1 shadow-sm">
+              <button
+                v-for="filter in filters"
+                :key="filter.value"
+                @click="activeFilter = filter.value"
               :class="[
-                'px-4 py-2 rounded-full text-sm font-medium transition-all duration-300',
-                activeFilter === filter.value
-                  ? 'bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white shadow-sm'
-                  : 'bg-white text-[#555] border border-[#E5E5E5] hover:bg-[#FFF5EF] hover:text-[#333]'
-              ]"
-            >
-              <component :is="filter.icon" class="h-4 w-4 inline mr-2" v-if="filter.icon" />
-              {{ filter.label }}
-            </button>
+                  'px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 min-w-[88px] inline-flex items-center justify-center gap-2 leading-none',
+                  activeFilter === filter.value
+                    ? 'bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white shadow-sm'
+                    : 'text-[#555] hover:bg-[#FFF5EF] hover:text-[#333]'
+                ]"
+              >
+                <component :is="filter.icon" class="h-4 w-4" v-if="filter.icon" />
+                {{ filter.label }}
+              </button>
+            </div>
           </div>
           <router-link
             to="/skills"
-            class="text-[#FF7A45] hover:text-[#ff8a55] transition-colors flex items-center gap-1"
+            class="text-[#FF7A45] hover:text-[#ff8a55] transition-colors inline-flex items-center gap-1"
           >
             查看全部
             <ChevronRight class="h-4 w-4" />

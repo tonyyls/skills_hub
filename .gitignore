@@ -24,6 +24,9 @@ dist-ssr
 *.sw?
 .vite
 
+# Local clones and temp workspace
+tmp/
+
 # Env files (do not commit secrets)
 .env
 .env.local
