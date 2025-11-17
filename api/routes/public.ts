@@ -137,3 +137,55 @@ router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: e?.message || '提交失败' })
   }
 })
+
+/**
+ * 公开接口：分页获取已发布技能列表
+ * GET /api/skills?page=1&limit=24&q=&category=
+ * - 仅返回必要字段，去除 content 大字段以提升性能
+ * - 统一按创建时间倒序
+ * - 返回 { items, page, limit, total }
+ */
+router.get('/skills', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const supabase = getSupabase()
+    const page = Math.max(parseInt(String(req.query.page || '1'), 10) || 1, 1)
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit || '30'), 10) || 30, 1), 100)
+    const q = (req.query.q as string | undefined)?.trim()
+    const categoryId = (req.query.category as string | undefined)?.trim()
+
+    let query = supabase
+      .from('skills')
+      .select('id, name, description, category_id, featured, recommended, author_name, tags, created_at, updated_at', { count: 'exact' })
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+
+    if (q && q.length > 0) {
+      query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+    }
+    if (categoryId) {
+      query = query.eq('category_id', categoryId)
+    }
+
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    const { data, error, count } = await query.range(from, to)
+    if (error) throw error
+
+    const items = (data || []).map((row: any) => ({
+      id: row.id,
+      title: row.name,
+      description: row.description || '',
+      category_id: row.category_id || '',
+      featured: !!row.featured,
+      recommended: !!row.recommended,
+      author_name: row.author_name || '',
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    }))
+
+    res.status(200).json({ items, page, limit, total: count ?? items.length })
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || '服务器错误' })
+  }
+})

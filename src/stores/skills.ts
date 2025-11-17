@@ -14,7 +14,8 @@ export const useSkillsStore = defineStore('skills', () => {
   const searchQuery = ref('')
   const selectedCategory = ref<string>('')
   const currentPage = ref(1)
-  const itemsPerPage = ref(12)
+  const itemsPerPage = ref(30)
+  const totalCount = ref(0)
 
   /**
    * 过滤后的技能列表
@@ -159,7 +160,7 @@ export const useSkillsStore = defineStore('skills', () => {
        */
       const { data, error: supabaseError } = await supabase
         .from('skills')
-        .select('*')
+        .select('id, title:name, description, category_id, featured, recommended, author_name, tags, created_at, updated_at')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
 
@@ -176,7 +177,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 128,
             created_at: '2024-01-15T10:00:00Z',
             updated_at: '2024-01-15T10:00:00Z',
-            content: 'Vue 3组件开发的完整指南',
+            
             tags: [
               { id: 'mock-vue', name: 'Vue.js', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
@@ -192,7 +193,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 256,
             created_at: '2024-01-14T09:30:00Z',
             updated_at: '2024-01-14T09:30:00Z',
-            content: 'React Hooks完整教程',
+            
             tags: [
               { id: 'mock-react', name: 'React', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
@@ -208,7 +209,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 89,
             created_at: '2024-01-13T14:20:00Z',
             updated_at: '2024-01-13T14:20:00Z',
-            content: 'Figma设计系统构建指南',
+            
             tags: [
               { id: 'mock-figma', name: 'Figma', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-ui', name: 'UI设计', created_at: '1970-01-01T00:00:00Z' },
@@ -224,7 +225,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 167,
             created_at: '2024-01-12T11:15:00Z',
             updated_at: '2024-01-12T11:15:00Z',
-            content: 'Python数据分析完整教程',
+            
             tags: [
               { id: 'mock-python', name: 'Python', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-data', name: '数据分析', created_at: '1970-01-01T00:00:00Z' },
@@ -240,7 +241,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 203,
             created_at: '2024-01-11T16:45:00Z',
             updated_at: '2024-01-11T16:45:00Z',
-            content: '产品经理工作指南',
+            
             tags: [
               { id: 'mock-pm', name: '产品管理', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-req', name: '需求分析', created_at: '1970-01-01T00:00:00Z' },
@@ -256,7 +257,7 @@ export const useSkillsStore = defineStore('skills', () => {
             download_count: 342,
             created_at: '2024-01-10T13:30:00Z',
             updated_at: '2024-01-10T13:30:00Z',
-            content: 'TypeScript高级编程指南',
+            
             tags: [
               { id: 'mock-ts', name: 'TypeScript', created_at: '1970-01-01T00:00:00Z' },
               { id: 'mock-fe', name: '前端开发', created_at: '1970-01-01T00:00:00Z' },
@@ -269,14 +270,16 @@ export const useSkillsStore = defineStore('skills', () => {
         // 将 Supabase 返回的字段映射为前端 Skill 结构
         const mapped = (data || []).map((row: any) => ({
           id: row.id,
-          user_id: row.author_id || row.user_id || '',
+          // 列表页不需要 author_id，省略用户关联
+          user_id: '',
           title: row.title || row.name || '未命名技能',
           description: row.description || '',
-          content: row.content || '',
+          // 列表页不返回 content 大字段，降低传输体积
           category_id: row.category_id || row.category?.id || '',
           featured: !!row.featured,
           recommended: !!row.recommended,
-          download_count: typeof row.download_count === 'number' ? row.download_count : (row.downloads ?? 0),
+          // 列表页不需要下载数，统一置 0
+          download_count: 0,
           created_at: row.created_at,
           updated_at: row.updated_at,
           author_name: row.author_name || '',
@@ -322,6 +325,34 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   /**
+   * 通过后端接口分页获取技能列表（已发布）。
+   * - 仅返回必要字段，不包含 content
+   * - 支持关键词与分类过滤
+   */
+  const fetchSkillsPaged = async (page = 1, limit = 30, q?: string, categoryId?: string): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const usp = new URLSearchParams()
+      usp.append('page', String(Math.max(page, 1)))
+      usp.append('limit', String(Math.max(Math.min(limit, 100), 1)))
+      if (q && q.trim()) usp.append('q', q.trim())
+      if (categoryId && categoryId.trim()) usp.append('category', categoryId.trim())
+      const res = await fetch(`/api/skills?${usp.toString()}`, { headers: { Accept: 'application/json' } })
+      if (!res.ok) throw new Error(`fetch paged skills failed: ${res.status}`)
+      const j = await res.json()
+      const items = Array.isArray(j?.items) ? j.items : []
+      totalCount.value = Number(j?.total || items.length || 0)
+      setSkills(items as Skill[])
+    } catch (err: any) {
+      console.error('[skillsStore] fetchSkillsPaged error:', err?.message || err)
+      setError(err?.message || '加载技能失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /**
    * 获取最新技能列表（按创建时间倒序，仅已发布）。
    * 匿名访问受 RLS 限制，需过滤 `status = 'published'`。
    * 无模拟数据回退：错误时返回空数组。
@@ -334,7 +365,7 @@ export const useSkillsStore = defineStore('skills', () => {
     try {
       const { data, error: supabaseError } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(24)
@@ -350,7 +381,7 @@ export const useSkillsStore = defineStore('skills', () => {
         user_id: row.author_id || row.user_id || '',
         title: row.title || '未命名技能',
         description: row.description || '',
-        content: row.content || '',
+        // 首页不需要大字段 content，提升传输性能
         category_id: row.category_id || row.category?.id || '',
         featured: !!row.featured,
         recommended: !!row.recommended,
@@ -391,7 +422,7 @@ export const useSkillsStore = defineStore('skills', () => {
       // A: featured=true
       const { data: featuredRows, error: errA } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .eq('featured', true)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -400,7 +431,7 @@ export const useSkillsStore = defineStore('skills', () => {
       // B: tags 包含“精选”
       const { data: taggedRows, error: errB } = await supabase
         .from('skills')
-        .select('id, title:name, description, content, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
+        .select('id, title:name, description, category_id, featured, recommended, author_id, author_name, tags, created_at, updated_at')
         .contains('tags', ['精选'])
         .eq('status', 'published')
         .order('created_at', { ascending: false })
@@ -424,7 +455,7 @@ export const useSkillsStore = defineStore('skills', () => {
         user_id: row.author_id || row.user_id || '',
         title: row.title || '未命名技能',
         description: row.description || '',
-        content: row.content || '',
+        // 首页不需要大字段 content，提升传输性能
         category_id: row.category_id || row.category?.id || '',
         featured: !!row.featured,
         recommended: !!row.recommended,
@@ -775,6 +806,7 @@ export const useSkillsStore = defineStore('skills', () => {
     selectedCategory,
     currentPage,
     itemsPerPage,
+    totalCount,
     filteredSkills,
     paginatedSkills,
     totalPages,
@@ -787,6 +819,7 @@ export const useSkillsStore = defineStore('skills', () => {
     setSelectedCategory,
     setCurrentPage,
     fetchSkills,
+    fetchSkillsPaged,
     fetchLatestSkills,
     fetchFeaturedSkills,
     fetchTotalCount,

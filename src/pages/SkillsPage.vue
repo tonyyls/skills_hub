@@ -222,8 +222,14 @@
             </div>
           </div>
           
-          <!-- 分页 -->
           <div v-if="totalPages > 1" class="flex justify-center space-x-2 mt-8">
+            <button
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              首页
+            </button>
             <button
               @click="goToPage(currentPage - 1)"
               :disabled="currentPage === 1"
@@ -231,7 +237,6 @@
             >
               上一页
             </button>
-            
             <button
               v-for="page in visiblePages"
               :key="page"
@@ -245,13 +250,19 @@
             >
               {{ page }}
             </button>
-            
             <button
               @click="goToPage(currentPage + 1)"
               :disabled="currentPage === totalPages"
               class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               下一页
+            </button>
+            <button
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              尾页
             </button>
           </div>
         </div>
@@ -291,7 +302,7 @@ const searchQuery = ref('')
 const selectedCategory = ref('')
 const sortBy = ref('createdAt')
 const currentPage = ref(1)
-const itemsPerPage = ref(12)
+const itemsPerPage = ref(30)
 /**
  * 左侧分类骨架屏加载状态。
  * 在进入页面时先置为 true，待分类数据加载完成后置为 false。
@@ -326,23 +337,8 @@ const error = computed(() => skillsStore.error)
  * - 使用 `selectedCategory` 的分类ID进行过滤（与后端返回的 `category_id` 对齐）。
  * - 兼容旧字段 `category`（名称）但优先按ID匹配，避免名称变更导致的筛选失效。
  */
-const filteredList = computed(() => {
-  let list = skills.value.slice()
-  const q = (searchQuery.value || '').trim().toLowerCase()
-  if (q) {
-    list = list.filter(s =>
-      (s.title || '').toLowerCase().includes(q) ||
-      (s.description || '').toLowerCase().includes(q) ||
-      (Array.isArray(s.tags) ? s.tags : []).some(t => (typeof t === 'string' ? t : (t?.name || '')).toLowerCase().includes(q))
-    )
-  }
-  if (selectedCategory.value) {
-    // 优先使用ID匹配；若后端数据仍残留名称字段，兜底匹配名称映射到ID
-    list = list.filter(s => s.category_id === selectedCategory.value || getCategoryName(s.category_id) === getCategoryName(selectedCategory.value))
-  }
-  return list
-})
-const totalPages = computed(() => Math.ceil((filteredList.value.length || 0) / itemsPerPage.value))
+const filteredList = computed(() => skills.value.slice())
+const totalPages = computed(() => Math.ceil((skillsStore.totalCount || 0) / itemsPerPage.value))
 
 // 带统计的分类列表
 /**
@@ -375,23 +371,7 @@ const visiblePages = computed(() => {
  * - 根据 `selectedCategory` 过滤分类。
  * - 简单排序示例：按标题或下载数或创建时间。
  */
-const displayedSkills = computed(() => {
-  let list = filteredList.value.slice()
-  const q = (searchQuery.value || '').trim().toLowerCase()
-  // 排序
-  if (sortBy.value === 'title') {
-    list.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
-  } else if (sortBy.value === 'downloads') {
-    const getD = (x: any) => (typeof x.download_count === 'number' ? x.download_count : (x.downloads || 0))
-    list.sort((a, b) => getD(b) - getD(a))
-  } else if (sortBy.value === 'createdAt') {
-    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }
-  // 分页
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return list.slice(start, end)
-})
+const displayedSkills = computed(() => filteredList.value)
 
 /**
  * 收藏交互：阻止冒泡，登录校验，确认后入库。
@@ -528,7 +508,7 @@ const getCategoryName = (categoryOrId: string): string => {
  * 加载技能数据
  */
 const loadSkills = async () => {
-  await skillsStore.fetchSkills()
+  await skillsStore.fetchSkillsPaged(currentPage.value, itemsPerPage.value, (searchQuery.value || '').trim(), selectedCategory.value || '')
 }
 
 /**
@@ -566,8 +546,6 @@ const selectSort = (sort: string) => {
 const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    // 滚动到顶部
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
@@ -629,6 +607,10 @@ onMounted(async () => {
   await loadSkills()
   // 加载用户收藏数据（仅登录后）
   await loadFavorites()
+})
+
+watch([currentPage, itemsPerPage, searchQuery, selectedCategory], async () => {
+  await loadSkills()
 })
 
 /**
