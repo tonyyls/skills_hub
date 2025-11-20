@@ -10,10 +10,16 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Skills Hub - 技能分享平台</title>
-    <script>
-      window.va = window.va || function() { (window.vaq = window.vaq || []).push(arguments) }
+    <script type="module">
+      if (import.meta.env.PROD) {
+        window.va = window.va || function() { (window.vaq = window.vaq || []).push(arguments) }
+        const s = document.createElement('script')
+        s.defer = true
+        s.src = '/_vercel/insights/script.js'
+        s.setAttribute('data-analytics', 'true')
+        document.head.appendChild(s)
+      }
     </script>
-    <script defer src="/_vercel/insights/script.js" data-analytics="true"></script>
     <script type="module">
       if (import.meta.hot?.on) {
         import.meta.hot.on('vite:error', (error) => {

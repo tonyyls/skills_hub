@@ -203,7 +203,7 @@ router.get('/categories', async (req: Request, res: Response): Promise<void> => 
     const supabase = getSupabase()
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name, slug, description, sort_order, is_active, created_at, updated_at')
+      .select('id, name, name_en, slug, description, sort_order, is_active, created_at, updated_at')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })

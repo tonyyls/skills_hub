@@ -1,0 +1,145 @@
+{
+  "common": {
+    "appTitle": "Skills Hub",
+    "search": "Search",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "all": "All",
+    "pagination": {
+      "first": "First",
+      "prev": "Previous",
+      "next": "Next",
+      "last": "Last"
+    },
+    "retry": "Retry"
+  },
+  "nav": {
+    "home": "Home",
+    "skills": "Skills",
+    "tutorial": "Tutorial",
+    "profile": "Profile",
+    "login": "Login",
+    "admin": "Admin",
+    "favorites": "My Favorites"
+  },
+  "pages": {
+    "home": {
+      "titlePrefix": "Discover Excellent",
+      "titleSkills": "Skills",
+      "titleSuffix": "Resources",
+      "subtitle": "Skills Hub is a third-party skills marketplace, with {count} skills.",
+      "searchPlaceholder": "Search skills by keyword...",
+      "filters": { "latest": "Latest", "featured": "Featured" },
+      "section": { "latest": "Latest Skills", "featured": "Featured Skills" },
+      "viewAll": "View all"
+    },
+    "skills": {
+      "title": "Skills Library",
+      "intro": "Excellent community Skills to boost AI productivity",
+      "empty": "No skills found",
+      "tryAnother": "Try other categories",
+      "resetFilters": "Reset filters",
+      "featured": "Featured",
+      "favorite": {
+        "title": "Add to Favorites",
+        "confirm": "Do you want to add this skill to favorites?"
+      },
+      "toast": {
+        "loginRequired": "Please sign in to add favorites",
+        "added": "Added to favorites",
+        "removed": "Removed from favorites",
+        "failed": "Operation failed or not favorited",
+        "error": "Operation error, please try again later"
+      }
+    },
+    "tutorial": {
+      "title": "Getting Started",
+      "intro": "Guide to using Skills Hub",
+      "claudeTitle": "How to use Skills in Claude Code or Claude AI",
+      "claudeIntro": "Claude includes products like Claude Code and Claude AI by Anthropic. With Skills Hub, you can quickly import skills into these apps.",
+      "stepsTitle": "Steps",
+      "claudeStep1": "Open the command line in the Claude app",
+      "claudeStep2": "Find the install command of the skill (e.g. /plugin marketplace add lackeyjb-playwright-skill) and run it",
+      "codebuddyTitle": "How to use Skills in CodeBuddy",
+      "codebuddyIntro": "CodeBuddy is an AI-native IDE by Tencent. With Skills Hub, you can use these skills in your AI coding workflow.",
+      "codebuddyStep1": "Find the skill and get the git URL, then clone it to a local folder",
+      "codebuddyStep2": "Open the CodeBuddy IDE",
+      "codebuddyStep3": "In Settings → Skills, import the folder to personal/project skills"
+    },
+    "skillDetail": {
+      "title": "Skill Detail",
+      "meta": {
+        "author": "Author",
+        "updatedAt": "Updated"
+      },
+      "git": "Git URL",
+      "install": "Install Command",
+      "overview": "Overview",
+      "noDescription": "No description.",
+      "related": "Related Skills",
+      "copyGit": "Copy Git URL",
+      "copyInstall": "Copy install command",
+      "copySuccess": "Copied to clipboard",
+      "copyFailed": "Copy failed, please copy manually",
+      "recommend": "Recommended",
+      "official": "Official",
+      "uncategorized": "Uncategorized",
+      "loadFailedTitle": "Load Failed",
+      "invalidId": "Invalid skill ID",
+      "notFound": "Skill does not exist or has been removed",
+      "loadFailed": "Failed to load, please try again later",
+      "downloadSuccess": "Download succeeded",
+      "downloadFailed": "Download failed, please try again later",
+      "feedback": {
+        "loginRequired": "Please sign in before submitting feedback",
+        "selectIssueRequired": "Please select at least one issue or fill in other comments",
+        "submitFailed": "Submit failed",
+        "submitSuccess": "Feedback submitted, thank you!",
+        "submitError": "Submit failed, please try again later",
+        "submitting": "Submitting…",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "title": "Submit Feedback",
+        "issueCatIncorrect": "Category is inaccurate",
+        "issueInstallFailed": "Cannot install this skill",
+        "issueUrlUnavailable": "URL is unreachable",
+        "otherLabel": "Other comments (max 100 chars)",
+        "otherPlaceholder": "Please enter other comments"
+      }
+    },
+    "login": {
+      "title": "Admin Login",
+      "btn": {
+        "signIn": "Sign in",
+        "signOut": "Sign out"
+      },
+      "desc": "Sign in with admin account",
+      "username": "Username",
+      "password": "Password",
+      "loading": "Signing in...",
+      "chooseMethod": "Choose a sign-in method",
+      "github": "GitHub Sign in",
+      "terms": "By continuing, you agree to our Terms of Use and Privacy Policy."
+    },
+    "search": {
+      "title": "Search Results",
+      "found": "Found {count} results for \"{keyword}\"",
+      "placeholder": "Search by keyword",
+      "searchBtn": "Search",
+      "loading": "Searching...",
+      "emptyTitle": "No results found",
+      "emptyDesc": "Try a different keyword or adjust filters",
+      "official": "Official",
+      "uncategorized": "Uncategorized"
+    },
+    "profileSkills": {
+      "title": "My Favorites",
+      "subtitle": "Manage your favorite skills",
+      "stat": "Favorited {count} skills",
+      "emptyTitle": "No skills favorited yet",
+      "emptyDesc": "Explore skills and click favorite to see them here",
+      "explore": "Explore Skills",
+      "remove": "Remove Favorite"
+    }
+  }
+}

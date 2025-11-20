@@ -28,21 +28,21 @@
             class="nav-link text-[#333] hover:text-[#FF7A45]"
             :class="{ 'active': $route.path === '/' }"
           >
-            首页
+            {{ t('nav.home') }}
           </router-link>
           <router-link 
             to="/skills" 
             class="nav-link text-[#333] hover:text-[#FF7A45]"
             :class="{ 'active': $route.path.startsWith('/skills') }"
           >
-            技能
+            {{ t('nav.skills') }}
           </router-link>
           <router-link 
             to="/tutorial" 
             class="nav-link text-[#333] hover:text-[#FF7A45]"
             :class="{ 'active': $route.path.startsWith('/tutorial') }"
           >
-            教程
+            {{ t('nav.tutorial') }}
           </router-link>
           <router-link 
             to="/about" 
@@ -55,10 +55,42 @@
         </div>
 
         <!-- 用户操作区域 -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-6">
           <!-- 发布技能按钮移除：根据需求暂不展示 -->
 
           <!-- 用户菜单 -->
+          <div class="relative language-menu-container">
+            <button
+              @click="toggleLanguageMenu"
+              class="px-2 py-2 text-[#333] hover:text-[#FF7A45] font-medium flex items-center space-x-1 md:pl-4"
+              aria-haspopup="true"
+              :aria-expanded="showLanguageMenu"
+            >
+              <span>{{ currentLanguage === 'zh-CN' ? '中文' : 'English' }}</span>
+              <ChevronDown class="w-4 h-4 text-gray-500" />
+            </button>
+            <div
+              v-if="showLanguageMenu"
+              class="absolute left-0 mt-2 w-28 bg-white shadow-lg border border-gray-200 py-2 z-50"
+              role="menu"
+            >
+              <button
+                class="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-[#FFF5EF] hover:text-[#FF7A45] transition-colors duration-200"
+                @click="setLanguage('en')"
+                role="menuitem"
+              >
+                English
+              </button>
+              <button
+                class="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-[#FFF5EF] hover:text-[#FF7A45] transition-colors duration-200"
+                @click="setLanguage('zh-CN')"
+                role="menuitem"
+              >
+                中文
+              </button>
+            </div>
+          </div>
+
           <div v-if="isLoggedIn" class="relative user-menu-container">
             <button
               @click="toggleUserMenu"
@@ -89,14 +121,14 @@
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                 @click="showUserMenu = false"
               >
-                个人资料
+                {{ t('nav.profile') }}
               </router-link>
               <router-link
                 to="/profile/skills"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                 @click="showUserMenu = false"
               >
-                我的收藏
+                {{ t('nav.favorites') }}
               </router-link>
               <!-- 管理后台入口：仅管理员可见 -->
               <router-link
@@ -105,60 +137,26 @@
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                 @click="showUserMenu = false"
               >
-                管理后台
+                {{ t('nav.admin') }}
               </router-link>
               <button
                 @click="handleLogout"
                 class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
               >
-                退出登录
+                {{ t('pages.login.btn.signOut') }}
               </button>
             </div>
           </div>
 
           <!-- 语言切换 + 登录文字链接（未登录时显示） -->
           <div v-else class="flex items-center space-x-2">
-            <!-- 语言下拉菜单 -->
-            <div class="relative language-menu-container" v-if="false">
-              <button
-                @click="toggleLanguageMenu"
-                class="px-2 py-2 text-[#333] hover:text-[#FF7A45] font-medium flex items-center space-x-1"
-                aria-haspopup="true"
-                :aria-expanded="showLanguageMenu"
-              >
-                <span>{{ currentLanguage === 'zh' ? '中文' : 'English' }}</span>
-                <ChevronDown class="w-4 h-4 text-gray-500" />
-              </button>
-              <!-- 下拉内容 -->
-              <div
-                v-if="showLanguageMenu"
-                class="absolute left-0 mt-2 w-28 bg-white shadow-lg border border-gray-200 py-2 z-50"
-                role="menu"
-              >
-                <button
-                  class="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-[#FFF5EF] hover:text-[#FF7A45] transition-colors duration-200"
-                  @click="setLanguage('zh')"
-                  role="menuitem"
-                >
-                  中文
-                </button>
-                <button
-                  class="block w-full text-left px-4 py-2 text-sm text-[#333] hover:bg-[#FFF5EF] hover:text-[#FF7A45] transition-colors duration-200"
-                  @click="setLanguage('en')"
-                  role="menuitem"
-                >
-                  English
-                </button>
-              </div>
-            </div>
-
             <!-- 登录文字链接 -->
             <button
               @click="openLoginModal"
               :disabled="authStore.loading"
               class="px-2 py-2 text-[#333] hover:text-[#FF7A45] font-medium disabled:opacity-50"
             >
-              登录
+              {{ t('pages.login.btn.signIn') }}
             </button>
           </div>
 
@@ -184,21 +182,21 @@
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            <Home class="w-5 h-5 mr-2 inline" /> 首页
+            <Home class="w-5 h-5 mr-2 inline" /> {{ t('nav.home') }}
           </router-link>
           <router-link 
             to="/skills" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            <FilePlus class="w-5 h-5 mr-2 inline" /> 技能
+            <FilePlus class="w-5 h-5 mr-2 inline" /> {{ t('nav.skills') }}
           </router-link>
           <router-link 
             to="/tutorial" 
             class="mobile-nav-link"
             @click="showMobileMenu = false"
           >
-            <BookOpen class="w-5 h-5 mr-2 inline" /> 教程
+            <BookOpen class="w-5 h-5 mr-2 inline" /> {{ t('nav.tutorial') }}
           </router-link>
           <router-link 
             to="/about" 
@@ -215,7 +213,7 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              <User class="w-5 h-5 mr-2 inline" /> 个人资料
+              <User class="w-5 h-5 mr-2 inline" /> {{ t('nav.profile') }}
             </router-link>
             <!-- 移除移动端发布技能入口：根据需求暂不展示 -->
             <!-- 管理后台入口：仅管理员可见 -->
@@ -225,13 +223,13 @@
               class="mobile-nav-link"
               @click="showMobileMenu = false"
             >
-              <Shield class="w-5 h-5 mr-2 inline" /> 管理后台
+              <Shield class="w-5 h-5 mr-2 inline" /> {{ t('nav.admin') }}
             </router-link>
             <button
               @click="handleLogout"
               class="mobile-nav-link text-red-600"
             >
-              退出登录
+              {{ t('pages.login.btn.signOut') }}
             </button>
           </div>
           
@@ -243,7 +241,7 @@
               @click="showMobileMenu = false"
               v-if="isDev"
             >
-              <LogIn class="w-5 h-5 mr-2 inline" /> 管理员登录
+              <LogIn class="w-5 h-5 mr-2 inline" /> {{ t('pages.login.title') }}
             </router-link>
           </div>
         </div>
@@ -262,28 +260,28 @@
     >
       <div class="bg-white max-w-md w-full p-6 shadow-2xl border border-[#E5E5E5] rounded-lg">
         <div class="relative mb-4">
-          <h3 id="loginDialogTitle" class="text-lg font-bold text-[#333] text-center">登录</h3>
+          <h3 id="loginDialogTitle" class="text-lg font-bold text-[#333] text-center">{{ t('pages.login.title') }}</h3>
           <button class="absolute right-2 top-1.5 p-2 hover:bg-[#FFF5EF]" @click="closeLoginModal" aria-label="关闭登录弹窗">
             <X class="w-5 h-5 text-gray-600" />
           </button>
         </div>
-        <p id="loginDialogDesc" class="text-[#666] text-sm mb-4 text-center">选择登录方式</p>
+        <p id="loginDialogDesc" class="text-[#666] text-sm mb-4 text-center">{{ t('pages.login.chooseMethod') }}</p>
         <div class="flex flex-col gap-3 items-center">
           <button
-            class="px-4 py-3 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
+            class="px-4 py-3 min-w-[220px] bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
             :disabled="authStore.loading"
             @click="loginWithGithub"
           >
             <Github class="w-5 h-5" />
-            <span>{{ authStore.loading ? '登录中...' : 'GitHub 登录' }}</span>
+            <span>{{ authStore.loading ? t('pages.login.loading') : t('pages.login.github') }}</span>
           </button>
           <button
-            class="px-4 py-3 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
+            class="px-4 py-3 min-w-[220px] bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white hover:opacity-90 transition-all inline-flex items-center justify-center space-x-2"
             @click="loginAsAdmin"
             v-if="isDev"
           >
             <User class="w-5 h-5" />
-            <span>管理员登录</span>
+            <span>{{ t('pages.login.title') }}</span>
           </button>
           <button
             class="px-4 py-3 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition-all inline-flex items-center justify-center space-x-2 disabled:opacity-60"
@@ -302,7 +300,7 @@
             <span>邮箱登录（敬请期待）</span>
           </button>
         </div>
-        <p class="mt-4 text-xs text-gray-500 text-center">继续即表示你同意我们的使用条款与隐私政策。</p>
+        <p class="mt-4 text-xs text-gray-500 text-center">{{ t('pages.login.terms') }}</p>
       </div>
     </div>
 
@@ -356,9 +354,12 @@ import {
   Shield
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
+import { setLocale, i18n } from '@/i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 /**
  * 是否开发环境（用于在开发环境显示管理员入口）。
@@ -376,7 +377,7 @@ const isDev = computed<boolean>(() => {
 
 const showUserMenu = ref(false)
 const showLanguageMenu = ref(false)
-const currentLanguage = ref<'zh' | 'en'>('zh')
+const currentLanguage = ref<'zh-CN' | 'en'>(i18n.global.locale.value as 'zh-CN' | 'en')
 const showMobileMenu = ref(false)
 const showLoginModal = ref(false)
 const showLogoutConfirm = ref(false)
@@ -437,12 +438,9 @@ const toggleLanguageMenu = () => {
  * 设置语言（中文/英文），并持久化到 localStorage 与 html lang
  * @param lang - 'zh' 或 'en'
  */
-const setLanguage = (lang: 'zh' | 'en') => {
+const setLanguage = (lang: 'zh-CN' | 'en') => {
   currentLanguage.value = lang
-  try {
-    localStorage.setItem('appLanguage', lang)
-  } catch {}
-  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en'
+  setLocale(lang)
   showLanguageMenu.value = false
 }
 
@@ -535,12 +533,11 @@ onMounted(() => {
   authStore.checkAuth()
   // 初始化语言：读取本地存储，设置 html lang
   try {
-    const saved = localStorage.getItem('appLanguage') as 'zh' | 'en' | null
-    if (saved === 'zh' || saved === 'en') {
+    const saved = localStorage.getItem('app_locale') as 'zh-CN' | 'en' | null
+    if (saved === 'zh-CN' || saved === 'en') {
       currentLanguage.value = saved
     }
   } catch {}
-  document.documentElement.lang = currentLanguage.value === 'zh' ? 'zh-CN' : 'en'
 })
 
 onUnmounted(() => {

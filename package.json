@@ -23,18 +23,19 @@
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",
+    "dompurify": "^3.0.6",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "github-markdown-css": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-vue-next": "^0.446.0",
+    "markdown-it": "^13.0.1",
     "multer": "^1.4.5-lts.1",
     "pinia": "^2.2.2",
     "tailwind-merge": "^2.5.2",
     "vue": "^3.4.37",
-    "vue-router": "^4.4.5",
-    "markdown-it": "^13.0.1",
-    "dompurify": "^3.0.6",
-    "github-markdown-css": "^5.2.0"
+    "vue-i18n": "^9.14.0",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

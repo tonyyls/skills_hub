@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Skill, Category, Tag } from '@/lib/supabase'
+import { i18n } from '@/i18n'
 import { supabase } from '@/lib/supabase'
 
 export const useSkillsStore = defineStore('skills', () => {
@@ -12,6 +13,13 @@ export const useSkillsStore = defineStore('skills', () => {
   const categoriesUpdatedAt = ref<number>(0)
   // 分类名称映射（id -> name），避免页面重复请求
   const categoryMap = ref<Record<string, string>>({})
+  const rebuildCategoryMapForLocale = () => {
+    const isEn = i18n.global.locale.value === 'en'
+    categoryMap.value = Object.fromEntries((categories.value || []).map((c: Category) => [
+      String(c.id),
+      isEn ? String(c.name_en || c.name) : String(c.name)
+    ]))
+  }
   const tags = ref<Tag[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -67,7 +75,7 @@ export const useSkillsStore = defineStore('skills', () => {
   const setCategories = (newCategories: Category[]) => {
     categories.value = newCategories
     // 同步构建映射
-    categoryMap.value = Object.fromEntries((newCategories || []).map((c: Category) => [c.id as string, c.name]))
+    rebuildCategoryMapForLocale()
   }
 
   const setTags = (newTags: Tag[]) => {
@@ -507,14 +515,18 @@ export const useSkillsStore = defineStore('skills', () => {
     }
   }
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (bust?: boolean) => {
     const now = Date.now()
-    // TTL 10分钟：已有数据且未过期则复用
-    if (categoriesUpdatedAt.value && (now - categoriesUpdatedAt.value) < 10 * 60 * 1000 && categories.value.length > 0) return
+    if (!bust && categoriesUpdatedAt.value && (now - categoriesUpdatedAt.value) < 10 * 60 * 1000 && categories.value.length > 0) return
     try {
       const headers: Record<string, string> = { Accept: 'application/json' }
-      if (categoriesEtag.value) headers['If-None-Match'] = categoriesEtag.value
-      const res = await fetch('/api/categories', { headers })
+      const locale = i18n.global.locale.value
+      headers['Accept-Language'] = locale === 'zh-CN' ? 'zh-CN' : 'en'
+      if (!bust && categoriesEtag.value) headers['If-None-Match'] = categoriesEtag.value
+      const qs = new URLSearchParams()
+      qs.set('lang', locale === 'zh-CN' ? 'zh-CN' : 'en')
+      if (bust) qs.set('bust', String(now))
+      const res = await fetch(`/api/categories?${qs.toString()}`, { headers })
       if (res.status === 304) {
         categoriesUpdatedAt.value = now
         return
@@ -540,12 +552,18 @@ export const useSkillsStore = defineStore('skills', () => {
     try {
       await fetchCategories()
       if (categories.value && categories.value.length > 0) {
-        categoryMap.value = Object.fromEntries(categories.value.map((c: Category) => [String(c.id), String(c.name)]))
+        rebuildCategoryMapForLocale()
       }
     } catch (e) {
       console.warn('ensureCategoriesLoaded 失败:', e)
     }
   }
+
+  // 监听语言切换，重建分类名称映射
+  watch(() => i18n.global.locale.value, async () => {
+    await fetchCategories(true)
+    rebuildCategoryMapForLocale()
+  })
 
   /**
    * 拉取各分类的已发布技能数量（独立于分页与筛选）。
@@ -806,6 +824,7 @@ export const useSkillsStore = defineStore('skills', () => {
     fetchCategories,
     fetchCategoryCounts,
     ensureCategoriesLoaded,
+    rebuildCategoryMapForLocale,
     fetchTags,
     fetchSkillById,
     incrementDownloadCount,

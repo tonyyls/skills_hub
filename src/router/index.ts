@@ -5,6 +5,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { i18n } from '@/i18n'
 
 // 页面组件
 import HomePage from '@/pages/HomePage.vue'
@@ -21,7 +22,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Home',
     component: HomePage,
     meta: {
-      title: '首页 - Skills Hub'
+      titleKey: 'pages.home.title'
     }
   },
   {
@@ -29,7 +30,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Skills',
     component: SkillsPage,
     meta: {
-      title: '技能资源 - Skills Hub'
+      titleKey: 'pages.skills.title'
     }
   },
   {
@@ -37,7 +38,7 @@ const routes: RouteRecordRaw[] = [
     name: 'SkillDetail',
     component: SkillDetailPage,
     meta: {
-      title: '技能详情 - Skills Hub'
+      titleKey: 'pages.skillDetail.title'
     }
   },
   {
@@ -45,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Profile',
     component: ProfilePage,
     meta: {
-      title: '个人资料 - Skills Hub',
+      titleKey: 'nav.profile',
       requiresAuth: true
     }
   },
@@ -54,7 +55,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Publish',
     component: PublishPage,
     meta: {
-      title: '发布技能 - Skills Hub',
+      titleKey: 'nav.skills',
       requiresAdmin: true
     }
   },
@@ -64,7 +65,7 @@ const routes: RouteRecordRaw[] = [
     name: 'About',
     component: () => import('@/pages/AboutPage.vue'),
     meta: {
-      title: '关于我们 - Skills Hub'
+      titleKey: 'nav.profile'
     }
   },
   {
@@ -72,7 +73,7 @@ const routes: RouteRecordRaw[] = [
     name: 'AuthCallback',
     component: () => import('@/pages/AuthCallbackPage.vue'),
     meta: {
-      title: '登录回调 - Skills Hub'
+      titleKey: 'nav.login'
     }
   },
   {
@@ -80,7 +81,7 @@ const routes: RouteRecordRaw[] = [
     name: 'AdminLogin',
     component: AdminLogin,
     meta: {
-      title: '管理员登录 - Skills Hub'
+      titleKey: 'pages.login.title'
     }
   },
   {
@@ -88,7 +89,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Admin',
     component: () => import('@/views/AdminDashboard.vue'),
     meta: {
-      title: '管理后台 - Skills Hub',
+      titleKey: 'nav.profile',
       requiresAdmin: true
     },
     children: [
@@ -97,7 +98,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminOverview',
         component: () => import('@/views/AdminOverview.vue'),
         meta: {
-          title: '管理概览 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       },
       {
@@ -105,7 +106,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminCategories',
         component: () => import('@/views/AdminCategories.vue'),
         meta: {
-          title: '分类管理 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       },
       {
@@ -113,7 +114,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminSkills',
         component: () => import('@/views/AdminSkills.vue'),
         meta: {
-          title: '技能管理 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       },
       {
@@ -121,7 +122,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminUsers',
         component: () => import('@/views/AdminUsers.vue'),
         meta: {
-          title: '用户管理 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       }
       ,
@@ -130,7 +131,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminProfile',
         component: () => import('@/views/AdminProfile.vue'),
         meta: {
-          title: '管理员资料 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       },
       {
@@ -138,7 +139,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminLinks',
         component: () => import('@/views/AdminLinks.vue'),
         meta: {
-          title: '友情链接管理 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       }
       ,
@@ -147,7 +148,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminFeedback',
         component: () => import('@/views/AdminFeedback.vue'),
         meta: {
-          title: '用户反馈 - Skills Hub'
+          titleKey: 'nav.profile'
         }
       }
     ]
@@ -157,7 +158,7 @@ const routes: RouteRecordRaw[] = [
     name: 'Tutorial',
     component: () => import('@/pages/TutorialPage.vue'),
     meta: {
-      title: '使用教程 - Skills Hub'
+      titleKey: 'pages.tutorial.title'
     }
   },
   {
@@ -165,7 +166,7 @@ const routes: RouteRecordRaw[] = [
     name: 'SearchResults',
     component: () => import('@/pages/SearchResultsPage.vue'),
     meta: {
-      title: '搜索结果 - Skills Hub'
+      titleKey: 'common.appTitle'
     }
   },
   {
@@ -173,7 +174,7 @@ const routes: RouteRecordRaw[] = [
     name: 'ProfileSkills',
     component: () => import('@/pages/ProfileSkillsPage.vue'),
     meta: {
-      title: '我的收藏 - Skills Hub',
+      titleKey: 'pages.profileSkills.title',
       requiresAuth: true
     }
   },
@@ -182,7 +183,7 @@ const routes: RouteRecordRaw[] = [
     name: 'NotFound',
     component: () => import('@/pages/NotFoundPage.vue'),
     meta: {
-      title: '页面未找到 - Skills Hub'
+      titleKey: 'common.appTitle'
     }
   }
 ]
@@ -214,8 +215,8 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // 设置页面标题
-  document.title = (to.meta.title as string) || 'Skills Hub'
+  const key = (to.meta.titleKey as string) || 'common.appTitle'
+  document.title = i18n.global.t(key)
 
   // 管理员权限校验
   if (to.meta.requiresAdmin) {

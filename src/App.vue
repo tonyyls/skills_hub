@@ -16,8 +16,8 @@
           <!-- 左侧：Skills Hub 简介 -->
           <div class="inline-flex items-center gap-3">
             <span class="text-lg font-semibold text-[#333]">Skills Hub</span>
-            <span class="text-[#999]">·</span>
-            <span class="text-[#666] text-sm">汇聚全网最优秀的Skills资源</span>
+            <span class="text-[#999]" v-if="isZh">·</span>
+            <span class="text-[#666] text-sm" v-if="isZh">汇聚全网最优秀的Skills资源</span>
           </div>
 
           <!-- 右侧：版权信息 -->
@@ -29,7 +29,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import NavBar from '@/components/NavBar.vue'
 
 // 友情链接类型声明（与后端 link_exchange 表结构对应的必要字段）
@@ -65,6 +66,9 @@ const loadFriendLinks = async (): Promise<void> => {
 onMounted(async () => {
   await loadFriendLinks()
 })
+
+const { locale } = useI18n()
+const isZh = computed(() => locale.value === 'zh-CN')
 </script>
 
 <style>

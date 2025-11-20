@@ -107,13 +107,13 @@
           </div>
         </div>
 
-        <!-- 快捷入口：我的收藏 -->
+          <!-- 快捷入口：我的收藏 -->
         <div class="mt-6">
           <router-link
             to="/profile/skills"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors"
           >
-            查看我的收藏
+            {{ t('nav.favorites') }}
           </router-link>
         </div>
       </div>

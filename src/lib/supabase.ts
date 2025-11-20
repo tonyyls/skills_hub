@@ -121,6 +121,7 @@ export interface Skill {
 export interface Category {
   id: string
   name: string
+  name_en?: string
   description?: string
   sort_order: number
   created_at: string

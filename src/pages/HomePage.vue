@@ -16,11 +16,11 @@
       @click.self="cancelFavorite"
     >
       <div class="bg-white rounded-lg shadow p-5 w-full max-w-sm">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">加入收藏</h3>
-        <p class="text-gray-600 mb-4">是否将该技能加入收藏？</p>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('pages.skills.favorite.title') }}</h3>
+        <p class="text-gray-600 mb-4">{{ t('pages.skills.favorite.confirm') }}</p>
         <div class="flex justify-end gap-2">
-          <button class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200" @click="cancelFavorite">取消</button>
-          <button class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200" @click="confirmFavorite">确认</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200" @click="cancelFavorite">{{ t('common.cancel') }}</button>
+          <button class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200" @click="confirmFavorite">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </div>
@@ -30,12 +30,12 @@
       <section class="relative py-16 lg:py-20 overflow-hidden">
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-[#333] mb-6 leading-tight">
-            发现优秀的 
-            <span class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] bg-clip-text text-transparent">Skills</span>
-            技能资源
+            {{ t('pages.home.titlePrefix') }} 
+            <span class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] bg-clip-text text-transparent">{{ t('pages.home.titleSkills') }}</span>
+            {{ t('pages.home.titleSuffix') }}
           </h1>
           <p class="text-lg md:text-xl text-[#666] mb-10 max-w-3xl mx-auto leading-relaxed">
-            Skills Hub 是一个第三方技能市场，共收录了 {{ totalSkills }} 个技能。
+            {{ t('pages.home.subtitle', { count: totalSkills }) }}
           </p>
 
           <!-- 搜索框：与首页一致的现代化样式 -->
@@ -49,7 +49,7 @@
                     v-select-all-shortcut
                     @keyup.enter="handleSearch"
                     type="text"
-                    placeholder="关键字搜索技能..."
+                    :placeholder="t('pages.home.searchPlaceholder')"
                     class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:border-transparent focus-visible:border-transparent focus:ring-0 focus-visible:ring-0 px-4 py-3 text-gray-800 placeholder-[#9AA0A6] text-base md:text-lg select-text"
                   />
                   <!-- 清除输入按钮：仅在有内容时显示 -->
@@ -67,7 +67,7 @@
                     @click="handleSearch"
                     class="bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white px-5 py-2 rounded-full font-semibold hover:shadow-md transition-all duration-300 mr-1"
                   >
-                    搜索
+                    {{ t('common.search') }}
                   </button>
                 </div>
               </div>
@@ -99,7 +99,7 @@
                 ]"
               >
                 <component :is="filter.icon" class="h-4 w-4" v-if="filter.icon" />
-                {{ filter.label }}
+                {{ t('pages.home.filters.' + filter.value) }}
               </button>
             </div>
           </div>
@@ -107,7 +107,7 @@
             to="/skills"
             class="text-[#FF7A45] hover:text-[#ff8a55] transition-colors inline-flex items-center gap-1"
           >
-            查看全部
+            {{ t('pages.home.viewAll') }}
             <ChevronRight class="h-4 w-4" />
           </router-link>
         </div>
@@ -226,6 +226,7 @@ import { Search, ChevronRight, Star, Flame, Award, XCircle } from 'lucide-vue-ne
 import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const skillsStore = useSkillsStore()
@@ -252,10 +253,10 @@ const serverCount = ref(16946)
 const favorites = ref<string[]>([])
 
 // 筛选器：仅保留“最新、精选”两项
-const filters = [
-  { value: 'latest', label: '最新', icon: Award },
-  { value: 'featured', label: '精选', icon: Flame }
-]
+const filters = ref([
+  { value: 'latest', icon: Award },
+  { value: 'featured', icon: Flame }
+])
 
 // 当前筛选：默认定位到“最新”
 const activeFilter = ref('latest')
@@ -266,8 +267,9 @@ const activeFilter = ref('latest')
  * - latest: "最新技能资源"
  * - featured: "精选技能资源"
  */
+const { t } = useI18n()
 const sectionTitle = computed<string>(() => {
-  return activeFilter.value === 'latest' ? '最新技能资源' : '精选技能资源'
+  return activeFilter.value === 'latest' ? t('pages.home.section.latest') : t('pages.home.section.featured')
 })
 
 // 首页总数统计：通过 Supabase RPC 获取
@@ -362,7 +364,7 @@ const loadSkillsForFilter = async (): Promise<void> => {
 const getCategoryName = (categoryId?: string): string => {
   if (!categoryId) return ''
   const byId = skillsStore.categories.find(c => c.id === categoryId)
-  return byId?.name || skillsStore.categoryMap[categoryId] || ''
+  return skillsStore.categoryMap[categoryId] || byId?.name || ''
 }
 
 // 监听筛选切换，动态拉取数据
@@ -419,7 +421,7 @@ const pendingFavoriteSkill = ref<any | null>(null)
  */
 const handleFavorite = async (skill: any) => {
   if (!authStore.isAuthenticated) {
-    showToastMessage('请先登录以收藏')
+    showToastMessage(t('pages.skills.toast.loginRequired'))
     return
   }
   if (favorites.value.includes(skill.id)) {
@@ -444,14 +446,14 @@ const confirmFavorite = async (): Promise<void> => {
       .insert({ user_id: authStore.user.id, skill_id: skill.id })
     if (error) {
       console.warn('收藏失败或已收藏：', error.message)
-      showToastMessage('已收藏或操作失败')
+      showToastMessage(t('pages.skills.toast.failed'))
     } else {
       favorites.value = Array.from(new Set([...favorites.value, skill.id]))
-      showToastMessage('已加入收藏')
+      showToastMessage(t('pages.skills.toast.added'))
     }
   } catch (e: any) {
     console.error('收藏异常：', e)
-    showToastMessage('操作异常，请稍后重试')
+    showToastMessage(t('pages.skills.toast.error'))
   } finally {
     pendingFavoriteSkill.value = null
   }
@@ -470,14 +472,14 @@ const removeFavorite = async (skillId: string): Promise<void> => {
       .eq('skill_id', skillId)
     if (error) {
       console.warn('取消收藏失败：', error.message)
-      showToastMessage('取消收藏失败或未收藏')
+      showToastMessage(t('pages.skills.toast.failed'))
       return
     }
     favorites.value = favorites.value.filter(id => id !== skillId)
-    showToastMessage('已取消收藏')
+    showToastMessage(t('pages.skills.toast.removed'))
   } catch (e: any) {
     console.error('取消收藏异常：', e)
-    showToastMessage('操作异常，请稍后重试')
+    showToastMessage(t('pages.skills.toast.error'))
   }
 }
 
@@ -575,6 +577,8 @@ onMounted(async () => {
     console.log('[HomePage] onMounted:end')
   }
 })
+
+
 
 // 监听登录状态变化，同步收藏列表
 watch(

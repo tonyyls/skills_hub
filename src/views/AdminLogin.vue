@@ -3,10 +3,10 @@
     <div class="max-w-md w-full space-y-8">
       <div class="text-center">
         <h2 class="text-3xl font-bold text-gray-900">
-          管理员登录
+          {{ t('pages.login.title') }}
         </h2>
         <p class="mt-2 text-gray-600">
-          使用管理员账户登录管理后台
+          {{ t('pages.login.desc') }}
         </p>
       </div>
 
@@ -14,7 +14,7 @@
         <div class="space-y-4">
           <div>
             <label for="username" class="block text-sm font-medium text-gray-700">
-              用户名
+              {{ t('pages.login.username') }}
             </label>
             <input
               id="username"
@@ -29,7 +29,7 @@
 
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
-              密码
+              {{ t('pages.login.password') }}
             </label>
             <input
               id="password"
@@ -59,7 +59,7 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             </span>
-            {{ loading ? '登录中...' : '登录' }}
+            {{ loading ? t('pages.login.loading') : t('pages.login.btn.signIn') }}
           </button>
         </div>
       </form>
@@ -71,9 +71,11 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const form = reactive({
   username: import.meta.env.DEV ? 'admin' : '',

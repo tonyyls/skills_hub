@@ -35,7 +35,7 @@
     <div v-else-if="error" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
         <AlertCircle class="w-16 h-16 text-[#FF7A45] mx-auto mb-4" />
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">加载失败</h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ t('pages.skillDetail.loadFailedTitle') }}</h2>
         <p class="text-gray-600 mb-2">{{ error }}</p>
       </div>
     </div>
@@ -50,7 +50,7 @@
           class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
         >
           <ArrowLeft class="w-4 h-4" />
-          <span>返回技能列表</span>
+          <span>{{ t('pages.skills.title') }}</span>
         </a>
       </div>
       
@@ -68,13 +68,13 @@
                 {{ skill.category?.name || getCategoryName(skill.category_id) || '未分类' }}
               </p>
               <p v-if="skill.featured" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                精选
+                {{ t('pages.skills.featured') }}
               </p>
               <p v-if="skill.recommended" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                 推荐
               </p>
             <p class="text-xs text-gray-600">{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方') }}</p>
-        <p class="text-sm text-gray-500">最近更新于 {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
+            <p class="text-sm text-gray-500">{{ t('pages.skillDetail.meta.updatedAt') }} {{ formatDate(skill?.updated_at || skill?.updatedAt || skill?.created_at) }}</p>
             </div>
             <!-- 技能标签显示 与 反馈按钮 -->
             <div v-if="skill.tags && skill.tags.length" class="mt-4">
@@ -87,7 +87,7 @@
             
             
             <div v-if="skill.git_url" class="relative group mt-3">
-              <h3 class="font-semibold text-gray-900 mb-2">Git地址</h3>
+              <h3 class="font-semibold text-gray-900 mb-2">{{ t('pages.skillDetail.git') }}</h3>
               <pre
                 class="relative bg-gray-50 rounded-md px-3 py-4 pr-10 text-gray-800 whitespace-pre-wrap break-words font-mono text-sm overflow-x-auto min-h-14 flex items-center"
               >
@@ -103,7 +103,7 @@
               </pre>
             </div>
             <div v-if="skill.install_command" class="relative group mt-3">
-              <h3 class="font-semibold text-gray-900 mb-2">安装命令</h3>
+              <h3 class="font-semibold text-gray-900 mb-2">{{ t('pages.skillDetail.install') }}</h3>
               <pre
                 class="relative bg-gray-50 rounded-md px-3 py-4 pr-10 text-gray-800 whitespace-pre-wrap break-words font-mono text-sm overflow-x-auto min-h-14 flex items-center"
               >
@@ -124,7 +124,7 @@
         <!-- 顶部标签导航（静态） -->
         <div class="px-6 lg:px-8 mt-4 flex items-center gap-6">
           <span class="relative pb-1 text-[#E07245]">
-            概述
+            {{ t('pages.skillDetail.overview') }}
             <span class="absolute left-0 -bottom-px w-full h-0.5 bg-[#E07245]"></span>
           </span>
         </div>
@@ -139,7 +139,7 @@
                     <div class="markdown-body" v-if="(skill?.content || skill?.description)">
                       <div v-html="mdHtml"></div>
                     </div>
-                    <p v-else class="text-gray-500">暂无描述。</p>
+                    <p v-else class="text-gray-500">{{ t('pages.skillDetail.noDescription') }}</p>
                   </div>
                   <div>
                     
@@ -154,7 +154,7 @@
 
       <!-- 相关推荐 -->
       <div v-if="relatedSkills.length > 0" class="mt-12">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">相关推荐</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">{{ t('pages.skillDetail.related') }}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <SkillCard
             v-for="relatedSkill in relatedSkills"
@@ -183,29 +183,29 @@
     <div v-if="enableFeedback && showFeedbackModal" class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="absolute inset-0 bg-black/30" @click="showFeedbackModal=false"></div>
       <div class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
-        <h3 class="text-base font-semibold text-gray-900 mb-4">提交反馈</h3>
+        <h3 class="text-base font-semibold text-gray-900 mb-4">{{ t('pages.skillDetail.feedback.title') }}</h3>
         <div class="space-y-3">
           <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" value="分类不准确" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-            <span>分类不准确</span>
+            <input type="checkbox" :value="t('pages.skillDetail.feedback.issueCatIncorrect')" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>{{ t('pages.skillDetail.feedback.issueCatIncorrect') }}</span>
           </label>
           <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" value="无法安装该技能" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-            <span>无法安装该技能</span>
+            <input type="checkbox" :value="t('pages.skillDetail.feedback.issueInstallFailed')" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>{{ t('pages.skillDetail.feedback.issueInstallFailed') }}</span>
           </label>
           <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" value="地址已经无法访问了" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-            <span>地址已经无法访问了</span>
+            <input type="checkbox" :value="t('pages.skillDetail.feedback.issueUrlUnavailable')" v-model="selectedIssues" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+            <span>{{ t('pages.skillDetail.feedback.issueUrlUnavailable') }}</span>
           </label>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">其他意见（最多100字）</label>
-            <textarea v-model="otherComment" maxlength="100" rows="3" class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors" placeholder="请输入其他意见"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('pages.skillDetail.feedback.otherLabel') }}</label>
+            <textarea v-model="otherComment" maxlength="100" rows="3" class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors" :placeholder="t('pages.skillDetail.feedback.otherPlaceholder')"></textarea>
             <div class="mt-1 text-xs text-gray-500">{{ otherComment.length }}/100</div>
           </div>
         </div>
         <div class="mt-4 flex justify-end gap-2">
-          <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" @click="showFeedbackModal=false" :disabled="isSubmitting">取消</button>
-          <button type="button" class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-50 disabled:opacity-50" @click="submitFeedback" :disabled="isSubmitting">{{ isSubmitting ? '提交中…' : '提交' }}</button>
+          <button type="button" class="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" @click="showFeedbackModal=false" :disabled="isSubmitting">{{ t('pages.skillDetail.feedback.cancel') }}</button>
+          <button type="button" class="px-3 py-1.5 text-sm border border-orange-600 text-orange-600 rounded-md hover:bg-orange-50 disabled:opacity-50" @click="submitFeedback" :disabled="isSubmitting">{{ isSubmitting ? t('pages.skillDetail.feedback.submitting') : t('pages.skillDetail.feedback.submit') }}</button>
         </div>
       </div>
     </div>
@@ -220,12 +220,14 @@ import { useSkillsStore } from '@/stores/skills'
 import { supabase, type Skill } from '@/lib/supabase'
 import SkillCard from '@/components/SkillCard.vue'
 import { renderMarkdown } from '@/utils/markdown'
+import { useI18n } from 'vue-i18n'
 
 const enableFeedback = import.meta.env.VITE_ENABLE_FEEDBACK !== 'false'
 
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
+const { t } = useI18n()
 
 /**
  * 根据分类ID获取分类中文名称。
@@ -279,7 +281,7 @@ const showToast = (message: string, duration = 2000) => {
 const loadSkill = async () => {
   const skillId = route.params.id as string
   if (!skillId) {
-    error.value = '无效的技能ID'
+    error.value = t('pages.skillDetail.invalidId')
     return
   }
   
@@ -295,10 +297,10 @@ const loadSkill = async () => {
       // 加载相关推荐
       await loadRelatedSkills(skillData)
     } else {
-      error.value = '技能不存在或已删除'
+      error.value = t('pages.skillDetail.notFound')
     }
   } catch (err) {
-    error.value = '加载失败，请稍后重试'
+    error.value = t('pages.skillDetail.loadFailed')
     console.error('Load skill error:', err)
   } finally {
     isLoading.value = false
@@ -430,10 +432,10 @@ const copyToClipboard = async (text: string): Promise<void> => {
       document.execCommand('copy')
       document.body.removeChild(input)
     }
-    showToast('已复制到剪贴板')
+    showToast(t('pages.skillDetail.copySuccess'))
   } catch (e) {
     console.error('复制失败：', e)
-    showToast('复制失败，请手动复制')
+    showToast(t('pages.skillDetail.copyFailed'))
   }
 }
 
@@ -452,7 +454,7 @@ const openFeedback = async (): Promise<void> => {
   const { data } = await supabase.auth.getSession()
   const adminToken = localStorage.getItem('admin_token')
   if (!(data?.session || adminToken)) {
-    showToast('请先登录后再提交反馈')
+    showToast(t('pages.skillDetail.feedback.loginRequired'))
     return
   }
   showFeedbackModal.value = true
@@ -466,11 +468,11 @@ const submitFeedback = async (): Promise<void> => {
   const { data } = await supabase.auth.getSession()
   const adminToken = localStorage.getItem('admin_token')
   if (!(data?.session || adminToken)) {
-    showToast('请先登录后再提交反馈')
+    showToast(t('pages.skillDetail.feedback.loginRequired'))
     return
   }
   if (selectedIssues.value.length === 0 && !otherComment.value.trim()) {
-    showToast('请选择至少一条反馈或填写其他意见')
+    showToast(t('pages.skillDetail.feedback.selectIssueRequired'))
     return
   }
   if (!skill.value?.id) return
@@ -486,13 +488,13 @@ const submitFeedback = async (): Promise<void> => {
       },
       body: JSON.stringify({ type: 'skill', source_id: skill.value.id, issues: selectedIssues.value, comment: otherComment.value.trim() })
     })
-    if (!res.ok) throw new Error('提交失败')
+    if (!res.ok) throw new Error('submit_failed')
     showFeedbackModal.value = false
     selectedIssues.value = []
     otherComment.value = ''
-    showToast('反馈已提交，谢谢！')
+    showToast(t('pages.skillDetail.feedback.submitSuccess'))
   } catch {
-    showToast('提交失败，请稍后再试')
+    showToast(t('pages.skillDetail.feedback.submitError'))
   } finally {
     isSubmitting.value = false
   }

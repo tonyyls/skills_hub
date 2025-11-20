@@ -7,12 +7,14 @@ import 'github-markdown-css/github-markdown.css'
 import { useAuthStore } from '@/stores/auth'
 import { useGlobalSelectAllDirective } from '@/composables/useGlobalSelectAll'
 import { useTruncateTitleDirective } from '@/composables/useTruncateTitleTooltip'
+import { i18n } from '@/i18n'
 
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 
 // 全局注册选择快捷键指令：v-select-all-shortcut
 const { selectAllShortcutDirective } = useGlobalSelectAllDirective()

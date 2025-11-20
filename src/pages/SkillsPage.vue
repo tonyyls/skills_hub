@@ -31,9 +31,9 @@
     <div class="bg-transparent">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="text-left">
-<h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">技能资源</h1>
+<h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">{{ t('pages.skills.title') }}</h1>
           <p class="text-lg text-gray-600 max-w-2xl">
-汇聚社区中优质的 Skills 技能资源，助力全面提升 AI 使用效率
+            {{ t('pages.skills.intro') }}
           </p>
         </div>
       </div>
@@ -62,7 +62,7 @@
                   selectedCategory === '' ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 ]"
               >
-                全部
+                {{ t('common.all') }}
               </button>
               <button
                 v-for="cat in categoryOptions"
@@ -84,7 +84,7 @@
           <div class="mb-6">
             <div class="flex items-center gap-2 mb-4">
               <component :is="getCategoryIcon(currentTitle)" class="w-6 h-6 text-orange-600" />
-              <h2 class="text-2xl font-bold text-gray-900">{{ currentTitle }}</h2>
+            <h2 class="text-2xl font-bold text-gray-900">{{ currentTitle }}</h2>
             </div>
           </div>
 
@@ -112,21 +112,21 @@
               @click="loadSkills"
               class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200"
             >
-              重试
+              {{ t('common.retry') }}
             </button>
           </div>
           
           <!-- 空状态 -->
           <div v-else-if="displayedSkills.length === 0" class="text-center py-12">
             <Search class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 class="text-lg font-medium text-gray-900 mb-2">没有找到相关技能</h3>
-            <p class="text-gray-600 mb-4">试试其他分类</p>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ t('pages.skills.empty') }}</h3>
+            <p class="text-gray-600 mb-4">{{ t('pages.skills.tryAnother') }}</p>
             <button
               @click="resetFilters"
               class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200"
             >
-              重置筛选
-            </button>
+              {{ t('pages.skills.resetFilters') }}
+              </button>
           </div>
           
           <!-- 技能网格（白卡风格） -->
@@ -145,7 +145,7 @@
                     v-if="skill.recommended || skill.featured"
                     class="px-2 py-1 text-xs rounded-full bg-[#FF7A45] text-white flex-shrink-0"
                   >
-                    精选
+                    {{ t('pages.skills.featured') }}
                   </span>
                   <h3
                     class="font-semibold text-gray-800 text-lg truncate min-w-0 transition-colors duration-200 group-hover:text-[#FF7A45]"
@@ -205,14 +205,14 @@
               :disabled="currentPage === 1"
               class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              首页
+              {{ t('common.pagination.first') }}
             </button>
             <button
               @click="goToPage(currentPage - 1)"
               :disabled="currentPage === 1"
               class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              上一页
+              {{ t('common.pagination.prev') }}
             </button>
             <button
               v-for="page in visiblePages"
@@ -232,14 +232,14 @@
               :disabled="currentPage === totalPages"
               class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              下一页
+              {{ t('common.pagination.next') }}
             </button>
             <button
               @click="goToPage(totalPages)"
               :disabled="currentPage === totalPages"
               class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              尾页
+              {{ t('common.pagination.last') }}
             </button>
           </div>
         </div>
@@ -268,11 +268,14 @@ import { useSkillsStore } from '@/stores/skills'
 import { useAuthStore } from '@/stores/auth'
 import SkillCard from '@/components/SkillCard.vue'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const router = useRouter()
 const skillsStore = useSkillsStore()
 const authStore = useAuthStore()
+const { locale } = useI18n()
+const { t } = useI18n()
 
 // 状态管理
 // 搜索功能已移除
@@ -319,7 +322,9 @@ const error = computed(() => skillsStore.error)
 
   const currentTitle = computed(() => {
     const name = selectedCategory.value ? getCategoryName(selectedCategory.value) : ''
-    return name && name.trim() ? name : '全部'
+    if (name && name.trim()) return name
+    const _dep = locale.value
+    return t('common.all')
   })
 
 // 带统计的分类列表
@@ -331,6 +336,8 @@ const error = computed(() => skillsStore.error)
 const categoriesWithCount = computed(() => {
   return categories.value.map(category => ({
     ...category,
+    // 名称按当前语言映射
+    name: skillsStore.categoryMap[category.id] || category.name,
     count: (skillsStore.categoryCounts[category.id] ?? 0)
   }))
 })
@@ -368,7 +375,7 @@ const pendingFavoriteSkill = ref<any | null>(null)
 const handleFavorite = async (skill: any) => {
   // 阻止冒泡已在模板 @click.stop 处理
   if (!authStore.isAuthenticated) {
-    showToastMessage('请先登录以收藏')
+    showToastMessage(t('pages.skills.toast.loginRequired'))
     return
   }
   // 已收藏则直接取消收藏
@@ -396,17 +403,17 @@ const confirmFavorite = async () => {
       .insert({ user_id: authStore.user.id, skill_id: skill.id })
     if (error) {
       console.warn('收藏失败或已收藏：', error.message)
-      showToastMessage('已收藏或操作失败')
+      showToastMessage(t('pages.skills.toast.failed'))
     } else {
       // 本地状态立即更新，确保星标高亮
       if (!favoritesSet.value.has(skill.id)) {
         favorites.value = Array.from(new Set([...favorites.value, skill.id]))
       }
-      showToastMessage('已加入收藏')
+      showToastMessage(t('pages.skills.toast.added'))
     }
   } catch (e: any) {
     console.error('收藏异常：', e)
-    showToastMessage('操作异常，请稍后重试')
+    showToastMessage(t('pages.skills.toast.error'))
   } finally {
     pendingFavoriteSkill.value = null
   }
@@ -426,15 +433,15 @@ const removeFavorite = async (skillId: string): Promise<void> => {
       .eq('skill_id', skillId)
     if (error) {
       console.warn('取消收藏失败：', error.message)
-      showToastMessage('取消收藏失败或未收藏')
+      showToastMessage(t('pages.skills.toast.failed'))
       return
     }
     // 更新本地状态
     favorites.value = favorites.value.filter(id => id !== skillId)
-    showToastMessage('已取消收藏')
+    showToastMessage(t('pages.skills.toast.removed'))
   } catch (e: any) {
     console.error('取消收藏异常：', e)
-    showToastMessage('操作异常，请稍后重试')
+    showToastMessage(t('pages.skills.toast.error'))
   }
 }
 
@@ -484,6 +491,8 @@ const getSkillIcon = (categoryId: string) => {
  */
 const getCategoryName = (categoryOrId: string): string => {
   if (!categoryOrId) return ''
+  const fromMap = skillsStore.categoryMap[categoryOrId]
+  if (fromMap) return fromMap
   const byId = categories.value.find(c => c.id === categoryOrId)
   return byId?.name || categoryOrId
 }
@@ -589,7 +598,20 @@ onMounted(async () => {
   // 加载用户收藏数据（仅登录后）
   await loadFavorites()
   await skillsStore.fetchCategoryCounts()
+categoryOptions.value = categoriesWithCount.value
+
+// 语言切换时更新分类选项快照
+watch(locale, () => {
   categoryOptions.value = categoriesWithCount.value
+})
+
+// 分类或映射更新时，同步快照，保证不刷新也立即更新名称
+watch(() => skillsStore.categoryMap, () => {
+  categoryOptions.value = categoriesWithCount.value
+}, { deep: true })
+watch(categories, () => {
+  categoryOptions.value = categoriesWithCount.value
+}, { deep: true })
 })
 
 watch([currentPage, itemsPerPage, selectedCategory], async () => {

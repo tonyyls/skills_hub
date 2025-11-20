@@ -16,12 +16,12 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900">我的收藏</h1>
-            <p class="mt-2 text-gray-600">管理你收藏的技能资源</p>
+            <h1 class="text-3xl font-bold text-gray-900">{{ t('pages.profileSkills.title') }}</h1>
+            <p class="mt-2 text-gray-600">{{ t('pages.profileSkills.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-2 text-sm text-gray-500">
             <Star class="w-4 h-4 text-yellow-400 fill-current" />
-            <span>已收藏 {{ favoriteSkills.length }} 个技能</span>
+            <span>{{ t('pages.profileSkills.stat', { count: favoriteSkills.length }) }}</span>
           </div>
         </div>
       </div>
@@ -49,14 +49,14 @@
           <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
             <Star class="w-12 h-12 text-yellow-400 fill-current" />
           </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">还没有收藏任何技能</h3>
-          <p class="text-gray-600 mb-8">去发现一些有趣的技能，点击收藏按钮即可在这里查看</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('pages.profileSkills.emptyTitle') }}</h3>
+          <p class="text-gray-600 mb-8">{{ t('pages.profileSkills.emptyDesc') }}</p>
           <router-link 
             to="/skills"
             class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <Compass class="w-5 h-5" />
-            探索技能
+            {{ t('pages.profileSkills.explore') }}
           </router-link>
         </div>
       </div>
@@ -102,9 +102,9 @@
 
           <!-- 底部信息：左分类、右作者（与首页一致） -->
           <div class="mt-auto flex items-center justify-between text-gray-500 text-sm">
-            <span>{{ getCategoryName(skill.category_id) || '未分类' }}</span>
+            <span>{{ getCategoryName(skill.category_id) || t('pages.search.uncategorized') }}</span>
             <span class="inline-flex items-center gap-2">
-              <span>{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : '官方' }}</span>
+              <span>{{ (skill.author_name && skill.author_name.trim()) ? skill.author_name : t('pages.search.official') }}</span>
             </span>
           </div>
         </div>
@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSkillsStore } from '@/stores/skills'
@@ -136,6 +137,7 @@ interface Skill {
 
 const auth = useAuthStore()
 const skillsStore = useSkillsStore()
+const { t } = useI18n()
 const loading = ref(true)
 const favoriteSkills = ref<Skill[]>([])
 const showToast = ref(false)
@@ -160,8 +162,10 @@ const showToastMessage = (msg: string) => {
  */
 const getCategoryName = (categoryId?: string): string => {
   if (!categoryId) return ''
+  const mapped = skillsStore.categoryMap[categoryId]
+  if (mapped) return mapped
   const byId = skillsStore.categories.find(c => c.id === categoryId)
-  return byId?.name || skillsStore.categoryMap[categoryId] || ''
+  return byId?.name || ''
 }
 
 /**

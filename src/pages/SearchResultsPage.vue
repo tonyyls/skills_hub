@@ -5,11 +5,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="text-center">
           <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            搜索结果
+            {{ t('pages.search.title') }}
           </h1>
           <p class="text-lg text-gray-600">
-            找到 <span class="font-semibold text-orange-600">{{ totalResults }}</span> 个与 
-            <span class="font-semibold text-gray-900">"{{ searchKeyword }}"</span> 相关的结果
+            {{ t('pages.search.found', { count: totalResults, keyword: searchKeyword }) }}
           </p>
         </div>
         
@@ -23,7 +22,7 @@
                   v-model="currentSearchQuery"
                   @keyup.enter="performNewSearch"
                   type="text"
-                  placeholder="关键词搜索"
+                  :placeholder="t('pages.search.placeholder')"
                   class="flex-1 bg-transparent border-none outline-none appearance-none focus:outline-none focus-visible:outline-none focus:ring-0 focus:border-transparent px-4 py-3 text-gray-900 placeholder-gray-400 text-base"
                   v-select-all-shortcut
                 />
@@ -32,8 +31,8 @@
                   v-if="currentSearchQuery"
                   @click="currentSearchQuery = ''"
                   class="ml-1 mr-1 rounded-full p-1 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 transition-colors"
-                  aria-label="清除搜索"
-                  title="清除"
+                  :aria-label="t('common.cancel')"
+                  :title="t('common.cancel')"
                 >
                   <XCircle class="w-4 h-4" />
                 </button>
@@ -41,7 +40,7 @@
                   @click="performNewSearch"
                   class="px-3 py-1.5 text-sm rounded-full bg-orange-600 text-white hover:bg-orange-700 transition-all duration-300 mr-1"
                 >
-                  搜索
+                  {{ t('pages.search.searchBtn') }}
                 </button>
               </div>
             </div>
@@ -56,14 +55,14 @@
           <!-- 加载状态 -->
           <div v-if="loading" class="text-center py-12">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p class="text-gray-600">正在搜索...</p>
+            <p class="text-gray-600">{{ t('pages.search.loading') }}</p>
           </div>
 
           <!-- 无结果 -->
           <div v-else-if="searchResults.length === 0" class="text-center py-12">
             <!-- 已移除空结果搜索图标 -->
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">未找到相关结果</h3>
-            <p class="text-gray-600 mb-6">尝试使用不同的关键词或调整筛选条件</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ t('pages.search.emptyTitle') }}</h3>
+            <p class="text-gray-600 mb-6">{{ t('pages.search.emptyDesc') }}</p>
           </div>
 
           <!-- 搜索结果列表（横条卡容器 + 行分隔） -->
@@ -121,7 +120,7 @@
                 :disabled="currentPage <= 1"
                 :class="getButtonClass('primary', 'large', currentPage <= 1)"
               >
-                上一页
+                {{ t('common.pagination.prev') }}
               </button>
               
               <button
@@ -138,7 +137,7 @@
                 :disabled="currentPage >= totalPages"
                 :class="getButtonClass('primary', 'large', currentPage >= totalPages)"
               >
-                下一页
+                {{ t('common.pagination.next') }}
               </button>
             </div>
           </div>
@@ -157,11 +156,14 @@ import { getButtonClass } from '@/utils/buttonStyles'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const router = useRouter()
 dayjs.extend(relativeTime)
-dayjs.locale('zh-cn')
+const { t, locale } = useI18n()
+dayjs.locale(locale.value === 'zh-CN' ? 'zh-cn' : 'en')
+watch(locale, (l) => { dayjs.locale(l === 'zh-CN' ? 'zh-cn' : 'en') })
 
 // 使用全局 store 的分类映射，避免重复请求
 const skillsStore = useSkillsStore()
@@ -221,7 +223,7 @@ const getDifficultyLabel = (difficulty: string) => {
  * 格式化日期
  */
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('zh-CN')
+  return new Date(dateString).toLocaleDateString(locale.value === 'zh-CN' ? 'zh-CN' : 'en-US')
 }
 
 /**
@@ -237,7 +239,7 @@ const formatRelative = (dateString: string) => {
  * @param skill 技能对象
  */
 const getAuthorDisplay = (skill: Skill) => {
-  const name = (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || '官方')
+  const name = (skill.author_name && skill.author_name.trim()) ? skill.author_name : (skill.author?.username || t('pages.search.official'))
   return name
 }
 
@@ -250,7 +252,7 @@ const getCategoryDisplay = (skill: Skill) => {
   const nameFromRelation = skill.category?.name || ''
   const nameFromMap = skill.category_id ? (skillsStore.categoryMap[skill.category_id] || '') : ''
   const name = nameFromRelation || nameFromMap
-  return name && name.trim() ? name : '未分类'
+  return name && name.trim() ? name : t('pages.search.uncategorized')
 }
 
 /**
