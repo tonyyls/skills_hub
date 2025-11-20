@@ -24,6 +24,7 @@
   },
   "pages": {
     "home": {
+      "title": "Home",
       "titlePrefix": "Discover Excellent",
       "titleSkills": "Skills",
       "titleSuffix": "Resources",
