@@ -19,11 +19,11 @@
       @click.self="cancelFavorite"
     >
       <div class="bg-white rounded-lg shadow p-5 w-full max-w-sm">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">加入收藏</h3>
-        <p class="text-gray-600 mb-4">是否将该技能加入收藏？</p>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t('pages.skills.favorite.title') }}</h3>
+        <p class="text-gray-600 mb-4">{{ t('pages.skills.favorite.confirm') }}</p>
         <div class="flex justify-end gap-2">
-          <button class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200" @click="cancelFavorite">取消</button>
-          <button class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200" @click="confirmFavorite">确认</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200" @click="cancelFavorite">{{ t('common.cancel') }}</button>
+          <button class="px-3 py-1.5 text-sm rounded-md bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200" @click="confirmFavorite">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </div>
