@@ -112,34 +112,47 @@
             </div>
           </div>
 
-          <!-- 分页 -->
-          <div v-if="totalPages > 1" class="flex justify-center mt-12">
-            <div class="flex space-x-2">
-              <button
-                @click="goToPage(currentPage - 1)"
-                :disabled="currentPage <= 1"
-                :class="getButtonClass('primary', 'large', currentPage <= 1)"
-              >
-                {{ t('common.pagination.prev') }}
-              </button>
-              
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                @click="goToPage(page)"
-                :class="getButtonClass('primary', 'large')"
-              >
-                {{ page }}
-              </button>
-              
-              <button
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage >= totalPages"
-                :class="getButtonClass('primary', 'large', currentPage >= totalPages)"
-              >
-                {{ t('common.pagination.next') }}
-              </button>
-            </div>
+          <!-- 分页（样式与 /skills 保持一致） -->
+          <div v-if="totalPages > 1" class="flex justify-center space-x-2 mt-8">
+            <button
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {{ t('common.pagination.first') }}
+            </button>
+            <button
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {{ t('common.pagination.prev') }}
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              @click="goToPage(page)"
+              :class="[
+                'px-2 py-1 rounded-lg transition-colors duration-200',
+                currentPage === page ? 'bg-orange-600 text-white' : 'border border-gray-300 hover:bg-gray-50'
+              ]"
+            >
+              {{ page }}
+            </button>
+            <button
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {{ t('common.pagination.next') }}
+            </button>
+            <button
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              class="px-2 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {{ t('common.pagination.last') }}
+            </button>
           </div>
         </div>
     </div>
