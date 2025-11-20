@@ -80,7 +80,7 @@
             <button
               @click.stop="removeFavorite(skill.id)"
               class="text-yellow-400 hover:text-yellow-500 p-2 rounded-lg transition-colors"
-              title="取消收藏"
+              :title="t('pages.profileSkills.remove')"
             >
               <Star class="w-5 h-5 fill-current" />
             </button>
@@ -264,7 +264,7 @@ const removeFavorite = async (skillId: string) => {
 
     // 从列表中移除
     favoriteSkills.value = favoriteSkills.value.filter(skill => skill.id !== skillId)
-    showToastMessage('已取消收藏')
+    showToastMessage(t('pages.skills.toast.removed'))
   } catch (error) {
     console.error('取消收藏出错:', error)
   }
