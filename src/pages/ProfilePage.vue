@@ -61,10 +61,10 @@
                 {{ userTypeLabel }}
               </p>
               <p class="text-xs text-gray-500 inline-flex items-center gap-1">
-                <CalendarDays class="w-4 h-4 text-gray-600" /> 加入于 {{ memberSince }}
+                <CalendarDays class="w-4 h-4 text-gray-600" /> {{ t('pages.profile.joinedAt') }} {{ memberSince }}
               </p>
             </div>
-<p class="text-gray-500 mt-2">汇聚社区中优质的 Skills 技能资源，助力全面提升 AI 使用效率</p>
+<p class="text-gray-500 mt-2">{{ t('pages.profile.intro') }}</p>
             <div class="flex flex-wrap items-center gap-3 mt-3 text-sm">
               <a v-if="profileEmail" :href="`mailto:${profileEmail}`" class="inline-flex items-center gap-1 text-gray-600 hover:text-blue-600">
                 <Mail class="w-4 h-4" />
@@ -83,7 +83,7 @@
                 >
                   {{ githubDisplayText }}
                 </a>
-                <span v-else class="text-xs text-gray-400">暂无</span>
+                <span v-else class="text-xs text-gray-400">{{ t('pages.profile.fallback.none') }}</span>
               </div>
           </div>
         </div>
@@ -92,15 +92,15 @@
         <!-- 统计信息 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-500">发布技能</p>
+            <p class="text-sm text-gray-500">{{ t('pages.profile.stats.skillsPublished') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.skillsCount }}</p>
           </div>
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-500">总下载量</p>
+            <p class="text-sm text-gray-500">{{ t('pages.profile.stats.totalDownloads') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.totalDownloads }}</p>
           </div>
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-500">加入时间</p>
+            <p class="text-sm text-gray-500">{{ t('pages.profile.stats.joinedTime') }}</p>
             <p class="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
               <CalendarDays class="w-5 h-5 text-gray-600" /> {{ memberSince }}
             </p>
@@ -120,7 +120,7 @@
 
       <!-- 错误提示 -->
       <div v-else class="bg-white/90 backdrop-blur rounded-xl shadow p-6 text-center text-red-600">
-        加载失败，请稍后重试
+        {{ t('pages.profile.errors.loadFailed') }}
       </div>
     </div>
   </div>
@@ -131,6 +131,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { Github, Mail, CalendarDays, PencilLine } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Profile {
   username: string | null
@@ -222,7 +223,7 @@ const loadStats = async (): Promise<void> => {
  * 计算显示名称。
  * @returns {string} 显示的用户名或占位文本。
  */
-const displayName = computed(() => profile.value?.username || auth.user?.username || '未设置昵称')
+const displayName = computed(() => profile.value?.username || auth.user?.username || t('pages.profile.fallback.noNickname'))
 
 /**
  * 计算头像 URL。
@@ -234,7 +235,7 @@ const avatarUrl = computed(() => profile.value?.avatar_url || auth.user?.avatar_
  * 计算简介文本。
  * @returns {string} 简介或占位文本。
  */
-const bioText = computed(() => profile.value?.bio || '暂无简介')
+const bioText = computed(() => profile.value?.bio || t('pages.profile.fallback.noBio'))
 
 /**
  * 邮箱与 GitHub 原始链接。
@@ -269,7 +270,7 @@ const normalizedGithubUrl = computed(() => {
  * @returns {string} 标签文字。
  */
 const userTypeLabel = computed((): string => {
-  return (auth.adminUser && !auth.user?.id) ? '官方' : '用户'
+  return (auth.adminUser && !auth.user?.id) ? t('pages.profile.userType.official') : t('pages.profile.userType.user')
 })
 
 /**
@@ -305,9 +306,10 @@ const githubDisplayText = computed(() => {
  */
 const memberSince = computed(() => {
   const ts = auth.user?.created_at || auth.adminUser?.created_at || ''
-  if (!ts) return '未知'
+  if (!ts) return t('pages.profile.fallback.unknown')
   try {
-    return new Date(ts).toLocaleString('zh-CN')
+    const loc = locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'
+    return new Date(ts).toLocaleString(loc)
   } catch {
     return ts
   }
@@ -331,3 +333,4 @@ watch(
   }
 )
 </script>
+const { t, locale } = useI18n()

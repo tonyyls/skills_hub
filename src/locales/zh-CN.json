@@ -119,7 +119,9 @@
       "loading": "登录中...",
       "chooseMethod": "选择登录方式",
       "github": "GitHub 登录",
-      "terms": "继续即表示你同意我们的使用条款与隐私政策。"
+      "terms": "继续即表示你同意我们的使用条款与隐私政策。",
+      "logoutTitle": "确认退出",
+      "logoutDesc": "确定要退出当前账号吗？退出后需要重新登录。"
     },
     "search": {
       "title": "搜索结果",
@@ -140,6 +142,29 @@
       "emptyDesc": "去发现一些有趣的技能，点击收藏按钮即可在这里查看",
       "explore": "探索技能",
       "remove": "取消收藏"
+    }
+    ,
+    "profile": {
+      "intro": "汇聚社区中优质的 Skills 技能资源，助力全面提升 AI 使用效率",
+      "joinedAt": "加入于",
+      "stats": {
+        "skillsPublished": "发布技能",
+        "totalDownloads": "总下载量",
+        "joinedTime": "加入时间"
+      },
+      "userType": {
+        "official": "官方",
+        "user": "用户"
+      },
+      "fallback": {
+        "none": "暂无",
+        "noNickname": "未设置昵称",
+        "noBio": "暂无简介",
+        "unknown": "未知"
+      },
+      "errors": {
+        "loadFailed": "加载失败，请稍后重试"
+      }
     }
   }
 }

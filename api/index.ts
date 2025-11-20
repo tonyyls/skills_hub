@@ -1,13 +1,15 @@
-/**
- * Vercel deploy entry handler, for serverless deployment, please don't modify this file
- */
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import app from './app.js';
+import express from 'express'
+import type { Request, Response } from 'express'
+import publicRouter from './routes/public'
+import adminRouter from './routes/admin'
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return app(req, res);
-}
+const app = express()
+app.use(express.json())
 
-export const config = {
-  runtime: 'nodejs'
+// Mount routers under /api to match client routes
+app.use('/api', publicRouter)
+app.use('/api', adminRouter)
+
+export default (req: Request, res: Response) => {
+  return (app as any)(req, res)
 }

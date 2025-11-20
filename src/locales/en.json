@@ -119,7 +119,9 @@
       "loading": "Signing in...",
       "chooseMethod": "Choose a sign-in method",
       "github": "GitHub Sign in",
-      "terms": "By continuing, you agree to our Terms of Use and Privacy Policy."
+      "terms": "By continuing, you agree to our Terms of Use and Privacy Policy.",
+      "logoutTitle": "Confirm Sign Out",
+      "logoutDesc": "Are you sure you want to sign out? You will need to sign in again."
     },
     "search": {
       "title": "Search Results",
@@ -140,6 +142,29 @@
       "emptyDesc": "Explore skills and click favorite to see them here",
       "explore": "Explore Skills",
       "remove": "Remove Favorite"
+    }
+    ,
+    "profile": {
+      "intro": "Excellent community Skills to boost AI productivity",
+      "joinedAt": "Joined",
+      "stats": {
+        "skillsPublished": "Published Skills",
+        "totalDownloads": "Total Downloads",
+        "joinedTime": "Joined Time"
+      },
+      "userType": {
+        "official": "Official",
+        "user": "User"
+      },
+      "fallback": {
+        "none": "N/A",
+        "noNickname": "No nickname set",
+        "noBio": "No bio",
+        "unknown": "Unknown"
+      },
+      "errors": {
+        "loadFailed": "Load failed, please try again later"
+      }
     }
   }
 }

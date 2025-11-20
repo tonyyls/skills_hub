@@ -312,24 +312,24 @@
     >
       <div class="bg-white max-w-md w-full p-6 shadow-2xl border border-[#E5E5E5]">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-[#333]">确认退出</h3>
+          <h3 class="text-lg font-bold text-[#333]">{{ t('pages.login.logoutTitle') }}</h3>
           <button class="p-2 hover:bg-[#FFF5EF]" @click="cancelLogout">
             <X class="w-5 h-5 text-gray-600" />
           </button>
         </div>
-        <p class="text-[#666] text-sm mb-4">确定要退出当前账号吗？退出后需要重新登录。</p>
+        <p class="text-[#666] text-sm mb-4">{{ t('pages.login.logoutDesc') }}</p>
         <div class="flex justify-end space-x-3">
           <button
             class="px-4 py-2 bg-[#F7F3EF] text-[#777] hover:bg-[#EFE8E0] transition rounded"
             @click="cancelLogout"
           >
-            取消
+            {{ t('common.cancel') }}
           </button>
           <button
             class="px-4 py-2 bg-gradient-to-r from-[#FF6A3A] to-[#FF7A45] text-white hover:opacity-90 transition rounded"
             @click="confirmLogout"
           >
-            确认退出
+            {{ t('pages.login.btn.signOut') }}
           </button>
         </div>
       </div>
