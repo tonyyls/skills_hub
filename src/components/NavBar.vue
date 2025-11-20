@@ -37,6 +37,13 @@
           >
             {{ t('nav.skills') }}
           </router-link>
+          <button 
+            class="nav-link text-[#333] hover:text-[#FF7A45]"
+            :class="{ 'active': $route.path.startsWith('/doc-skills') }"
+            @click="goDocSkills"
+          >
+            文档技能
+          </button>
           <router-link 
             to="/tutorial" 
             class="nav-link text-[#333] hover:text-[#FF7A45]"
@@ -191,6 +198,12 @@
           >
             <FilePlus class="w-5 h-5 mr-2 inline" /> {{ t('nav.skills') }}
           </router-link>
+          <button 
+            class="mobile-nav-link"
+            @click="goDocSkills"
+          >
+            <FilePlus class="w-5 h-5 mr-2 inline" /> 文档技能
+          </button>
           <router-link 
             to="/tutorial" 
             class="mobile-nav-link"
@@ -380,7 +393,7 @@ const showLanguageMenu = ref(false)
 const currentLanguage = ref<'zh-CN' | 'en'>(i18n.global.locale.value as 'zh-CN' | 'en')
 const showMobileMenu = ref(false)
 const showLoginModal = ref(false)
-const showLogoutConfirm = ref(false)
+  const showLogoutConfirm = ref(false)
 
 /**
  * 当前是否已登录（普通用户或管理员）
@@ -506,13 +519,22 @@ const cancelLogout = () => {
  * 确认退出并清理状态
  * 执行实际的登出操作，关闭菜单并跳转首页
  */
-const confirmLogout = async () => {
-  await authStore.signOut()
-  showUserMenu.value = false
-  showMobileMenu.value = false
-  showLogoutConfirm.value = false
-  router.push('/')
-}
+  const confirmLogout = async () => {
+    await authStore.signOut()
+    showUserMenu.value = false
+    showMobileMenu.value = false
+    showLogoutConfirm.value = false
+    router.push('/')
+  }
+
+  const goDocSkills = () => {
+    if (!isLoggedIn.value) {
+      showLoginModal.value = true
+      return
+    }
+    showMobileMenu.value = false
+    router.push('/doc-skills')
+  }
 
 /**
  * 点击外部关闭用户与语言菜单
