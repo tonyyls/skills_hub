@@ -124,6 +124,7 @@ import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { Github, Mail, CalendarDays, PencilLine } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
+const { t, locale } = useI18n()
 
 interface Profile {
   username: string | null
@@ -297,4 +298,3 @@ watch(
   }
 )
 </script>
-const { t, locale } = useI18n()
