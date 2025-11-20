@@ -89,16 +89,8 @@
         </div>
         </div>
 
-        <!-- 统计信息 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-500">{{ t('pages.profile.stats.skillsPublished') }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.skillsCount }}</p>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
-            <p class="text-sm text-gray-500">{{ t('pages.profile.stats.totalDownloads') }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.totalDownloads }}</p>
-          </div>
+        <!-- 加入时间信息（移除下载与发布统计，不再请求） -->
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-8">
           <div class="rounded-lg border border-gray-200 p-4 bg-gradient-to-br from-white to-gray-50">
             <p class="text-sm text-gray-500">{{ t('pages.profile.stats.joinedTime') }}</p>
             <p class="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
@@ -143,7 +135,7 @@ interface Profile {
 const auth = useAuthStore()
 const profile = ref<Profile | null>(null)
 const loading = ref(true)
-const stats = ref({ skillsCount: 0, totalDownloads: 0 })
+// 移除下载统计：不再维护统计数据与请求
 
 /**
  * 加载个人资料。
@@ -192,32 +184,6 @@ const loadProfile = async (): Promise<void> => {
   }
 }
 
-/**
- * 加载统计信息：查询当前用户发布技能数量与总下载量。
- * - 优先从 Supabase `skills` 表按 `user_id` 聚合。
- * - 兼容字段名 `download_count` 与历史 `downloads`。
- * @returns {Promise<void>} 更新 `stats`。
- */
-const loadStats = async (): Promise<void> => {
-  stats.value = { skillsCount: 0, totalDownloads: 0 }
-  const userId = auth.user?.id
-  if (!userId) return
-  try {
-    const { data, error, count } = await supabase
-      .from('skills')
-      .select('id, download_count, downloads', { count: 'exact' })
-      .eq('user_id', userId)
-
-    if (error) throw error
-    const totalDownloads = (data || []).reduce((sum: number, item: any) => {
-      const d = typeof item.download_count === 'number' ? item.download_count : (item.downloads || 0)
-      return sum + d
-    }, 0)
-    stats.value = { skillsCount: count || (data?.length || 0), totalDownloads }
-  } catch (e) {
-    console.warn('加载统计失败：', e)
-  }
-}
 
 /**
  * 计算显示名称。
@@ -322,14 +288,12 @@ const memberSince = computed(() => {
 
 onMounted(() => {
   void loadProfile()
-  void loadStats()
 })
 
 watch(
   () => [auth.user, auth.adminUser],
   () => {
     void loadProfile()
-    void loadStats()
   }
 )
 </script>
