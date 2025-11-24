@@ -5,7 +5,7 @@
 import { Router, type Request, type Response } from 'express'
 import { addFeedback } from '../utils/devStore.js'
 import jwt from 'jsonwebtoken'
-import { getCached, setCached, etagOf } from '../utils/cache.js'
+import { getCached, setCached, etagOf, getCachedWithMeta } from '../utils/cache.js'
 import { getSupabase } from '../supabase.js'
 
 const router = Router()
@@ -186,9 +186,9 @@ router.get('/skills', async (req: Request, res: Response): Promise<void> => {
 router.get('/categories', async (req: Request, res: Response): Promise<void> => {
   try {
     const cacheKey = 'categories:active'
-    const cached = getCached(cacheKey)
-    if (cached) {
-      const etag = etagOf(cached)
+    const meta = getCachedWithMeta(cacheKey)
+    if (meta) {
+      const etag = etagOf(meta.data)
       if (req.headers['if-none-match'] === etag) {
         res.status(304).end()
         return
@@ -196,7 +196,23 @@ router.get('/categories', async (req: Request, res: Response): Promise<void> => 
       res
         .set('ETag', etag)
         .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
-        .status(200).json(cached)
+        .status(200).json(meta.data)
+      if (meta.expired) {
+        void (async () => {
+          try {
+            const supabase = getSupabase()
+            const { data, error } = await supabase
+              .from('categories')
+              .select('id, name, name_en, slug, description, sort_order, is_active, created_at, updated_at')
+              .eq('is_active', true)
+              .order('sort_order', { ascending: true })
+              .order('created_at', { ascending: false })
+            if (error) throw error
+            const payload = { items: Array.isArray(data) ? data : [] }
+            setCached(cacheKey, payload, 600_000)
+          } catch {}
+        })()
+      }
       return
     }
 
@@ -228,9 +244,9 @@ router.get('/categories', async (req: Request, res: Response): Promise<void> => 
 router.get('/skills/category-counts', async (req: Request, res: Response): Promise<void> => {
   try {
     const cacheKey = 'category-counts:published'
-    const cached = getCached(cacheKey)
-    if (cached) {
-      const etag = etagOf(cached)
+    const meta = getCachedWithMeta(cacheKey)
+    if (meta) {
+      const etag = etagOf(meta.data)
       if (req.headers['if-none-match'] === etag) {
         res.status(304).end()
         return
@@ -238,7 +254,50 @@ router.get('/skills/category-counts', async (req: Request, res: Response): Promi
       res
         .set('ETag', etag)
         .set('Cache-Control', 's-maxage=600, stale-while-revalidate=86400')
-        .status(200).json(cached)
+        .status(200).json(meta.data)
+      if (meta.expired) {
+        void (async () => {
+          try {
+            const supabase = getSupabase()
+            const { data: cats, error: catErr } = await supabase
+              .from('categories')
+              .select('id, name')
+              .eq('is_active', true)
+            if (catErr) throw catErr
+
+            const { data: mvRows, error: mvErr } = await supabase
+              .from('category_skill_counts_mv')
+              .select('category_id, count')
+
+            const countMap: Record<string, number> = {}
+            if (!mvErr && Array.isArray(mvRows)) {
+              for (const r of mvRows) countMap[String((r as any).category_id)] = Number((r as any).count) || 0
+            } else {
+              const catsArr = Array.isArray(cats) ? cats : []
+              const tasks = catsArr.map((c: any) => (
+                supabase
+                  .from('skills')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('status', 'published')
+                  .eq('category_id', c.id)
+              ))
+              const results = await Promise.all(tasks)
+              results.forEach((r, idx) => {
+                const cid = String((catsArr[idx] as any).id)
+                countMap[cid] = (r as any).count ?? 0
+              })
+            }
+
+            const items = (Array.isArray(cats) ? cats : []).map((c: any) => ({
+              id: String(c.id),
+              name: String(c.name),
+              count: countMap[String(c.id)] ?? 0,
+            }))
+            const payload = { items, totalCategories: items.length }
+            setCached(cacheKey, payload, 600_000)
+          } catch {}
+        })()
+      }
       return
     }
 
@@ -249,7 +308,6 @@ router.get('/skills/category-counts', async (req: Request, res: Response): Promi
       .eq('is_active', true)
     if (catErr) throw catErr
 
-    // Try reading materialized view counts
     const { data: mvRows, error: mvErr } = await supabase
       .from('category_skill_counts_mv')
       .select('category_id, count')
@@ -258,15 +316,19 @@ router.get('/skills/category-counts', async (req: Request, res: Response): Promi
     if (!mvErr && Array.isArray(mvRows)) {
       for (const r of mvRows) countMap[String((r as any).category_id)] = Number((r as any).count) || 0
     } else {
-      // Fallback to direct count if MV not available
-      for (const c of (cats || [])) {
-        const { count } = await supabase
+      const catsArr = Array.isArray(cats) ? cats : []
+      const tasks = catsArr.map((c: any) => (
+        supabase
           .from('skills')
           .select('id', { count: 'exact', head: true })
           .eq('status', 'published')
-          .eq('category_id', (c as any).id)
-        countMap[String((c as any).id)] = count ?? 0
-      }
+          .eq('category_id', c.id)
+      ))
+      const results = await Promise.all(tasks)
+      results.forEach((r, idx) => {
+        const cid = String((catsArr[idx] as any).id)
+        countMap[cid] = (r as any).count ?? 0
+      })
     }
 
     const items = (cats || []).map((c: any) => ({

@@ -26,3 +26,10 @@ export function etagOf(obj: unknown): string {
   const s = JSON.stringify(obj ?? {})
   return crypto.createHash('sha1').update(s).digest('hex')
 }
+
+export function getCachedWithMeta<T = any>(key: string): { data: T; expired: boolean } | null {
+  const entry = memoryCache.get(key)
+  if (!entry) return null
+  const expired = Date.now() > entry.expiresAt
+  return { data: entry.data as T, expired }
+}
