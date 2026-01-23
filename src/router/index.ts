@@ -179,6 +179,33 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/doc-skills',
+    name: 'DocSkillsHome',
+    component: () => import('@/pages/DocSkillsHomePage.vue'),
+    meta: {
+      titleKey: 'common.appTitle',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/doc-skills/create',
+    name: 'CreateDocSkill',
+    component: () => import('@/pages/CreateDocSkillPage.vue'),
+    meta: {
+      titleKey: 'common.appTitle',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/doc-skills/tasks/:id',
+    name: 'DocSkillTaskDetail',
+    component: () => import('@/pages/DocSkillTaskDetail.vue'),
+    meta: {
+      titleKey: 'common.appTitle',
+      requiresAuth: true
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/pages/NotFoundPage.vue'),
