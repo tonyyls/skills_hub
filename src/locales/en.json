@@ -55,17 +55,11 @@
     },
     "tutorial": {
       "title": "Getting Started",
-      "intro": "Guide to using Skills Hub",
-      "claudeTitle": "How to use Skills in Claude Code or Claude AI",
-      "claudeIntro": "Claude includes products like Claude Code and Claude AI by Anthropic. With Skills Hub, you can quickly import skills into these apps.",
-      "stepsTitle": "Steps",
-      "claudeStep1": "Open the command line in the Claude app",
-      "claudeStep2": "Find the install command of the skill (e.g. /plugin marketplace add lackeyjb-playwright-skill) and run it",
-      "codebuddyTitle": "How to use Skills in CodeBuddy",
-      "codebuddyIntro": "CodeBuddy is an AI-native IDE by Tencent. With Skills Hub, you can use these skills in your AI coding workflow.",
-      "codebuddyStep1": "Find the skill and get the git URL, then clone it to a local folder",
-      "codebuddyStep2": "Open the CodeBuddy IDE",
-      "codebuddyStep3": "In Settings → Skills, import the folder to personal/project skills"
+      "intro": "AI Skills Repository for tools supporting Skills, such as: Claude Code, OpenCode, Cursor, Gemini CLI, Windsurfer, Trae, Qoder, CodeBuddy, etc.",
+      "installCliTitle": "Step 1: Install CLI Tool",
+      "installCliDesc": "Before using Skills, please install the official CLI tool:",
+      "installSkillTitle": "Step 2: Install Skill",
+      "installSkillDesc": "Use the CLI tool to install the skills you need. The command format is as follows:"
     },
     "skillDetail": {
       "title": "Skill Detail",

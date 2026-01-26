@@ -38,9 +38,10 @@
             {{ t('nav.skills') }}
           </router-link>
           <button 
-            class="nav-link text-[#333] hover:text-[#FF7A45]"
+            class="nav-link text-[#333] hover:text-[#FF7A45] hidden"
             :class="{ 'active': $route.path.startsWith('/doc-skills') }"
             @click="goDocSkills"
+            v-if="false"
           >
             文档技能
           </button>
@@ -201,6 +202,7 @@
           <button 
             class="mobile-nav-link"
             @click="goDocSkills"
+            v-if="false"
           >
             <FilePlus class="w-5 h-5 mr-2 inline" /> 文档技能
           </button>

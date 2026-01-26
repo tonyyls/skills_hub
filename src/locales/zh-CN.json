@@ -55,17 +55,11 @@
     },
     "tutorial": {
       "title": "使用教程",
-      "intro": "Skills Hub 使用指南",
-      "claudeTitle": "Claude 应用中如何使用 Skills",
-      "claudeIntro": "Claude 应该包括 Claude Code、Claude AI 等是 Anthropic 旗下的产品，结合 Skills Hub，能快速引入技能到这些应用中。",
-      "stepsTitle": "使用步骤",
-      "claudeStep1": "打开 Claude 应用的命令行",
-      "claudeStep2": "找到对应技能的安装命令（例如 /plugin marketplace add lackeyjb-playwright-skill），并执行安装",
-      "codebuddyTitle": "CodeBuddy 中如何使用 Skills",
-      "codebuddyIntro": "CodeBuddy 是腾讯出品的 AI 原生 IDE，结合 Skills Hub，你可以在 AI 编程过程中使用这些技能。",
-      "codebuddyStep1": "找到对应的技能，得到 git 地址，将技能克隆到本地文件夹",
-      "codebuddyStep2": "打开 CodeBuddy IDE 工具",
-      "codebuddyStep3": "在设置中找到“技能”，将文件夹导入到个人/项目技能中"
+      "intro": "AI技能仓库，可用于支持 Skills 的工具，例如：Claude Code, OpenCode, Cursor, Gemini CLI, Windsurfer, Trae, Qoder, CodeBuddy等。",
+      "installCliTitle": "第一步：安装 CLI 工具",
+      "installCliDesc": "在使用 Skills 之前，请先安装官方 CLI 工具：",
+      "installSkillTitle": "第二步：安装技能",
+      "installSkillDesc": "使用 CLI 工具安装你需要的技能，命令格式如下："
     },
     "skillDetail": {
       "title": "技能详情",
