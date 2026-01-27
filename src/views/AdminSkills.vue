@@ -325,32 +325,18 @@
             <!-- 基本信息区域 -->
           <div class="bg-gray-50 rounded-lg p-3 mb-5">
             <h4 class="text-base font-medium text-gray-900 mb-3">基本信息</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  标题 <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="form.title"
-                  type="text"
-                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                  placeholder="输入技能标题"
-                  required
-                  v-select-all-shortcut
-                >
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  英文标题
-                </label>
-                <input
-                  v-model="form.title_en"
-                  type="text"
-                  class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                  placeholder="Enter skill title"
-                  v-select-all-shortcut
-                >
-              </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                标题 <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.title"
+                type="text"
+                class="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                placeholder="输入技能标题"
+                required
+                v-select-all-shortcut
+              >
             </div>
           </div>
                 
