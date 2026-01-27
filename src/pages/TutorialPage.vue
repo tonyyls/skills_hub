@@ -50,7 +50,7 @@
       </section>
 
       <!-- 第二步：安装技能 -->
-      <section class="bg-white rounded-2xl shadow-xl p-8 border border-orange-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+      <section class="bg-white rounded-2xl shadow-xl p-8 border border-orange-100">
         <header class="flex items-center gap-4 mb-6">
           <div class="bg-blue-100 p-3 rounded-full">
             <Code class="w-8 h-8 text-blue-600" />
@@ -67,16 +67,6 @@
           >
             <Copy class="w-5 h-5" />
           </button>
-        </div>
-
-        <!-- CLI 截图 -->
-        <div class="mt-8 rounded-xl overflow-hidden border border-gray-200 shadow-md">
-          <img 
-            src="https://camo.githubusercontent.com/3362e1f1d2b4e532c64da5c15b659561268570b0a720e19fdb8a7e98bbc45b20/68747470733a2f2f67697465652e636f6d2f6b6573616e61692f736b696c6c732d6875622d636c692f7261772f6d61737465722f736e617073686f742d636c692e706e67" 
-            alt="CLI Usage Example" 
-            class="w-full h-auto object-cover"
-            loading="lazy"
-          />
         </div>
       </section>
     </div>
