@@ -5,7 +5,7 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 
 function parseYamlBlock(block: string): Record<string, any> {
   const result: Record<string, any> = {}
-  const lines = block.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+  const lines = block.split(/\r?\n/).filter(s => s.trim().length > 0)
   const stack: Array<{ key: string; level: number; obj: Record<string, any> }> = []
   
   for (const line of lines) {
